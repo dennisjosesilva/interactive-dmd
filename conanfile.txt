@@ -1,0 +1,6 @@
+[requires]
+MorphotreeWidget/0.0.1@dennisjosesilva/dev
+ImageViewerWidget/0.0.1@dennisjosesilva/dev 
+
+[generators]
+cmake

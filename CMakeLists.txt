@@ -22,7 +22,8 @@ file(GLOB_RECURSE PROJECT_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 # MOC SOURCE
 qt5_wrap_cpp(PROJECT_SOURCE 
-  include/MainWindow.hpp)
+  include/MainWindow.hpp
+  include/MainWidget.hpp)
 
 # EXECUTABLES
 add_executable(interactive-dmd ${PROJECT_SOURCE})

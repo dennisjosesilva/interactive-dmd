@@ -75,17 +75,19 @@ void MainWindow::open()
   QFileDialog dialog(this, tr("Open File"));
   initialiseImageFileDialog(dialog, QFileDialog::AcceptOpen);
 
-  while (true) {
-    bool accepted = dialog.exec() == QDialog::Accepted;
+  bool accepted = dialog.exec() == QDialog::Accepted;
+  
+  if (accepted && dialog.selectedFiles().count() > 0) {    
     const QString filename = dialog.selectedFiles().constFirst();
-    
-    if (accepted && mainWidget_->loadImage(filename)) {
+    if (mainWidget_->loadImage(filename)) {
       const QImage &image = mainWidget_->image();
       statusBar()->showMessage(tr("loaded %1 : dim: (%2 x %3)").arg(filename) 
-        .arg(image.width()).arg(image.height()), 3000);
-      break;
+        .arg(image.width()).arg(image.height()), 3000);    
     }
-  }  
+  }
+  else {
+    statusBar()->showMessage(tr("Image open has been canceled"), 3000);
+  }    
 }
 
 void MainWindow::saveAs()
@@ -93,13 +95,16 @@ void MainWindow::saveAs()
   QFileDialog dialog(this, tr("Save File As"));
   initialiseImageFileDialog(dialog, QFileDialog::AcceptSave);
 
-  while (true) {
-    bool accepted = dialog.exec();
+  bool accepted = dialog.exec();
+  
+  if (accepted && dialog.selectedFiles().count() > 0) {
     const QString filename = dialog.selectedFiles().constFirst();
-
-    if (accepted && mainWidget_->saveImage(filename)) {
-      statusBar()->showMessage(tr("Wrote image to %1").arg(filename), 3000);
-      break;
-    }
+    if (mainWidget_->saveImage(filename))
+      statusBar()->showMessage(tr("Wrote image to %1").arg(filename), 3000);  
+    else
+      statusBar()->showMessage(tr("Image has not been written due an error"), 3000);  
+  }
+  else {
+    statusBar()->showMessage(tr("Image save operation has been canceled."), 3000);  
   }  
 }

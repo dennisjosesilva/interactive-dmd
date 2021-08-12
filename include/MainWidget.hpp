@@ -14,6 +14,7 @@ public:
   MainWidget(QWidget *parent=nullptr);
 
   bool loadImage(const QString& filename);
+  bool saveImage(const QString& filename);
 
   const QImage& image() const { return imageViewer_->image(); }
   QImage& image() { return imageViewer_->image(); }

@@ -2,6 +2,7 @@
 
 #include <QMessageBox>
 #include <QImageReader>
+#include <QImageWriter>
 #include <QImage>
 #include <QGuiApplication>
 #include <QDir>
@@ -16,7 +17,9 @@ MainWidget::MainWidget(QWidget *parent)
   :QWidget{parent},
    imageViewer_{new ImageViewerWidget::ImageViewerWidget{this}}
 { 
-  QLayout *mainLayout = new QHBoxLayout;
+  QLayout *mainLayout = new QVBoxLayout;
+
+  
 
   mainLayout->addWidget(imageViewer_);
 
@@ -38,6 +41,19 @@ bool MainWidget::loadImage(const QString &filename)
   }
   
   imageViewer_->setImage(newImage);
+
+  return true;
+}
+
+bool MainWidget::saveImage(const QString &filename)
+{
+  QImageWriter writer(filename);
+
+  if (!writer.write(imageViewer_->image())) {
+    QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+      tr("Cannot write %1: %2").arg(QDir::toNativeSeparators(filename), writer.errorString()));
+    return false;
+  }
 
   return true;
 }

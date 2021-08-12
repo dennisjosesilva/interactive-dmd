@@ -82,7 +82,7 @@ void MainWindow::open()
     if (accepted && mainWidget_->loadImage(filename)) {
       const QImage &image = mainWidget_->image();
       statusBar()->showMessage(tr("loaded %1 : dim: (%2 x %3)").arg(filename) 
-        .arg(image.width()).arg(image.height()));
+        .arg(image.width()).arg(image.height()), 3000);
       break;
     }
   }  
@@ -90,5 +90,16 @@ void MainWindow::open()
 
 void MainWindow::saveAs()
 {
-  statusBar()->showMessage(tr("Save as execution"), 2000);
+  QFileDialog dialog(this, tr("Save File As"));
+  initialiseImageFileDialog(dialog, QFileDialog::AcceptSave);
+
+  while (true) {
+    bool accepted = dialog.exec();
+    const QString filename = dialog.selectedFiles().constFirst();
+
+    if (accepted && mainWidget_->saveImage(filename)) {
+      statusBar()->showMessage(tr("Wrote image to %1").arg(filename), 3000);
+      break;
+    }
+  }  
 }

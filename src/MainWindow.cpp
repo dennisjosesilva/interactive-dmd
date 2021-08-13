@@ -9,7 +9,9 @@
 #include <QByteArrayList>
 #include <QImageReader>
 #include <QImageWriter>
+#include <QDockWidget>
 #include <QImage>
+#include <QToolBar>
 
 #include <QDebug>
 
@@ -43,6 +45,12 @@ void MainWindow::createMenus()
   exitAct->setToolTip("Finalise the application");
   exitAct->setShortcut(tr("Ctrl+Q"));
 }
+
+void MainWindow::createToolBar()
+{
+  QToolBar *toolbar = addToolBar(tr("Main"));
+}
+
 
 static void initialiseImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode)
 {
@@ -82,7 +90,8 @@ void MainWindow::open()
     if (mainWidget_->loadImage(filename)) {
       const QImage &image = mainWidget_->image();
       statusBar()->showMessage(tr("loaded %1 : dim: (%2 x %3)").arg(filename) 
-        .arg(image.width()).arg(image.height()), 3000);    
+        .arg(image.width()).arg(image.height()), 3000);   
+      showTreeVisualiser(); 
     }
   }
   else {
@@ -108,3 +117,10 @@ void MainWindow::saveAs()
     statusBar()->showMessage(tr("Image save operation has been canceled."), 3000);  
   }  
 }
+
+void MainWindow::showTreeVisualiser()
+{
+  QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
+  dockMorphotreeWidget->setVisible(true);
+}
+

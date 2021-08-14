@@ -17,11 +17,14 @@
 
 #include <MorphotreeWidget/TreeLayout/TreeLayout.hpp>
 #include <MorphotreeWidget/TreeSimplification/TreeSimplification.hpp>
+#include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
 
 #include <morphotree/core/box.hpp>
 #include <morphotree/core/alias.hpp>
 
 #include <QDockWidget>
+
+#include <QDebug>
 
 
 MainWidget::MainWidget(QWidget *parent)
@@ -37,6 +40,15 @@ MainWidget::MainWidget(QWidget *parent)
   morphotreeWidget_ = new mw::MorphotreeWidget{mw::TreeLayout::TreeLayoutType::GraphvizWithLevel};
 
   createDockMorphotreeWidget();
+
+  connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress,
+    this, &MainWidget::morphotreeWidget_onNodeMousePress); 
+
+  connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mouseRelease,
+    this, &MainWidget::morphotreeWidget_onNodeMouseRelease); 
+
+  connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mouseDoubleClick,
+    this, &MainWidget::morphotreeWidget_onNodeMouseDoubleClick); 
 
   mainLayout->addWidget(imageViewer_);
 
@@ -89,8 +101,13 @@ void MainWidget::updateMorphotreeWidget()
   const uchar *bits = image.bits();
   std::vector<mt::uint8> f{ bits, bits + domain.numberOfPoints() };
 
+  // morphotreeWidget_->loadImage(domain, f, 
+  //   std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
+
   morphotreeWidget_->loadImage(domain, f, 
-    std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
+    std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 1000, 180));
+
+  needMorphotreeWidgetUpdate_ = false;
 }
 
 void MainWidget::createDockMorphotreeWidget()
@@ -109,4 +126,19 @@ QDockWidget *MainWidget::morphotreeDockWidget()
     updateMorphotreeWidget();
   
   return dockMorphotreeWidget_;
+}
+
+void MainWidget::morphotreeWidget_onNodeMousePress(MorphotreeWidget::GNode *node)
+{
+  qDebug() << "Node Press";
+}
+
+void MainWidget::morphotreeWidget_onNodeMouseRelease(MorphotreeWidget::GNode *node)
+{
+  qDebug() << "Node Release";
+}
+
+void MainWidget::morphotreeWidget_onNodeMouseDoubleClick(MorphotreeWidget::GNode *node)
+{
+  qDebug() << "Node Double Click";
 }

@@ -12,6 +12,7 @@
 #include <QDockWidget>
 #include <QImage>
 #include <QToolBar>
+#include <QIcon>
 
 #include <QDebug>
 
@@ -23,6 +24,7 @@ MainWindow::MainWindow()
   setCentralWidget(mainWidget_);
 
   createMenus();
+  createToolBar();
   
   statusBar()->showMessage(tr("Ready"), 3000);
 }
@@ -49,6 +51,14 @@ void MainWindow::createMenus()
 void MainWindow::createToolBar()
 {
   QToolBar *toolbar = addToolBar(tr("Main"));
+  toolbar->setIconSize(QSize{32, 32});
+
+  const QIcon showTreeIcon = QIcon(":/images/morphotree_icon.png");  
+  showTreeVisAct_ = new QAction(showTreeIcon, tr("Show morphotree"), this);
+  showTreeVisAct_->setStatusTip(tr("Show Morphotree Widget for the current image"));
+  showTreeVisAct_->setCheckable(true);
+  connect(showTreeVisAct_, &QAction::toggled, this, &MainWindow::treeVisAct_onToggled);
+  toolbar->addAction(showTreeVisAct_);
 }
 
 
@@ -77,7 +87,6 @@ static void initialiseImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMo
     dialog.setDefaultSuffix("jpg");
 }
 
-
 void MainWindow::open()
 {  
   QFileDialog dialog(this, tr("Open File"));
@@ -90,8 +99,11 @@ void MainWindow::open()
     if (mainWidget_->loadImage(filename)) {
       const QImage &image = mainWidget_->image();
       statusBar()->showMessage(tr("loaded %1 : dim: (%2 x %3)").arg(filename) 
-        .arg(image.width()).arg(image.height()), 3000);   
-      showTreeVisualiser(); 
+        .arg(image.width()).arg(image.height()), 3000); 
+      
+      if (showTreeVisAct_->isChecked())
+        mainWidget_->updateMorphotreeWidget();
+
     }
   }
   else {
@@ -118,9 +130,12 @@ void MainWindow::saveAs()
   }  
 }
 
-void MainWindow::showTreeVisualiser()
-{
+void MainWindow::treeVisAct_onToggled(bool checked)
+{  
   QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
-  dockMorphotreeWidget->setVisible(true);
+  if (checked) 
+    dockMorphotreeWidget->setVisible(true);
+  else 
+    dockMorphotreeWidget->setVisible(false);
 }
 

@@ -25,6 +25,9 @@ qt5_wrap_cpp(PROJECT_SOURCE
   include/MainWindow.hpp
   include/MainWidget.hpp)
 
+# SET RESOURCE FILES
+qt5_add_resources(PROJECT_SOURCE resources.qrc)
+
 # EXECUTABLES
 add_executable(interactive-dmd ${PROJECT_SOURCE})
 target_link_libraries(interactive-dmd PUBLIC

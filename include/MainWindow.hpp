@@ -4,6 +4,7 @@
 #include "MainWidget.hpp"
 
 class QDockWidget;
+class QAction;
 
 
 class MainWindow : public QMainWindow
@@ -17,7 +18,7 @@ private slots:
   void saveAs();
   void open();
 
-  void showTreeVisualiser();
+  void treeVisAct_onToggled(bool checked=true);
 
 private:
   void createMenus();
@@ -26,4 +27,5 @@ private:
 private:
   MainWidget *mainWidget_;
   QDockWidget *dockTreeVis_;
+  QAction *showTreeVisAct_;
 };

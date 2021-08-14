@@ -4,8 +4,12 @@
 #include <QString>
 #include <ImageViewerWidget/ImageViewerWidget.hpp>
 #include <MorphotreeWidget/MorphotreeWidget.hpp>
+#include <MorphotreeWidget/Graphics/GNode.hpp>
 
 #include <QDockWidget>
+
+
+
 
 class MainWidget : public QWidget
 {  
@@ -23,6 +27,11 @@ public:
   QDockWidget *morphotreeDockWidget();
 
   void updateMorphotreeWidget();
+
+private slots:
+  void morphotreeWidget_onNodeMousePress(MorphotreeWidget::GNode *node);
+  void morphotreeWidget_onNodeMouseRelease(MorphotreeWidget::GNode *node);
+  void morphotreeWidget_onNodeMouseDoubleClick(MorphotreeWidget::GNode *node);
 
 private:
   void createDockMorphotreeWidget();

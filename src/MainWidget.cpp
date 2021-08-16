@@ -152,7 +152,9 @@ void MainWidget::morphotreeWidget_onNodeMousePress(MorphotreeWidget::GNode *node
 void MainWidget::morphotreeWidget_onNodeMouseRelease(MorphotreeWidget::GNode *node,
   QGraphicsSceneMouseEvent *e)
 {
-    switch (e->buttons())
+  qDebug() << "Mouse Release";
+
+  switch (e->buttons())
   {
   case Qt::RightButton:
     qDebug() << "Node Release Right Button";
@@ -171,7 +173,7 @@ void MainWidget::morphotreeWidget_onNodeMouseRelease(MorphotreeWidget::GNode *no
 void MainWidget::morphotreeWidget_onNodeMouseDoubleClick(MorphotreeWidget::GNode *node, 
   QGraphicsSceneMouseEvent *e)
 {
-    switch (e->buttons())
+  switch (e->buttons())
   {
   case Qt::RightButton:
     qDebug() << "Node Double Click Right Button";

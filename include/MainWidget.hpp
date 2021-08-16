@@ -29,9 +29,14 @@ public:
   void updateMorphotreeWidget();
 
 private slots:
-  void morphotreeWidget_onNodeMousePress(MorphotreeWidget::GNode *node);
-  void morphotreeWidget_onNodeMouseRelease(MorphotreeWidget::GNode *node);
-  void morphotreeWidget_onNodeMouseDoubleClick(MorphotreeWidget::GNode *node);
+  void morphotreeWidget_onNodeMousePress(MorphotreeWidget::GNode *node,
+    QGraphicsSceneMouseEvent *e);
+
+  void morphotreeWidget_onNodeMouseRelease(MorphotreeWidget::GNode *node, 
+    QGraphicsSceneMouseEvent *e);
+    
+  void morphotreeWidget_onNodeMouseDoubleClick(MorphotreeWidget::GNode *node, 
+    QGraphicsSceneMouseEvent *e);
 
 private:
   void createDockMorphotreeWidget();

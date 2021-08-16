@@ -128,17 +128,61 @@ QDockWidget *MainWidget::morphotreeDockWidget()
   return dockMorphotreeWidget_;
 }
 
-void MainWidget::morphotreeWidget_onNodeMousePress(MorphotreeWidget::GNode *node)
+void MainWidget::morphotreeWidget_onNodeMousePress(MorphotreeWidget::GNode *node, 
+  QGraphicsSceneMouseEvent *e)
 {
-  qDebug() << "Node Press";
+  node->setSelected(true);
+
+  switch (e->buttons())
+  {
+  case Qt::RightButton:
+    qDebug() << "Node Press Right Button";
+    break;
+
+  case Qt::LeftButton:
+    qDebug() << "Node Press Left Button";
+    break;
+
+  case Qt::MiddleButton:
+    qDebug() << "Node Press Middle Button";
+    break;
+  }
 }
 
-void MainWidget::morphotreeWidget_onNodeMouseRelease(MorphotreeWidget::GNode *node)
+void MainWidget::morphotreeWidget_onNodeMouseRelease(MorphotreeWidget::GNode *node,
+  QGraphicsSceneMouseEvent *e)
 {
-  qDebug() << "Node Release";
+    switch (e->buttons())
+  {
+  case Qt::RightButton:
+    qDebug() << "Node Release Right Button";
+    break;
+
+  case Qt::LeftButton:
+    qDebug() << "Node Release Left Button";
+    break;
+
+  case Qt::MiddleButton:
+    qDebug() << "Node Release Middle Button";
+    break;
+  }
 }
 
-void MainWidget::morphotreeWidget_onNodeMouseDoubleClick(MorphotreeWidget::GNode *node)
+void MainWidget::morphotreeWidget_onNodeMouseDoubleClick(MorphotreeWidget::GNode *node, 
+  QGraphicsSceneMouseEvent *e)
 {
-  qDebug() << "Node Double Click";
+    switch (e->buttons())
+  {
+  case Qt::RightButton:
+    qDebug() << "Node Double Click Right Button";
+    break;
+
+  case Qt::LeftButton:
+    qDebug() << "Node Double Click Left Button";
+    break;
+
+  case Qt::MiddleButton:
+    qDebug() << "Node Double Click Middle Button";
+    break;
+  }
 }

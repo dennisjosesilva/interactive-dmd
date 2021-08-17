@@ -26,23 +26,22 @@
 
 #include <QDebug>
 
-
-#include "TreeVisualiser/RecNodeButton.hpp"
+#include "TreeVisualiser/TreeVisualiser.hpp"
 
 
 MainWidget::MainWidget(QWidget *parent)
   :QWidget{parent},
-   needMorphotreeWidgetUpdate_{false}
+   needTreeVisualiserUpdate_{false}
 { 
-  namespace iv = ImageViewerWidget;
+  namespace iv = ImageViewerWidget;  
   namespace mw = MorphotreeWidget;
 
   QLayout *mainLayout = new QVBoxLayout;
 
   imageViewer_ = new iv::ImageViewerWidget{this};
-  morphotreeWidget_ = new mw::MorphotreeWidget{mw::TreeLayout::TreeLayoutType::GraphvizWithLevel};
+  treeVis_ = new TreeVisualiser{};
 
-  createDockMorphotreeWidget();
+  createDockTreeVisualiser();
 
   connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress,
     this, &MainWidget::morphotreeWidget_onNodeMousePress); 
@@ -73,7 +72,7 @@ bool MainWidget::loadImage(const QString &filename)
   }
   
   imageViewer_->setImage(newImage);
-  needMorphotreeWidgetUpdate_ = true;
+  needTreeVisualiserUpdate_ = true;
 
   return true;
 }
@@ -91,7 +90,7 @@ bool MainWidget::saveImage(const QString &filename)
   return true;
 }
 
-void MainWidget::updateMorphotreeWidget()
+void MainWidget::updateTreeVisualiser()
 {
   namespace mt = morphotree;
   namespace mw = MorphotreeWidget;
@@ -104,31 +103,31 @@ void MainWidget::updateMorphotreeWidget()
   const uchar *bits = image.bits();
   std::vector<mt::uint8> f{ bits, bits + domain.numberOfPoints() };
 
-  // morphotreeWidget_->loadImage(domain, f, 
+  // treeVis_->loadImage(domain, f, 
   //   std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
 
-  morphotreeWidget_->loadImage(domain, f, 
+  treeVis_->loadImage(domain, f, 
     std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 1000, 180));
 
-  needMorphotreeWidgetUpdate_ = false;
+  needTreeVisualiserUpdate_ = false;
 }
 
-void MainWidget::createDockMorphotreeWidget()
+void MainWidget::createDockTreeVisualiser()
 {
-  dockMorphotreeWidget_ = new QDockWidget{"Morphotree", 
+  dockTreeVisualiser_ = new QDockWidget{"Morphotree", 
     qobject_cast<QMainWindow*>(parent())};
 
-  dockMorphotreeWidget_->setVisible(false);
-  dockMorphotreeWidget_->setFloating(true);
-  dockMorphotreeWidget_->setWidget(morphotreeWidget_);
+  dockTreeVisualiser_->setVisible(false);
+  dockTreeVisualiser_->setFloating(true);  
+  dockTreeVisualiser_->setWidget(treeVis_);
 }
 
 QDockWidget *MainWidget::morphotreeDockWidget()
 {
-  if (needMorphotreeWidgetUpdate_) 
-    updateMorphotreeWidget();
+  if (needTreeVisualiserUpdate_) 
+    updateTreeVisualiser();
   
-  return dockMorphotreeWidget_;
+  return dockTreeVisualiser_;
 }
 
 void MainWidget::morphotreeWidget_onNodeMousePress(MorphotreeWidget::GNode *node, 

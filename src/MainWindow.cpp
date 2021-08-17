@@ -102,7 +102,7 @@ void MainWindow::open()
         .arg(image.width()).arg(image.height()), 3000); 
       
       if (showTreeVisAct_->isChecked())
-        mainWidget_->updateMorphotreeWidget();
+        mainWidget_->updateTreeVisualiser();
 
     }
   }

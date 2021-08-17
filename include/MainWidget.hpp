@@ -3,8 +3,9 @@
 #include <QWidget>
 #include <QString>
 #include <ImageViewerWidget/ImageViewerWidget.hpp>
-#include <MorphotreeWidget/MorphotreeWidget.hpp>
 #include <MorphotreeWidget/Graphics/GNode.hpp>
+
+#include "TreeVisualiser/TreeVisualiser.hpp"
 
 #include <QDockWidget>
 
@@ -23,10 +24,10 @@ public:
   const QImage& image() const { return imageViewer_->image(); }
   QImage& image() { return imageViewer_->image(); }
   
-  inline MorphotreeWidget::MorphotreeWidget *morphotreeWidget() { return morphotreeWidget_; }
+  inline TreeVisualiser *treeVisualiser() { return treeVis_; }
   QDockWidget *morphotreeDockWidget();
 
-  void updateMorphotreeWidget();
+  void updateTreeVisualiser();
 
 private slots:
   void morphotreeWidget_onNodeMousePress(MorphotreeWidget::GNode *node,
@@ -39,13 +40,13 @@ private slots:
     QGraphicsSceneMouseEvent *e);
 
 private:
-  void createDockMorphotreeWidget();
+  void createDockTreeVisualiser();
 
 private:
-  bool needMorphotreeWidgetUpdate_;
+  bool needTreeVisualiserUpdate_;
 
-  QDockWidget *dockMorphotreeWidget_;
+  QDockWidget *dockTreeVisualiser_;
 
   ImageViewerWidget::ImageViewerWidget *imageViewer_;
-  MorphotreeWidget::MorphotreeWidget *morphotreeWidget_;
+  TreeVisualiser *treeVis_;
 };

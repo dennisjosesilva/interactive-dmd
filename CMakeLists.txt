@@ -23,7 +23,8 @@ file(GLOB_RECURSE PROJECT_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 # MOC SOURCE
 qt5_wrap_cpp(PROJECT_SOURCE 
   include/MainWindow.hpp
-  include/MainWidget.hpp)
+  include/MainWidget.hpp
+  include/TreeVisualiser/RecNodeButton.hpp)
 
 # SET RESOURCE FILES
 qt5_add_resources(PROJECT_SOURCE resources.qrc)

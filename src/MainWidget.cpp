@@ -27,6 +27,9 @@
 #include <QDebug>
 
 
+#include "TreeVisualiser/RecNodeButton.hpp"
+
+
 MainWidget::MainWidget(QWidget *parent)
   :QWidget{parent},
    needMorphotreeWidgetUpdate_{false}

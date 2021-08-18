@@ -9,9 +9,6 @@
 
 #include <QDockWidget>
 
-
-
-
 class MainWidget : public QWidget
 {  
   Q_OBJECT
@@ -27,17 +24,9 @@ public:
   inline TreeVisualiser *treeVisualiser() { return treeVis_; }
   QDockWidget *morphotreeDockWidget();
 
+  QDockWidget* createDockWidget(const QString &title, QWidget *widget);
+
   void updateTreeVisualiser();
-
-private slots:
-  void morphotreeWidget_onNodeMousePress(MorphotreeWidget::GNode *node,
-    QGraphicsSceneMouseEvent *e);
-
-  void morphotreeWidget_onNodeMouseRelease(MorphotreeWidget::GNode *node, 
-    QGraphicsSceneMouseEvent *e);
-    
-  void morphotreeWidget_onNodeMouseDoubleClick(MorphotreeWidget::GNode *node, 
-    QGraphicsSceneMouseEvent *e);
 
 private:
   void createDockTreeVisualiser();

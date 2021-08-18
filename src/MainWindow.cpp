@@ -21,6 +21,7 @@ MainWindow::MainWindow()
   setWindowTitle("Interactive DMD");  
 
   mainWidget_ = new MainWidget{this};
+  mainWidget_->loadImage("../../images/Zuckerberg.pgm");
   setCentralWidget(mainWidget_);
 
   createMenus();

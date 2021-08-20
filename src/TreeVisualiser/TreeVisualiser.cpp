@@ -21,7 +21,8 @@
 
 TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   : mainWidget_(mainWidget),
-    binRecDock_{nullptr}
+    binRecDock_{nullptr, nullptr},
+    lastbinRecNodeSelected_{nullptr}
 {
   namespace mw = MorphotreeWidget;
 
@@ -79,27 +80,41 @@ void TreeVisualiser::nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e)
   using NodePtr = typename GNode::MTreeNodePtr;
   using uint8 = morphotree::uint8;  
 
-  node->setSelected(true);
 
   // qDebug() << binRecDock_;
 
   if (binRecButton_->mode() == RecNodeButton::Mode::MonoDock) {
-    ImageViewerWidget *iv = nullptr;
-    if (binRecDock_ == nullptr) {            
-      iv = new ImageViewerWidget;
-      binRecDock_ = mainWidget_->createDockWidget(
-        tr("binary node reconstruction"), iv);
-      connect(binRecDock_, &QObject::destroyed, this, &TreeVisualiser::dock_onDestroy);          
-    }
-    else {
-      iv = qobject_cast<ImageViewerWidget *>(binRecDock_->widget());
-    }
+    if (lastbinRecNodeSelected_ != node) {
+      ImageViewerWidget *iv = nullptr;
+      if (binRecDock_.isEmpty()) {                    
+        iv = new ImageViewerWidget;
+        binRecDock_.dock  = mainWidget_->createDockWidget(
+          tr("binary node reconstruction"), iv);
+        binRecDock_.node = node;
+        binRecDock_.dock->setFixedSize(domain_.width(), domain_.height());
+        connect(binRecDock_.dock, &QObject::destroyed, this, &TreeVisualiser::binRecDock_onDestroy);          
+      }
+      else {        
+        iv = qobject_cast<ImageViewerWidget *>(binRecDock_.dock->widget());
+      }
 
-    NodePtr mnode = node->mtreeNode();    
-    std::vector<uint8> bimg = bool2UInt8(mnode->reconstruct(domain_));
-    QImage fimg{bimg.data(), static_cast<int>(domain_.width()), 
-      static_cast<int>(domain_.height()), QImage::Format::Format_Grayscale8};
-    iv->setImage(fimg);            
+      NodePtr mnode = node->mtreeNode();    
+      std::vector<uint8> bimg = bool2UInt8(mnode->reconstruct(domain_));
+      QImage fimg{bimg.data(), static_cast<int>(domain_.width()), 
+        static_cast<int>(domain_.height()), QImage::Format::Format_Grayscale8};
+      iv->setImage(fimg);
+      node->setSelected(true); 
+
+      if (lastbinRecNodeSelected_ != nullptr) {
+        lastbinRecNodeSelected_->setSelected(false);
+        lastbinRecNodeSelected_->update();
+      }
+      lastbinRecNodeSelected_ = node;
+    }
+    else {      
+      node->setSelected(false);
+      binRecDock_.dock->close();      
+    }     
   } 
   else if (binRecButton_->mode() == RecNodeButton::Mode::MultiDock) {
     ImageViewerWidget *iv = new ImageViewerWidget;    
@@ -115,7 +130,14 @@ void TreeVisualiser::nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e)
 
 } 
 
-void TreeVisualiser::dock_onDestroy(QObject *dock)
+void TreeVisualiser::binRecDock_onDestroy(QObject *dock)
 {
-  binRecDock_ = nullptr;
+  qDebug() << "Close";
+  lastbinRecNodeSelected_->setSelected(false);
+  lastbinRecNodeSelected_->update();
+  binRecDock_.node->setSelected(false);   
+  binRecDock_.node->update();
+  binRecDock_.dock = nullptr;
+  binRecDock_.node = nullptr;
+  lastbinRecNodeSelected_ = nullptr;
 }

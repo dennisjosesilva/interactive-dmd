@@ -24,7 +24,7 @@ public:
   inline TreeVisualiser *treeVisualiser() { return treeVis_; }
   QDockWidget *morphotreeDockWidget();
 
-  QDockWidget* createDockWidget(const QString &title, QWidget *widget);
+  MyDockWidget* createDockWidget(const QString &title, QWidget *widget);
 
   void updateTreeVisualiser();
 

@@ -11,10 +11,30 @@
 #include <morphotree/core/box.hpp>
 #include <morphotree/core/alias.hpp>
 
+#include <QDockWidget>
+#include <QString>
+
 class RecNodeButton;
 class QGraphicsSceneMouseEvent;
-class QDockWidget;
 class MainWidget;
+
+class MyDockWidget : public QDockWidget
+{
+Q_OBJECT
+
+public:
+  using uint32 = morphotree::uint32;
+
+  MyDockWidget(const QString &title, QWidget *mainwindow);
+
+  inline uint32 nodeId() const { return nodeId_; }
+  inline uint32 &nodeId() { return nodeId_; }
+  inline void setNodeId(uint32 nodeId) { nodeId_ = nodeId; }
+
+private:
+  uint32 nodeId_;
+};
+
 
 class TreeVisualiser : public QWidget
 {

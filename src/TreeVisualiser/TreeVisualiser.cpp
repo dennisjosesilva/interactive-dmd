@@ -19,6 +19,11 @@
 
 #include <QDebug>
 
+
+MyDockWidget::MyDockWidget(const QString &title, QWidget *mainwindow)
+  :QDockWidget{title, mainwindow}
+{}
+
 TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   : mainWidget_(mainWidget),
     binRecDock_{nullptr, nullptr},
@@ -119,8 +124,8 @@ void TreeVisualiser::nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e)
   else if (binRecButton_->mode() == RecNodeButton::Mode::MultiDock) {
     ImageViewerWidget *iv = new ImageViewerWidget;    
     QDockWidget *dock = mainWidget_->createDockWidget(
-      tr("bin node reconstruction "), iv);      
-    
+      tr("bin node reconstruction "), iv);          
+
     NodePtr mnode = node->mtreeNode();    
     std::vector<uint8> bimg = bool2UInt8(mnode->reconstruct(domain_));
     QImage fimg{bimg.data(), static_cast<int>(domain_.width()), 
@@ -140,4 +145,9 @@ void TreeVisualiser::binRecDock_onDestroy(QObject *dock)
   binRecDock_.dock = nullptr;
   binRecDock_.node = nullptr;
   lastbinRecNodeSelected_ = nullptr;
+}
+
+void binRecDockPlus_onDestroy(QObject *dock)
+{
+
 }

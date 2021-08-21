@@ -118,10 +118,10 @@ QDockWidget *MainWidget::morphotreeDockWidget()
 }
 
 
-QDockWidget *MainWidget::createDockWidget(const QString &title, QWidget *widget)
+MyDockWidget *MainWidget::createDockWidget(const QString &title, QWidget *widget)
 {  
-  QDockWidget *dock = 
-    new QDockWidget{title, qobject_cast<QMainWindow *>(parent())};
+  MyDockWidget *dock = 
+    new MyDockWidget{title, qobject_cast<QMainWindow *>(parent())};
 
   dock->setVisible(true);
   dock->setFloating(true);

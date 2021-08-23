@@ -71,6 +71,9 @@ public slots:
   void binRecDock_onClose(MyDockWidget *dock);
   void binRecDockPlus_onClose(MyDockWidget *dock);
 
+  void greyRecDock_onClose(MyDockWidget *dock);
+  void greyRecDockPlus_onClose(MyDockWidget *dock);
+
 private:
   struct NodeDockPair { 
     GNode *node;
@@ -88,6 +91,9 @@ private:
 
   MyDockWidget *binRecDock_;
   QMap<uint32, MyDockWidget *> binRecPlusDeck_;
+
+  MyDockWidget *greyRecDock_;
+  QMap<uint32, MyDockWidget *> greyRecPlusDock_;
 
   MainWidget *mainWidget_;
 };

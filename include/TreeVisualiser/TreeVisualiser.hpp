@@ -24,15 +24,22 @@ Q_OBJECT
 
 public:
   using uint32 = morphotree::uint32;
+  using GNode = MorphotreeWidget::GNode;
 
   MyDockWidget(const QString &title, QWidget *mainwindow);
 
-  inline uint32 nodeId() const { return nodeId_; }
-  inline uint32 &nodeId() { return nodeId_; }
-  inline void setNodeId(uint32 nodeId) { nodeId_ = nodeId; }
+  inline GNode *gnode() { return gnode_; } 
+  inline const GNode *gnode() const { return gnode_; }
+  inline void setGNode(GNode *gnode) { gnode_ = gnode; }
+  
+  void closeEvent(QCloseEvent *e) override;
+  
+public:
+signals:
+  void closed(MyDockWidget *dock);
 
 private:
-  uint32 nodeId_;
+  GNode* gnode_;
 };
 
 
@@ -58,13 +65,16 @@ protected:
   void nodeMousePress(GNode *node,  QGraphicsSceneMouseEvent *e);
 
   std::vector<uint8> bool2UInt8(const std::vector<bool> binimg) const;
-  void binRecDock_onDestroy(QObject *dock);
-  void binRecDockPlus_onDestroy(QObject *dock);
+  
+  
+public slots:
+  void binRecDock_onClose(MyDockWidget *dock);
+  void binRecDockPlus_onClose(MyDockWidget *dock);
 
 private:
   struct NodeDockPair { 
     GNode *node;
-    QDockWidget *dock;
+    MyDockWidget *dock;
 
     inline bool isEmpty() { return node == nullptr && dock == nullptr; }
   };
@@ -76,10 +86,8 @@ private:
   RecNodeButton *greyRecButton_;
   morphotree::Box domain_;
 
-  NodeDockPair binRecDock_;
-  GNode *lastbinRecNodeSelected_;
-  QMap<uint32, NodeDockPair> binRecPlusDock_;
-
+  MyDockWidget *binRecDock_;
+  QMap<uint32, MyDockWidget *> binRecPlusDeck_;
 
   MainWidget *mainWidget_;
 };

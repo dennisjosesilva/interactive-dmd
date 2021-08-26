@@ -50,7 +50,6 @@ Q_OBJECT
 public:
   using MTree = morphotree::MorphologicalTree<morphotree::uint8>;
   using Box = morphotree::Box;
-  using NodePtr = typename MTree::NodePtr;
   using TreeSimplification = MorphotreeWidget::TreeSimplification;
   using GNode = MorphotreeWidget::GNode;
   using ImageViewerWidget = ImageViewerWidget::ImageViewerWidget;
@@ -62,36 +61,39 @@ public:
   void loadImage(Box domain, const std::vector<morphotree::uint8> &f,
     std::shared_ptr<TreeSimplification> treeSimplification);
 
-protected:  
-  std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
+protected:
+  void nodeMousePress(GNode *node,  QGraphicsSceneMouseEvent *e);
+
+  std::vector<uint8> bool2UInt8(const std::vector<bool> binimg) const;
   
-  void reconstructBinaryImage(ImageViewerWidget *iv, NodePtr node);
-  void reconstructGreyImage(ImageViewerWidget *iv, NodePtr node);
-
-protected slots:
-  void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);
-
+  
+public slots:
   void binRecDock_onClose(MyDockWidget *dock);
+  void binRecDockPlus_onClose(MyDockWidget *dock);
+
   void greyRecDock_onClose(MyDockWidget *dock);
+  void greyRecDockPlus_onClose(MyDockWidget *dock);
 
-  void binRecBtn_press();
-  void binRecPlusBtn_press();
-  void greyRecBtn_press();
-  void greyRecPlusBtn_press();  
+private:
+  struct NodeDockPair { 
+    GNode *node;
+    MyDockWidget *dock;
 
-  void inspectNodePlusBtn_press();
-  void inspectNodeMinusBtn_press();
+    inline bool isEmpty() { return node == nullptr && dock == nullptr; }
+  };
 
 
 private:
   MorphotreeWidget::MorphotreeWidget *treeWidget_;
+  RecNodeButton *binRecButton_;
+  RecNodeButton *greyRecButton_;
   morphotree::Box domain_;
 
-  GNode* curNodeSelection_;
-
   MyDockWidget *binRecDock_;
+  QMap<uint32, MyDockWidget *> binRecPlusDeck_;
+
   MyDockWidget *greyRecDock_;
+  QMap<uint32, MyDockWidget *> greyRecPlusDock_;
 
   MainWidget *mainWidget_;
-  std::shared_ptr<TreeSimplification> treeSimplification_;
 };

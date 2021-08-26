@@ -4,7 +4,6 @@
 
 #include "MainWidget.hpp"
 #include "TreeVisualiser/TreeVisualiser.hpp"
-#include "TreeVisualiser/RecNodeButton.hpp"
 
 #include <morphotree/tree/mtree.hpp>
 
@@ -19,9 +18,13 @@
 
 #include <QDebug>
 
+#include <QPushButton>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
 
 MyDockWidget::MyDockWidget(const QString &title, QWidget *mainwindow)
-  :QDockWidget{title, mainwindow}
+  :QDockWidget{title, mainwindow}  
 {}
 
 void MyDockWidget::closeEvent(QCloseEvent *e)
@@ -29,205 +32,211 @@ void MyDockWidget::closeEvent(QCloseEvent *e)
   emit closed(this);
 }
 
+
 TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
-  : mainWidget_(mainWidget),
+  : mainWidget_{mainWidget},
+    curNodeSelection_{nullptr},
     binRecDock_{nullptr},
     greyRecDock_{nullptr}
 {
   namespace mw = MorphotreeWidget;
 
   QLayout *mainLayout = new QVBoxLayout;
-
   QLayout *btnLayout = new QHBoxLayout;
 
-  binRecButton_ = new RecNodeButton{
-    QIcon{":/images/binrec_unselect_icon.png"},
-    QIcon{":/images/binrec_icon.png"},
-    QIcon{":/images/binrec_plus_icon.png"}
-  };  
-  btnLayout->addWidget(binRecButton_);
+  QPushButton *binRecBtn = new QPushButton{ QIcon{":/images/binrec_icon.png"}, 
+    tr(""), this};
+  binRecBtn->setIconSize(QSize{32, 32});
+  connect(binRecBtn, &QPushButton::clicked, this, &TreeVisualiser::binRecBtn_press);
 
-  greyRecButton_ = new RecNodeButton{
-    QIcon{":/images/greyrec_unselect_icon.png"},
-    QIcon{":/images/greyrec_icon.png"},
-    QIcon{":/images/greyrec_plus_icon.png"}
-  };
-  btnLayout->addWidget(greyRecButton_);
+  QPushButton *binRecPlusBtn = new QPushButton { QIcon{":/images/binrec_plus_icon.png"},
+    tr(""), this};  
+  binRecPlusBtn->setIconSize(QSize{32, 32});
+  connect(binRecPlusBtn, &QPushButton::clicked, this, &TreeVisualiser::binRecPlusBtn_press);
+
+  QPushButton *greyRecBtn = new QPushButton{ QIcon{":/images/greyrec_icon.png"}, 
+    tr(""), this};
+  greyRecBtn->setIconSize(QSize{32, 32});
+  connect(greyRecBtn, &QPushButton::clicked, this, &TreeVisualiser::greyRecBtn_press);
+
+  QPushButton *greyRecPlusBtn = new QPushButton{ QIcon{":/images/greyrec_plus_icon.png"},
+    "", this};
+  greyRecPlusBtn->setIconSize(QSize{32, 32});
+  connect(greyRecPlusBtn, &QPushButton::clicked, this, &TreeVisualiser::greyRecPlusBtn_press);
+  
+  QPushButton *inspectNodePlusBtn = new QPushButton{ QIcon{":/images/inspect_node_plus.png"},
+    "", this};
+  inspectNodePlusBtn->setIconSize(QSize{32, 32});
+  connect(inspectNodePlusBtn, &QPushButton::clicked, this, &TreeVisualiser::inspectNodePlusBtn_press);
+
+  QPushButton *inspectNodeMinusBtn = new QPushButton{ QIcon{":/images/inspect_node_minus.png"},
+    "", this};
+  inspectNodeMinusBtn->setIconSize(QSize{32, 32});
+  connect(inspectNodeMinusBtn, &QPushButton::clicked, this, &TreeVisualiser::inspectNodeMinusBtn_press);
+
+  btnLayout->addWidget(binRecBtn);
+  btnLayout->addWidget(binRecPlusBtn);
+  btnLayout->addWidget(greyRecBtn);
+  btnLayout->addWidget(greyRecPlusBtn);
+  btnLayout->addWidget(inspectNodePlusBtn);
+  btnLayout->addWidget(inspectNodeMinusBtn);
 
   mainLayout->addItem(btnLayout);
-
+  
   treeWidget_ = new mw::MorphotreeWidget{mw::TreeLayout::TreeLayoutType::GraphvizWithLevel};
   mainLayout->addWidget(treeWidget_);
 
-  connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress, 
+  connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress,
     this, &TreeVisualiser::nodeMousePress);
 
-  setLayout(mainLayout);  
+  setLayout(mainLayout);
 }
 
-void TreeVisualiser::loadImage(Box domain, const std::vector<morphotree::uint8> &f, 
+void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f, 
   std::shared_ptr<TreeSimplification> treeSimplification)
 {
+  treeSimplification_ = treeSimplification;
   treeWidget_->loadImage(domain, f, treeSimplification);
   domain_ = domain;
 }
 
 std::vector<morphotree::uint8> TreeVisualiser::bool2UInt8(
-  const std::vector<bool> binimg) const
+  const std::vector<bool> &binimg) const
 {
-  using uint8 = morphotree::uint8;
-  using uint32 = morphotree::uint32;
-
   std::vector<uint8> f(binimg.size());
-  for (uint32 p = 0; p < f.size(); p++)
+  for (uint32 p = 0; p < f.size(); ++p) {
     f[p] = binimg[p] ? 0 : 255;
-  
+  }
+
   return f;
 }
 
-void TreeVisualiser::nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e)
+void TreeVisualiser::reconstructBinaryImage(ImageViewerWidget *iv, NodePtr node)
 {  
-  using NodePtr = typename GNode::MTreeNodePtr;
-  using uint8 = morphotree::uint8;  
+  std::vector<uint8> bimg = bool2UInt8(node->reconstruct(domain_));
+  qDebug() << node->id();
+
+  QImage img{bimg.data(), static_cast<int>(domain_.width()), static_cast<int>(domain_.height()),
+      QImage::Format::Format_Grayscale8};
+    
+  iv->setImage(img);
+}
+
+void TreeVisualiser::reconstructGreyImage(ImageViewerWidget *iv, NodePtr node)
+{
+  std::vector<uint8> fimg = node->reconstructGrey(domain_);
+  QImage img{fimg.data(), static_cast<int>(domain_.width()), static_cast<int>(domain_.height()),
+      QImage::Format::Format_Grayscale8};
   
-  if (binRecButton_->mode() == RecNodeButton::Mode::MonoDock) {
+  iv->setImage(img);
+}
+
+void TreeVisualiser::binRecBtn_press()
+{  
+  if (curNodeSelection_ != nullptr) {
     ImageViewerWidget *iv = nullptr;
-    if (binRecDock_ == nullptr && !binRecPlusDeck_.contains(node->simplifiedMTreeNode()->id())) {      
+    if (binRecDock_ == nullptr) {
       iv = new ImageViewerWidget;
-      binRecDock_  = mainWidget_->createDockWidget(
+      binRecDock_ = mainWidget_->createDockWidget(
         tr("binary node reconstruction"), iv);
-      binRecDock_->setGNode(node);
-      binRecDock_->setFixedSize(domain_.width(), domain_.height());
-      connect(binRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::binRecDock_onClose);          
-
-      NodePtr mnode = node->mtreeNode();    
-      std::vector<uint8> bimg = bool2UInt8(mnode->reconstruct(domain_));
-      QImage fimg{bimg.data(), static_cast<int>(domain_.width()), 
-        static_cast<int>(domain_.height()), QImage::Format::Format_Grayscale8};
-      iv->setImage(fimg);        
-      node->setSelected(true);
+      binRecDock_->setGNode(curNodeSelection_);
+      connect(binRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::binRecDock_onClose);
     }
-    else if (binRecDock_->gnode() == node) {
-      binRecDock_->close();      
+    else {
+      iv = qobject_cast<ImageViewerWidget *>(binRecDock_->widget());
     }
-    else if (!binRecPlusDeck_.contains(node->simplifiedMTreeNode()->id())) {
-      binRecDock_->gnode()->setSelected(false);
-      binRecDock_->gnode()->update();
-      binRecDock_->setGNode(node);
-
-      iv = qobject_cast<ImageViewerWidget *>(binRecDock_->widget());       
-      NodePtr mnode = node->mtreeNode();    
-      std::vector<uint8> bimg = bool2UInt8(mnode->reconstruct(domain_));
-      QImage fimg{bimg.data(), static_cast<int>(domain_.width()), 
-        static_cast<int>(domain_.height()), QImage::Format::Format_Grayscale8};
-      iv->setImage(fimg);        
-      node->setSelected(true);
-    }    
-  } 
-  else if (binRecButton_->mode() == RecNodeButton::Mode::MultiDock) {    
-    if (binRecPlusDeck_.contains(node->simplifiedMTreeNode()->id())) {
-      binRecPlusDeck_[node->simplifiedMTreeNode()->id()]->close();      
-    }
-    else if (binRecDock_ == nullptr || binRecDock_->gnode() != node) {
-      node->setSelected(true);
-      ImageViewerWidget *iv = new ImageViewerWidget;    
-      MyDockWidget *dock = mainWidget_->createDockWidget(
-        tr("bin node reconstruction "), iv);          
-
-      dock->setFixedSize(domain_.width(), domain_.height());
-
-      dock->setGNode(node);
-      binRecPlusDeck_.insert(node->simplifiedMTreeNode()->id(), dock);
-      connect(dock, &MyDockWidget::closed, this, &TreeVisualiser::binRecDockPlus_onClose);
-
-      NodePtr mnode = node->mtreeNode();    
-      std::vector<uint8> bimg = bool2UInt8(mnode->reconstruct(domain_));
-      QImage fimg{bimg.data(), static_cast<int>(domain_.width()), 
-        static_cast<int>(domain_.height()), QImage::Format::Format_Grayscale8};
-      iv->setImage(fimg);        
-    }
+    
+    binRecDock_->setFixedSize(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
+    reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());
   }
+}
 
-  if (greyRecButton_->mode() == RecNodeButton::Mode::MonoDock) {
+void TreeVisualiser::binRecPlusBtn_press()
+{
+  ImageViewerWidget *iv = new ImageViewerWidget;
+  MyDockWidget *dock = mainWidget_->createDockWidget(
+    tr("binary node reconstruction"), iv);
+  dock->setGNode(curNodeSelection_);
+
+  dock->setFixedSize(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
+  reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());  
+}
+
+void TreeVisualiser::greyRecBtn_press()
+{  
+  if (curNodeSelection_ != nullptr) {
     ImageViewerWidget *iv = nullptr;
-    if (greyRecDock_ == nullptr && !greyRecPlusDock_.contains(node->simplifiedMTreeNode()->id())) {
+    if (greyRecDock_ == nullptr) {
       iv = new ImageViewerWidget;
-      greyRecDock_ = mainWidget_->createDockWidget(tr("greyscale node reconstruction"), iv);
-      greyRecDock_->setGNode(node);
-      greyRecDock_->setFixedSize(domain_.width(), domain_.height());
+      greyRecDock_ = mainWidget_->createDockWidget(
+        tr("grey node reconstruction"), iv);      
+      greyRecDock_->setGNode(curNodeSelection_);
       connect(greyRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::greyRecDock_onClose);
-
-      NodePtr mnode = node->mtreeNode();
-      std::vector<uint8> gimg = mnode->reconstructGrey(domain_, 0);
-      QImage fimg{gimg.data(), static_cast<int>(domain_.width()), static_cast<int>(domain_.height()),
-        QImage::Format::Format_Grayscale8 };
-      iv->setImage(fimg);
-      node->setSelected(true);
     }
-    else if (greyRecDock_->gnode() == node) {
-      greyRecDock_->close();
-    }
-    else if (!greyRecPlusDock_.contains(node->simplifiedMTreeNode()->id())) {
-      greyRecDock_->gnode()->setSelected(false);
-      greyRecDock_->gnode()->update();
-      greyRecDock_->setGNode(node);
-
+    else {
       iv = qobject_cast<ImageViewerWidget *>(greyRecDock_->widget());
-      NodePtr mnode = node->mtreeNode();
-      std::vector<uint8> gimg = mnode->reconstructGrey(domain_, 0);
-      QImage fimg{gimg.data(), static_cast<int>(domain_.width()), static_cast<int>(domain_.height()),
-        QImage::Format::Format_Grayscale8};
-      iv->setImage(fimg);
-      node->setSelected(true);
     }
-  }
-  else if (greyRecButton_->mode() == RecNodeButton::Mode::MultiDock) {
-    if (greyRecPlusDock_.contains(node->simplifiedMTreeNode()->id())) {
-      greyRecPlusDock_[node->simplifiedMTreeNode()->id()]->close();
-    }
-    else if (greyRecDock_ == nullptr || greyRecDock_->gnode() != node) {
-      node->setSelected(true);
-      ImageViewerWidget *iv = new ImageViewerWidget;
-      MyDockWidget *dock = mainWidget_->createDockWidget(tr("greyscale node reconstruction"), iv);
 
-      dock->setFixedSize(domain_.width(), domain_.height());
-      dock->setGNode(node);
-      greyRecPlusDock_.insert(node->simplifiedMTreeNode()->id(), dock);
-      connect(dock, &MyDockWidget::closed, this, &TreeVisualiser::greyRecDockPlus_onClose);
-
-      NodePtr mnode = node->mtreeNode();
-      std::vector<uint8> gimg = mnode->reconstructGrey(domain_);
-      QImage fimg{gimg.data(), static_cast<int>(domain_.width()), static_cast<int>(domain_.height()), 
-        QImage::Format_Grayscale8};
-      iv->setImage(fimg);
-    }
+    greyRecDock_->setFixedSize(static_cast<int>(domain_.width()), 
+      static_cast<int>(domain_.height()));
+    reconstructGreyImage(iv, curNodeSelection_->mtreeNode());    
   }
-} 
+}
+
+void TreeVisualiser::greyRecPlusBtn_press()
+{
+  ImageViewerWidget *iv = new ImageViewerWidget;
+  MyDockWidget *dock = mainWidget_->createDockWidget(
+    tr("greyscale node reconstruction"), iv);
+  dock->setGNode(curNodeSelection_);
+
+  dock->setFixedSize(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
+  reconstructGreyImage(iv, curNodeSelection_->mtreeNode());  
+}
+
+void TreeVisualiser::nodeMousePress(GNode *node, 
+  QGraphicsSceneMouseEvent *e)
+{
+  if (curNodeSelection_ != nullptr) {
+    curNodeSelection_ ->setSelected(false);
+    curNodeSelection_->update();
+  }
+    
+  if (node->isSelected()) {
+    node->setSelected(false);
+    curNodeSelection_ = nullptr;
+  }
+  else {
+    node->setSelected(true);
+    curNodeSelection_ = node;
+  }
+
+  node->update();
+}
+
+void TreeVisualiser::inspectNodePlusBtn_press()
+{
+  if (curNodeSelection_ != nullptr) {
+    NodePtr node = curNodeSelection_->simplifiedMTreeNode();
+    treeWidget_->inspectNode(node->id(), treeSimplification_);
+    curNodeSelection_ = nullptr;
+  }
+}
+
+void TreeVisualiser::inspectNodeMinusBtn_press()
+{
+  if (treeWidget_->numberOfUndoNodeInspection() > 0) {
+    treeWidget_->undoNodeInspection();
+    curNodeSelection_ = nullptr;
+  }
+}
 
 void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)
 {
-  binRecDock_->gnode()->setSelected(false);
-  binRecDock_->gnode()->update();
-  binRecDock_ = nullptr;
-}
-
-void TreeVisualiser::binRecDockPlus_onClose(MyDockWidget *dock)
-{  
-  dock->gnode()->setSelected(false);
-  dock->gnode()->update();
-  binRecPlusDeck_.remove(dock->gnode()->simplifiedMTreeNode()->id());
+  binRecDock_ = nullptr;  
 }
 
 void TreeVisualiser::greyRecDock_onClose(MyDockWidget *dock)
 {
-  greyRecDock_->gnode()->setSelected(false);
-  greyRecDock_->gnode()->update();
   greyRecDock_ = nullptr;
-}
-
-void TreeVisualiser::greyRecDockPlus_onClose(MyDockWidget *dock)
-{
-  dock->gnode()->setSelected(false);
-  dock->gnode()->update();
-  greyRecPlusDock_.remove(dock->gnode()->simplifiedMTreeNode()->id());
 }

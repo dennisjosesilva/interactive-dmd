@@ -7,5 +7,7 @@
   <file>images/greyrec_icon.png</file>
   <file>images/greyrec_unselect_icon.png</file>
   <file>images/greyrec_plus_icon.png</file>  
+  <file>images/inspect_node_minus.png</file>
+  <file>images/inspect_node_plus.png</file>
 </qresource>
 </RCC>

@@ -27,7 +27,8 @@
 
 MainWidget::MainWidget(QWidget *parent)
   :QWidget{parent},
-   needTreeVisualiserUpdate_{false}
+   needTreeVisualiserUpdate_{false},
+   nodeSelectionByClickActivated_{false}
 { 
   namespace iv = ImageViewerWidget;  
   namespace mw = MorphotreeWidget;
@@ -40,6 +41,9 @@ MainWidget::MainWidget(QWidget *parent)
   createDockTreeVisualiser();
 
   mainLayout->addWidget(imageViewer_);
+
+  connect(imageViewer_, &iv::ImageViewerWidget::imageMousePress, 
+    this, &MainWidget::imageMousePress);
 
   setLayout(mainLayout);
 }
@@ -128,4 +132,11 @@ MyDockWidget *MainWidget::createDockWidget(const QString &title, QWidget *widget
   dock->setWidget(widget);  
   dock->setAttribute(Qt::WA_DeleteOnClose, true);
   return dock;
+}
+
+void MainWidget::imageMousePress(const QPointF &p)
+{
+  if (nodeSelectionByClickActivated_) {
+    treeVis_->selectNodeByPixel(static_cast<int>(p.x()), static_cast<int>(p.y()));
+  }
 }

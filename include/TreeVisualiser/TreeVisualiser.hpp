@@ -62,6 +62,8 @@ public:
   void loadImage(Box domain, const std::vector<morphotree::uint8> &f,
     std::shared_ptr<TreeSimplification> treeSimplification);
 
+  void selectNodeByPixel(int x, int y);
+
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   

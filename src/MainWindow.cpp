@@ -66,7 +66,7 @@ void MainWindow::createToolBar()
     tr("Node selection by pixel click"), this);
   nodeSelectionClickAct_->setStatusTip(tr("Toogle node selection by pixel click."));
   nodeSelectionClickAct_->setCheckable(true);
-  // TODO: connect
+  connect(nodeSelectionClickAct_, &QAction::toggled, this, &MainWindow::nodeSelectionClickAct_onToggled);
   toolbar->addAction(nodeSelectionClickAct_);
 }
 
@@ -148,3 +148,7 @@ void MainWindow::treeVisAct_onToggled(bool checked)
     dockMorphotreeWidget->setVisible(false);
 }
 
+void MainWindow::nodeSelectionClickAct_onToggled(bool checked)
+{
+  mainWidget_->setNodeSelectionByClickActivated(checked);
+}

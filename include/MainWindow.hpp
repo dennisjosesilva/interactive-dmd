@@ -19,6 +19,7 @@ private slots:
   void open();
 
   void treeVisAct_onToggled(bool checked=true);
+  void nodeSelectionClickAct_onToggled(bool checked);
 
 private:
   void createMenus();

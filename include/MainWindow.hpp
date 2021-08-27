@@ -27,5 +27,7 @@ private:
 private:
   MainWidget *mainWidget_;
   QDockWidget *dockTreeVis_;
+  
   QAction *showTreeVisAct_;
+  QAction *nodeSelectionClickAct_;
 };

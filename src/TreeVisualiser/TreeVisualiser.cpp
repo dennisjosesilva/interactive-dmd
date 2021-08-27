@@ -20,9 +20,6 @@
 
 #include <QPushButton>
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb/stb_image_write.h>
-
 MyDockWidget::MyDockWidget(const QString &title, QWidget *mainwindow)
   :QDockWidget{title, mainwindow}  
 {}

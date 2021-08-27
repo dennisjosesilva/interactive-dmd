@@ -60,6 +60,14 @@ void MainWindow::createToolBar()
   showTreeVisAct_->setCheckable(true);
   connect(showTreeVisAct_, &QAction::toggled, this, &MainWindow::treeVisAct_onToggled);
   toolbar->addAction(showTreeVisAct_);
+
+  const QIcon nodeSelectionClickIcon = QIcon(":/images/node_selection_pixel_icon.png");
+  nodeSelectionClickAct_ = new QAction(nodeSelectionClickIcon, 
+    tr("Node selection by pixel click"), this);
+  nodeSelectionClickAct_->setStatusTip(tr("Toogle node selection by pixel click."));
+  nodeSelectionClickAct_->setCheckable(true);
+  connect(nodeSelectionClickAct_, &QAction::toggled, this, &MainWindow::nodeSelectionClickAct_onToggled);
+  toolbar->addAction(nodeSelectionClickAct_);
 }
 
 
@@ -140,3 +148,7 @@ void MainWindow::treeVisAct_onToggled(bool checked)
     dockMorphotreeWidget->setVisible(false);
 }
 
+void MainWindow::nodeSelectionClickAct_onToggled(bool checked)
+{
+  mainWidget_->setNodeSelectionByClickActivated(checked);
+}

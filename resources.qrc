@@ -9,5 +9,6 @@
   <file>images/greyrec_plus_icon.png</file>  
   <file>images/inspect_node_minus.png</file>
   <file>images/inspect_node_plus.png</file>
+  <file>images/node_selection_pixel_icon.png</file>
 </qresource>
 </RCC>

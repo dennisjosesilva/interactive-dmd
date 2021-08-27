@@ -20,9 +20,6 @@
 
 #include <QPushButton>
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb/stb_image_write.h>
-
 MyDockWidget::MyDockWidget(const QString &title, QWidget *mainwindow)
   :QDockWidget{title, mainwindow}  
 {}
@@ -239,4 +236,21 @@ void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)
 void TreeVisualiser::greyRecDock_onClose(MyDockWidget *dock)
 {
   greyRecDock_ = nullptr;
+}
+
+void TreeVisualiser::selectNodeByPixel(int x, int y)
+{
+  GNode *node = treeWidget_->gnode(x, y);
+
+  if (curNodeSelection_ != node) {
+    if (curNodeSelection_ != nullptr) {
+      curNodeSelection_->setSelected(false);
+      curNodeSelection_->update();
+    }
+
+    node->setSelected(true);
+    node->update();
+    curNodeSelection_ = node;
+    treeWidget_->centerOn(node);
+  }
 }

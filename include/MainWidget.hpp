@@ -28,11 +28,20 @@ public:
 
   void updateTreeVisualiser();
 
+  inline bool isNodeSelectionByClickActivated() const { return nodeSelectionByClickActivated_; }
+  inline void setNodeSelectionByClickActivated(bool activated) { nodeSelectionByClickActivated_ = activated; }
+
+protected slots:
+  void imageMousePress(const QPointF &p);
+
+
 private:
   void createDockTreeVisualiser();
 
 private:
   bool needTreeVisualiserUpdate_;
+
+  bool nodeSelectionByClickActivated_;
 
   QDockWidget *dockTreeVisualiser_;
 

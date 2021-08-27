@@ -16,13 +16,30 @@
 
 #include <QDebug>
 
+#include "dmdProcess.hpp"
+
 MainWindow::MainWindow()
 {
+  const char *filename = "../../images/Zuckerberg.pgm";
+  
   setWindowTitle("Interactive DMD");  
+
 
   mainWidget_ = new MainWidget{this};
   mainWidget_->loadImage("../../images/Zuckerberg.pgm");
   setCentralWidget(mainWidget_);
+
+  
+  dmdProcess dmd;
+  dmd.set_filename(filename);
+ 
+  // read image 
+  dmd.readImage();
+  dmd.curImage()->writePGM("dmd01.pgm");
+
+  // remove islands
+  dmd.removeIslands(0.2);
+  dmd.curImage()->writePGM("dmd02.pgm");
 
   createMenus();
   createToolBar();

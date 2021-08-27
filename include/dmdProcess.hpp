@@ -1,7 +1,7 @@
 
 #include <stdio.h>
-#include "connected.hpp"
-#include "skeleton_cuda.hpp"
+#include <connected.hpp>
+#include <skeleton_cuda.hpp>
 
 
 class dmdProcess {
@@ -15,6 +15,9 @@ class dmdProcess {
       processedImage = FIELD<float>::read(filename); 
       nPix = processedImage->dimX() * processedImage->dimY();
     }
+
+    inline FIELD<float> *curImage() { return processedImage; }
+
     void removeIslands(float islandThreshold);
     void find_layers(int clear_color, double* importance_upper, double width);
     void calculateImportance(bool cumulative, int num_layers);
@@ -22,13 +25,11 @@ class dmdProcess {
     void computeSkeletons();
 
     int clear_color;
-  
+
   private:
     const char *filename;
     FIELD<float>* processedImage;
     int nPix;
     double *importance;
-
-
 };
 

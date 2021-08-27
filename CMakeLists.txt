@@ -4,7 +4,10 @@ project(interactive-dmd)
 cmake_minimum_required(VERSION 3.10)
 
 # INCLUDE DIRECTORIES
-include_directories(include)
+include_directories(include
+/usr/local/cuda/include)
+
+link_directories(/usr/local/cuda/lib64)
 
 # CXX STANDARD
 set(CMAKE_CXX_STANDARD 14)
@@ -34,6 +37,8 @@ qt5_add_resources(PROJECT_SOURCE resources.qrc)
 add_executable(interactive-dmd ${PROJECT_SOURCE})
 target_link_libraries(interactive-dmd PUBLIC
   ${CONAN_LIBS}
+  cuda
+  cudart
   Qt5::Widgets
   Qt5::Core
   Qt5::Gui

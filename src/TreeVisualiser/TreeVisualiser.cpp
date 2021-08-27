@@ -110,8 +110,7 @@ std::vector<morphotree::uint8> TreeVisualiser::bool2UInt8(
 
 void TreeVisualiser::reconstructBinaryImage(ImageViewerWidget *iv, NodePtr node)
 {  
-  std::vector<uint8> bimg = bool2UInt8(node->reconstruct(domain_));
-  qDebug() << node->id();
+  std::vector<uint8> bimg = bool2UInt8(node->reconstruct(domain_));  
 
   QImage img{bimg.data(), static_cast<int>(domain_.width()), static_cast<int>(domain_.height()),
       QImage::Format::Format_Grayscale8};

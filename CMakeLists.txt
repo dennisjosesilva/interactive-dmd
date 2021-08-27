@@ -1,17 +1,24 @@
-project(interactive-dmd)
-
 # CMAKE MINIMUM VERSION
 cmake_minimum_required(VERSION 3.10)
 
-# INCLUDE DIRECTORIES
-include_directories(include
-/usr/local/cuda/include)
-
-link_directories(/usr/local/cuda/lib64)
+# PROJECT
+project(interactive-dmd LANGUAGES CUDA CXX)
 
 # CXX STANDARD
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# FIND CUDA PACKAGE
+find_package(CUDA REQUIRED) 
+
+# INCLUDE DIRECTORIES
+include_directories(include "${CUDA_INCLUDE_DIRS}")
+
+# SETUP CUDA STANDARD
+if (NOT DEFINED CMAKE_CUDA_STANDARD)
+  set(CMAKE_CUDA_STANDARD 11)
+  set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+endif()
 
 # QT CONFIG
 find_package(Qt5 COMPONENTS Widgets Core Gui REQUIRED)
@@ -36,11 +43,10 @@ qt5_add_resources(PROJECT_SOURCE resources.qrc)
 # EXECUTABLES
 add_executable(interactive-dmd ${PROJECT_SOURCE})
 target_link_libraries(interactive-dmd PUBLIC
-  ${CONAN_LIBS}
-  cuda
-  cudart
+  ${CONAN_LIBS}  
   Qt5::Widgets
   Qt5::Core
   Qt5::Gui
   cgraph
-  gvc)
+  gvc
+  ${CUDA_LIBRARIES})

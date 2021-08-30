@@ -1,17 +1,17 @@
+#set(CMAKE_CXX_COMPILER "/usr/bin/g++-10")
 project(interactive-dmd)
 
 # CMAKE MINIMUM VERSION
 cmake_minimum_required(VERSION 3.10)
 
 # INCLUDE DIRECTORIES
-include_directories(include
-/usr/local/cuda/include)
+include_directories(include)
 
 link_directories(/usr/local/cuda/lib64)
 
 # CXX STANDARD
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_STANDARD 14)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # QT CONFIG
 find_package(Qt5 COMPONENTS Widgets Core Gui REQUIRED)
@@ -37,7 +37,6 @@ qt5_add_resources(PROJECT_SOURCE resources.qrc)
 add_executable(interactive-dmd ${PROJECT_SOURCE})
 target_link_libraries(interactive-dmd PUBLIC
   ${CONAN_LIBS}
-  cuda
   cudart
   Qt5::Widgets
   Qt5::Core

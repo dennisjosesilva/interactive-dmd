@@ -1,6 +1,7 @@
 [requires]
 MorphotreeWidget/0.0.1@dennisjosesilva/dev
 ImageViewerWidget/0.0.1@dennisjosesilva/dev 
+Spline/0.0.1@jieyingwang/dmd
 Skel/0.0.1@jieyingwang/dmd
 
 [generators]

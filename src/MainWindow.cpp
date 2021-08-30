@@ -17,10 +17,11 @@
 #include <QDebug>
 
 #include "dmdProcess.hpp"
+#include "dmdReconstruct.hpp"
 
 MainWindow::MainWindow()
 {
-  const char *filename = "../../images/Zuckerberg.pgm";
+  const char *filename = "../images/panda.pgm";
   
   setWindowTitle("Interactive DMD");  
 
@@ -35,11 +36,20 @@ MainWindow::MainWindow()
  
   // read image 
   dmd.readImage();
-  dmd.curImage()->writePGM("dmd01.pgm");
+  //dmd.curImage()->writePGM("dmd01.pgm");
 
   // remove islands
-  dmd.removeIslands(0.2);
-  dmd.curImage()->writePGM("dmd02.pgm");
+  dmd.removeIslands(0.1);
+  //dmd.curImage()->writePGM("dmd02.pgm");
+
+  dmd.LayerSelection(true, 15);
+  //dmd.curImage()->writePGM("dmd03.pgm");
+  dmd.computeSkeletons();
+  //dmd.Encoding();
+
+  dmdReconstruct recon;
+  recon.readControlPoints();
+  recon.ReconstructImage();
 
   createMenus();
   createToolBar();

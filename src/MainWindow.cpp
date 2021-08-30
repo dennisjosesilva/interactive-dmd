@@ -68,6 +68,24 @@ void MainWindow::createToolBar()
   nodeSelectionClickAct_->setCheckable(true);
   connect(nodeSelectionClickAct_, &QAction::toggled, this, &MainWindow::nodeSelectionClickAct_onToggled);
   toolbar->addAction(nodeSelectionClickAct_);
+
+  // ===== Image Tool bar ========
+  QToolBar *imageToolBar = addToolBar("Image Toolbar");
+  imageToolBar->setIconSize(QSize(32, 32));
+
+  const QIcon imageZoomInIcon = QIcon(":/images/image_zoom_in_icon.png");
+  imageZoomInAct_ = new QAction(imageZoomInIcon, tr("Image zoom in"), this);
+  imageZoomInAct_->setStatusTip("Zoom in image");
+  connect(imageZoomInAct_, &QAction::triggered, this, 
+    &MainWindow::imageZoomInAct_onTrigged);
+  imageToolBar->addAction(imageZoomInAct_);
+
+  const QIcon imageZoomOutIcon = QIcon(":/images/image_zoom_out_icon.png");
+  imageZoomOutAct_ = new QAction(imageZoomOutIcon, tr("Image zoom out"), this);
+  imageZoomOutAct_->setStatusTip("Zoom out image");
+  connect(imageZoomOutAct_, &QAction::triggered, this, 
+    &MainWindow::imageZoomOutAct_onTrigged);
+  imageToolBar->addAction(imageZoomOutAct_);
 }
 
 
@@ -151,4 +169,14 @@ void MainWindow::treeVisAct_onToggled(bool checked)
 void MainWindow::nodeSelectionClickAct_onToggled(bool checked)
 {
   mainWidget_->setNodeSelectionByClickActivated(checked);
+}
+
+void MainWindow::imageZoomInAct_onTrigged()
+{ 
+  mainWidget_->zoomIn();
+}
+
+void MainWindow::imageZoomOutAct_onTrigged()
+{ 
+  mainWidget_->zoomOut();
 }

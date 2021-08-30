@@ -94,13 +94,23 @@ void MainWidget::updateTreeVisualiser()
   const uchar *bits = image.bits();
   std::vector<mt::uint8> f{ bits, bits + domain.numberOfPoints() };
 
-  // treeVis_->loadImage(domain, f, 
-  //   std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
-
   treeVis_->loadImage(domain, f, 
-    std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 1000, 180));
+    std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
+
+  // treeVis_->loadImage(domain, f, 
+  //   std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 1000, 180));
 
   needTreeVisualiserUpdate_ = false;
+}
+
+void MainWidget::zoomOut()
+{
+  imageViewer_->zoomOut();
+}
+
+void MainWidget::zoomIn()
+{
+  imageViewer_->zoomIn();
 }
 
 void MainWidget::createDockTreeVisualiser()

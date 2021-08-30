@@ -20,6 +20,8 @@ private slots:
 
   void treeVisAct_onToggled(bool checked=true);
   void nodeSelectionClickAct_onToggled(bool checked);
+  void imageZoomInAct_onTrigged();
+  void imageZoomOutAct_onTrigged();
 
 private:
   void createMenus();
@@ -31,4 +33,6 @@ private:
   
   QAction *showTreeVisAct_;
   QAction *nodeSelectionClickAct_;
+  QAction *imageZoomInAct_;
+  QAction *imageZoomOutAct_;
 };

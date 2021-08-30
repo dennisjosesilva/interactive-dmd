@@ -28,6 +28,9 @@ public:
 
   void updateTreeVisualiser();
 
+  void zoomOut();
+  void zoomIn();
+
   inline bool isNodeSelectionByClickActivated() const { return nodeSelectionByClickActivated_; }
   inline void setNodeSelectionByClickActivated(bool activated) { nodeSelectionByClickActivated_ = activated; }
 

@@ -28,7 +28,8 @@
 MainWidget::MainWidget(QWidget *parent)
   :QWidget{parent},
    needTreeVisualiserUpdate_{false},
-   nodeSelectionByClickActivated_{false}
+   nodeSelectionByClickActivated_{false},
+   ctrlDown_{false}
 { 
   namespace iv = ImageViewerWidget;  
   namespace mw = MorphotreeWidget;
@@ -44,6 +45,8 @@ MainWidget::MainWidget(QWidget *parent)
 
   connect(imageViewer_, &iv::ImageViewerWidget::imageMousePress, 
     this, &MainWidget::imageMousePress);
+
+  imageViewer_->scrollAreaWidget()->viewport()->installEventFilter(this);
 
   setLayout(mainLayout);
 }
@@ -148,5 +151,37 @@ void MainWidget::imageMousePress(const QPointF &p)
 {
   if (nodeSelectionByClickActivated_) {
     treeVis_->selectNodeByPixel(static_cast<int>(p.x()), static_cast<int>(p.y()));
+  }
+}
+
+void MainWidget::wheelEvent(QWheelEvent *e)
+{
+  if (ctrlDown_) {
+    imageViewer_->scaleImage(pow(2.0, -e->angleDelta().y() / 240.0));    
+    e->accept();
+  }
+}
+
+void MainWidget::keyPressEvent(QKeyEvent *e)
+{
+  if (e->key() == Qt::Key_Control) {  
+    ctrlDown_ = true;
+  }
+}
+
+void MainWidget::keyReleaseEvent(QKeyEvent *e)
+{
+  if (e->key() == Qt::Key_Control) {
+    ctrlDown_ = false;
+  }
+}
+
+bool MainWidget::eventFilter(QObject *obj, QEvent *evt)
+{
+  if (ctrlDown_) {
+    return true;
+  }
+  else {
+    return QWidget::eventFilter(obj, evt);
   }
 }

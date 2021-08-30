@@ -88,7 +88,6 @@ void MainWindow::createToolBar()
   imageToolBar->addAction(imageZoomOutAct_);
 }
 
-
 static void initialiseImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode)
 {
   static bool firstDialog = true;

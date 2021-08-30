@@ -37,11 +37,21 @@ public:
 protected slots:
   void imageMousePress(const QPointF &p);
 
+protected:
+  void wheelEvent(QWheelEvent *e);
+
+  void keyPressEvent(QKeyEvent *e);
+  void keyReleaseEvent(QKeyEvent *e);
+
+  bool eventFilter(QObject *obj, QEvent *evt);
 
 private:
   void createDockTreeVisualiser();
 
+
 private:
+  bool ctrlDown_;
+
   bool needTreeVisualiserUpdate_;
 
   bool nodeSelectionByClickActivated_;

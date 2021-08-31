@@ -5,7 +5,7 @@
 
 #include <MorphotreeWidget/Graphics/GNode.hpp>
 #include <MorphotreeWidget/MorphotreeWidget.hpp>
-#include <ImageViewerWidget/ImageViewerWidget.hpp>
+#include "TreeVisualiser/SimpleImageViewer.hpp"
 
 #include <morphotree/tree/mtree.hpp>
 #include <morphotree/core/box.hpp>
@@ -52,8 +52,7 @@ public:
   using Box = morphotree::Box;
   using NodePtr = typename MTree::NodePtr;
   using TreeSimplification = MorphotreeWidget::TreeSimplification;
-  using GNode = MorphotreeWidget::GNode;
-  using ImageViewerWidget = ImageViewerWidget::ImageViewerWidget;
+  using GNode = MorphotreeWidget::GNode;  
   using uint8 = morphotree::uint8;
   using uint32 = morphotree::uint32;
 
@@ -67,8 +66,8 @@ public:
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   
-  void reconstructBinaryImage(ImageViewerWidget *iv, NodePtr node);
-  void reconstructGreyImage(ImageViewerWidget *iv, NodePtr node);
+  void reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node);
+  void reconstructGreyImage(SimpleImageViewer *iv, NodePtr node);
 
 protected slots:
   void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);

@@ -1,5 +1,4 @@
 #include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
-#include <ImageViewerWidget/ImageViewerWidget.hpp>
 #include <MainWidget.hpp>
 
 #include "MainWidget.hpp"
@@ -28,7 +27,6 @@ void MyDockWidget::closeEvent(QCloseEvent *e)
 {
   emit closed(this);
 }
-
 
 TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   : mainWidget_{mainWidget},
@@ -108,7 +106,7 @@ std::vector<morphotree::uint8> TreeVisualiser::bool2UInt8(
   return f;
 }
 
-void TreeVisualiser::reconstructBinaryImage(ImageViewerWidget *iv, NodePtr node)
+void TreeVisualiser::reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node)
 {  
   std::vector<uint8> bimg = bool2UInt8(node->reconstruct(domain_));  
 
@@ -118,7 +116,7 @@ void TreeVisualiser::reconstructBinaryImage(ImageViewerWidget *iv, NodePtr node)
   iv->setImage(img);
 }
 
-void TreeVisualiser::reconstructGreyImage(ImageViewerWidget *iv, NodePtr node)
+void TreeVisualiser::reconstructGreyImage(SimpleImageViewer *iv, NodePtr node)
 {
   std::vector<uint8> fimg = node->reconstructGrey(domain_);
   QImage img{fimg.data(), static_cast<int>(domain_.width()), static_cast<int>(domain_.height()),
@@ -130,16 +128,16 @@ void TreeVisualiser::reconstructGreyImage(ImageViewerWidget *iv, NodePtr node)
 void TreeVisualiser::binRecBtn_press()
 {  
   if (curNodeSelection_ != nullptr) {
-    ImageViewerWidget *iv = nullptr;
+    SimpleImageViewer *iv = nullptr;
     if (binRecDock_ == nullptr) {
-      iv = new ImageViewerWidget;
+      iv = new SimpleImageViewer;
       binRecDock_ = mainWidget_->createDockWidget(
         tr("binary node reconstruction"), iv);
       binRecDock_->setGNode(curNodeSelection_);
       connect(binRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::binRecDock_onClose);
     }
     else {
-      iv = qobject_cast<ImageViewerWidget *>(binRecDock_->widget());
+      iv = qobject_cast<SimpleImageViewer *>(binRecDock_->widget());
     }
     
     binRecDock_->setFixedSize(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
@@ -149,7 +147,7 @@ void TreeVisualiser::binRecBtn_press()
 
 void TreeVisualiser::binRecPlusBtn_press()
 {
-  ImageViewerWidget *iv = new ImageViewerWidget;
+  SimpleImageViewer *iv = new SimpleImageViewer;
   MyDockWidget *dock = mainWidget_->createDockWidget(
     tr("binary node reconstruction"), iv);
   dock->setGNode(curNodeSelection_);
@@ -161,16 +159,16 @@ void TreeVisualiser::binRecPlusBtn_press()
 void TreeVisualiser::greyRecBtn_press()
 {  
   if (curNodeSelection_ != nullptr) {
-    ImageViewerWidget *iv = nullptr;
+    SimpleImageViewer *iv = nullptr;
     if (greyRecDock_ == nullptr) {
-      iv = new ImageViewerWidget;
+      iv = new SimpleImageViewer;
       greyRecDock_ = mainWidget_->createDockWidget(
         tr("grey node reconstruction"), iv);      
       greyRecDock_->setGNode(curNodeSelection_);
       connect(greyRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::greyRecDock_onClose);
     }
     else {
-      iv = qobject_cast<ImageViewerWidget *>(greyRecDock_->widget());
+      iv = qobject_cast<SimpleImageViewer *>(greyRecDock_->widget());
     }
 
     greyRecDock_->setFixedSize(static_cast<int>(domain_.width()), 
@@ -181,7 +179,7 @@ void TreeVisualiser::greyRecBtn_press()
 
 void TreeVisualiser::greyRecPlusBtn_press()
 {
-  ImageViewerWidget *iv = new ImageViewerWidget;
+  SimpleImageViewer *iv = new SimpleImageViewer;
   MyDockWidget *dock = mainWidget_->createDockWidget(
     tr("greyscale node reconstruction"), iv);
   dock->setGNode(curNodeSelection_);

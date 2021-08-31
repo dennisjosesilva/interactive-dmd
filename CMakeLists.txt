@@ -35,7 +35,8 @@ qt5_wrap_cpp(PROJECT_SOURCE
   include/MainWindow.hpp
   include/MainWidget.hpp
   include/TreeVisualiser/RecNodeButton.hpp
-  include/TreeVisualiser/TreeVisualiser.hpp)
+  include/TreeVisualiser/TreeVisualiser.hpp
+  include/TreeVisualiser/SimpleImageViewer.hpp)
 
 # SET RESOURCE FILES
 qt5_add_resources(PROJECT_SOURCE resources.qrc)

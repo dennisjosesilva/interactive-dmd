@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+  <file>images/Skel_icon.png</file>
   <file>images/morphotree_icon.png</file>
   <file>images/binrec_icon.png</file>
   <file>images/binrec_unselect_icon.png</file>

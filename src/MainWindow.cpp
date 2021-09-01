@@ -16,40 +16,17 @@
 
 #include <QDebug>
 
-#include "dmdProcess.hpp"
 #include "dmdReconstruct.hpp"
 
 MainWindow::MainWindow()
 {
-  const char *filename = "../images/panda.pgm";
-  
   setWindowTitle("Interactive DMD");  
-
 
   mainWidget_ = new MainWidget{this};
   mainWidget_->loadImage("../../images/Zuckerberg.pgm");
   setCentralWidget(mainWidget_);
 
-  
-  dmdProcess dmd;
-  dmd.set_filename(filename);
- 
-  // read image 
-  dmd.readImage();
-  //dmd.curImage()->NewwritePGM("dmd01.pgm");
-
-  // remove islands
-  dmd.removeIslands(0.01);
-  //dmd.curImage()->NewwritePGM("dmd02.pgm");
-
-  dmd.LayerSelection(true, 10);
-  //dmd.curImage()->NewwritePGM("dmd03.pgm");
-  dmd.computeSkeletons();
-  //dmd.Encoding();
-
-  dmdReconstruct recon;
-  recon.readControlPoints();
-  recon.ReconstructImage(true);//true for interpolation method.
+  dmd = new dmdProcess();
 
   createMenus();
   createToolBar();
@@ -87,6 +64,17 @@ void MainWindow::createToolBar()
   showTreeVisAct_->setCheckable(true);
   connect(showTreeVisAct_, &QAction::toggled, this, &MainWindow::treeVisAct_onToggled);
   toolbar->addAction(showTreeVisAct_);
+
+  // ===== DMD Tool bar ========
+  QToolBar *dmdToolBar = addToolBar("DMD Toolbar");
+  dmdToolBar->setIconSize(QSize(32, 32));
+
+  const QIcon dmdProcessIcon = QIcon(":/images/Skel_icon.png");
+  dmdProcessAct_ = new QAction(dmdProcessIcon, tr("DMD process"), this);
+  dmdProcessAct_->setStatusTip("DMD process");
+  connect(dmdProcessAct_, &QAction::triggered, this, 
+    &MainWindow::dmdProcessAct_onTrigged);
+  dmdToolBar->addAction(dmdProcessAct_);
 }
 
 
@@ -133,6 +121,14 @@ void MainWindow::open()
         mainWidget_->updateTreeVisualiser();
 
     }
+
+    //for DMD 
+     ///Read the filename
+    
+    const char *c_str = filename.toLocal8Bit().data();
+    dmd->set_filename(c_str);
+    dmd->readImage();
+    printf("Read image from: %s \n",c_str);
   }
   else {
     statusBar()->showMessage(tr("Image open has been canceled"), 3000);
@@ -167,3 +163,21 @@ void MainWindow::treeVisAct_onToggled(bool checked)
     dockMorphotreeWidget->setVisible(false);
 }
 
+void MainWindow::dmdProcessAct_onTrigged()
+{
+  //dmd->curImage()->NewwritePGM("dmd01.pgm");
+
+  // remove islands
+  dmd->removeIslands(0.01);
+  //dmd.curImage()->NewwritePGM("dmd02.pgm");
+
+  dmd->LayerSelection(true, 10);
+  //dmd.curImage()->NewwritePGM("dmd03.pgm");
+  dmd->computeSkeletons();
+  //dmd.Encoding();
+
+  dmdReconstruct recon;
+  recon.readControlPoints();
+  recon.ReconstructImage(true);//true for interpolation method.
+
+}

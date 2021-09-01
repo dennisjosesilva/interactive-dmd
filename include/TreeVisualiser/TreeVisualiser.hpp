@@ -17,6 +17,7 @@
 class RecNodeButton;
 class QGraphicsSceneMouseEvent;
 class MainWidget;
+class QSlider;
 
 class MyDockWidget : public QDockWidget
 {
@@ -69,6 +70,9 @@ protected:
   void reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node);
   void reconstructGreyImage(SimpleImageViewer *iv, NodePtr node);
 
+  QLayout* createButtons();
+  QLayout* createTreeSimplificationControls();
+
 protected slots:
   void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);
 
@@ -87,6 +91,15 @@ protected slots:
 private:
   MorphotreeWidget::MorphotreeWidget *treeWidget_;
   morphotree::Box domain_;
+
+  QSlider *numberLeavesSlider_;
+  QLabel *numberLeavesValueLabel_;
+
+  QSlider *areaSlider_;
+  QLabel *areaValueLabel_;
+
+  QSlider *areaDiffSlider_;
+  QLabel *areaDiffValueLabel_;
 
   GNode* curNodeSelection_;
 

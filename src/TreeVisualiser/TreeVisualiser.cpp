@@ -14,6 +14,9 @@
 #include <QIcon>
 #include <QDockWidget>
 #include <QAction>
+#include <QLabel>
+#include <QSlider>
+#include <QSpacerItem>
 
 #include <QDebug>
 
@@ -37,6 +40,23 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   namespace mw = MorphotreeWidget;
 
   QLayout *mainLayout = new QVBoxLayout;
+  QLayout *btnLayout = createButtons();
+  QLayout *treeSimplificationLayout = createTreeSimplificationControls();
+
+  mainLayout->addItem(btnLayout);
+  mainLayout->addItem(treeSimplificationLayout);
+  
+  treeWidget_ = new mw::MorphotreeWidget{mw::TreeLayout::TreeLayoutType::GraphvizWithLevel};
+  mainLayout->addWidget(treeWidget_);
+
+  connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress,
+    this, &TreeVisualiser::nodeMousePress);
+
+  setLayout(mainLayout);
+}
+
+QLayout *TreeVisualiser::createButtons()
+{
   QLayout *btnLayout = new QHBoxLayout;
 
   QPushButton *binRecBtn = new QPushButton{ QIcon{":/images/binrec_icon.png"}, 
@@ -76,15 +96,68 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   btnLayout->addWidget(inspectNodePlusBtn);
   btnLayout->addWidget(inspectNodeMinusBtn);
 
-  mainLayout->addItem(btnLayout);
+  return btnLayout;
+}
+
+QLayout *TreeVisualiser::createTreeSimplificationControls()
+{  
+  QLayout *controlsLayout = new QVBoxLayout;
+  QHBoxLayout *nleavesLayout = new QHBoxLayout;  
+  QHBoxLayout *areaLayout = new QHBoxLayout;
+  QHBoxLayout *areaDiffLayout = new QHBoxLayout;
+
+  // -------------------- number of leaves (extinction filter) ------------------------
+  nleavesLayout->addWidget(new QLabel{"# leaves: ", this});
+  numberLeavesSlider_ = new QSlider{Qt::Horizontal, this};
+  numberLeavesSlider_->setRange(1, 50);
+  numberLeavesSlider_->setValue(6);
+  numberLeavesValueLabel_ = new QLabel("6", this);
+  numberLeavesValueLabel_->setFixedWidth(25);
+  numberLeavesValueLabel_->setAlignment(Qt::AlignRight);
+  connect(numberLeavesSlider_, &QSlider::valueChanged, [this](int val){ 
+    numberLeavesValueLabel_->setText(QString::number(val));
+  });
   
-  treeWidget_ = new mw::MorphotreeWidget{mw::TreeLayout::TreeLayoutType::GraphvizWithLevel};
-  mainLayout->addWidget(treeWidget_);
+  nleavesLayout->addWidget(numberLeavesSlider_);  
+  nleavesLayout->addWidget(numberLeavesValueLabel_);
 
-  connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress,
-    this, &TreeVisualiser::nodeMousePress);
+  controlsLayout->addItem(nleavesLayout);
 
-  setLayout(mainLayout);
+  // ------------------------- area filter ------------------------------------------------
+  areaLayout->addWidget(new QLabel{"area:         ", this});
+  areaSlider_ = new QSlider{Qt::Horizontal, this};
+  areaSlider_->setRange(0, 1000);
+  areaSlider_->setValue(50);
+  areaValueLabel_ = new QLabel{"50", this};
+  areaValueLabel_->setFixedWidth(35);
+  areaValueLabel_->setAlignment(Qt::AlignRight);
+  connect(areaSlider_, &QSlider::valueChanged, [this](int val) {
+    areaValueLabel_->setText(QString::number(val));
+  });
+
+  areaLayout->addWidget(areaSlider_);
+  areaLayout->addWidget(areaValueLabel_);
+
+  controlsLayout->addItem(areaLayout);
+
+  // --------------- progressive area diff filter -----------------------------------------
+  areaDiffLayout->addWidget(new QLabel{"area diff: ", this});
+  areaDiffSlider_ = new QSlider{Qt::Horizontal, this};
+  areaDiffSlider_->setRange(0, 1000);
+  areaDiffSlider_->setValue(200);
+  areaDiffValueLabel_ = new QLabel{"200", this};
+  areaDiffValueLabel_->setFixedWidth(35);
+  areaDiffValueLabel_->setAlignment(Qt::AlignRight);
+  connect(areaDiffSlider_, &QSlider::valueChanged, [this](int val){
+    areaDiffValueLabel_->setText(QString::number(val));
+  });
+
+  areaDiffLayout->addWidget(areaDiffSlider_);
+  areaDiffLayout->addWidget(areaDiffValueLabel_);
+
+  controlsLayout->addItem(areaDiffLayout);
+
+  return controlsLayout;
 }
 
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f, 

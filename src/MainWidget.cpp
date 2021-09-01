@@ -97,8 +97,7 @@ void MainWidget::updateTreeVisualiser()
   const uchar *bits = image.bits();
   std::vector<mt::uint8> f{ bits, bits + domain.numberOfPoints() };
 
-  treeVis_->loadImage(domain, f, 
-    std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
+  treeVis_->loadImage(domain, f);
 
   // treeVis_->loadImage(domain, f, 
   //   std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 1000, 180));

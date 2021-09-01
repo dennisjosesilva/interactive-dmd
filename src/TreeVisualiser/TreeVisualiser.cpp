@@ -52,6 +52,9 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress,
     this, &TreeVisualiser::nodeMousePress);
 
+  treeSimplification_ = 
+    std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180);
+
   setLayout(mainLayout);
 }
 
@@ -114,9 +117,8 @@ QLayout *TreeVisualiser::createTreeSimplificationControls()
   numberLeavesValueLabel_ = new QLabel("6", this);
   numberLeavesValueLabel_->setFixedWidth(25);
   numberLeavesValueLabel_->setAlignment(Qt::AlignRight);
-  connect(numberLeavesSlider_, &QSlider::valueChanged, [this](int val){ 
-    numberLeavesValueLabel_->setText(QString::number(val));
-  });
+  connect(numberLeavesSlider_, &QSlider::valueChanged, this,
+    &TreeVisualiser::numberLeavesSlider_onValueChange);
   
   nleavesLayout->addWidget(numberLeavesSlider_);  
   nleavesLayout->addWidget(numberLeavesValueLabel_);
@@ -131,9 +133,8 @@ QLayout *TreeVisualiser::createTreeSimplificationControls()
   areaValueLabel_ = new QLabel{"50", this};
   areaValueLabel_->setFixedWidth(35);
   areaValueLabel_->setAlignment(Qt::AlignRight);
-  connect(areaSlider_, &QSlider::valueChanged, [this](int val) {
-    areaValueLabel_->setText(QString::number(val));
-  });
+  connect(areaSlider_, &QSlider::valueChanged, this, 
+    &TreeVisualiser::areaDiffSlider_onValueChange);
 
   areaLayout->addWidget(areaSlider_);
   areaLayout->addWidget(areaValueLabel_);
@@ -148,9 +149,8 @@ QLayout *TreeVisualiser::createTreeSimplificationControls()
   areaDiffValueLabel_ = new QLabel{"200", this};
   areaDiffValueLabel_->setFixedWidth(35);
   areaDiffValueLabel_->setAlignment(Qt::AlignRight);
-  connect(areaDiffSlider_, &QSlider::valueChanged, [this](int val){
-    areaDiffValueLabel_->setText(QString::number(val));
-  });
+  connect(areaDiffSlider_, &QSlider::valueChanged, this,
+    &TreeVisualiser::areaDiffSlider_onValueChange);
 
   areaDiffLayout->addWidget(areaDiffSlider_);
   areaDiffLayout->addWidget(areaDiffValueLabel_);
@@ -160,11 +160,9 @@ QLayout *TreeVisualiser::createTreeSimplificationControls()
   return controlsLayout;
 }
 
-void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f, 
-  std::shared_ptr<TreeSimplification> treeSimplification)
-{
-  treeSimplification_ = treeSimplification;
-  treeWidget_->loadImage(domain, f, treeSimplification);
+void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
+{  
+  treeWidget_->loadImage(domain, f, treeSimplification_);
   domain_ = domain;
 }
 
@@ -296,6 +294,45 @@ void TreeVisualiser::inspectNodeMinusBtn_press()
     treeWidget_->undoNodeInspection();
     curNodeSelection_ = nullptr;
   }
+}
+
+void TreeVisualiser::numberLeavesSlider_onValueChange(int val)
+{  
+  namespace mw = MorphotreeWidget;
+  using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
+
+  numberLeavesValueLabel_->setText(QString::number(val));
+
+  std::dynamic_pointer_cast<AreaProgSimplification>(treeSimplification_)
+    ->numberOfLeavesToKeep(val);
+
+  treeWidget_->simplifyTree(treeSimplification_);
+}
+
+void TreeVisualiser::areaSlider_onValueChange(int val)
+{
+  namespace mw = MorphotreeWidget;
+  using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
+
+  areaValueLabel_->setText(QString::number(val));
+  
+  std::dynamic_pointer_cast<AreaProgSimplification>(treeSimplification_)
+    ->areaThresholdToKeep(val);
+
+  treeWidget_->simplifyTree(treeSimplification_);
+}
+
+void TreeVisualiser::areaDiffSlider_onValueChange(int val)
+{
+  namespace mw = MorphotreeWidget;
+  using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
+
+  areaDiffValueLabel_->setText(QString::number(val));
+
+  std::dynamic_pointer_cast<AreaProgSimplification>(treeSimplification_)
+    ->progDifferenceThreholdToKeep(val);
+
+  treeWidget_->simplifyTree(treeSimplification_);
 }
 
 void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)

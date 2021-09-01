@@ -59,8 +59,7 @@ public:
 
   TreeVisualiser(MainWidget *mainWidget);
 
-  void loadImage(Box domain, const std::vector<morphotree::uint8> &f,
-    std::shared_ptr<TreeSimplification> treeSimplification);
+  void loadImage(Box domain, const std::vector<morphotree::uint8> &f);
 
   void selectNodeByPixel(int x, int y);
 
@@ -87,6 +86,9 @@ protected slots:
   void inspectNodePlusBtn_press();
   void inspectNodeMinusBtn_press();
 
+  void numberLeavesSlider_onValueChange(int val);
+  void areaSlider_onValueChange(int val);
+  void areaDiffSlider_onValueChange(int val);
 
 private:
   MorphotreeWidget::MorphotreeWidget *treeWidget_;

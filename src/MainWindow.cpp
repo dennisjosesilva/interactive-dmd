@@ -36,20 +36,20 @@ MainWindow::MainWindow()
  
   // read image 
   dmd.readImage();
-  //dmd.curImage()->writePGM("dmd01.pgm");
+  //dmd.curImage()->NewwritePGM("dmd01.pgm");
 
   // remove islands
-  dmd.removeIslands(0.1);
-  //dmd.curImage()->writePGM("dmd02.pgm");
+  dmd.removeIslands(0.01);
+  //dmd.curImage()->NewwritePGM("dmd02.pgm");
 
-  dmd.LayerSelection(true, 15);
-  //dmd.curImage()->writePGM("dmd03.pgm");
+  dmd.LayerSelection(true, 10);
+  //dmd.curImage()->NewwritePGM("dmd03.pgm");
   dmd.computeSkeletons();
   //dmd.Encoding();
 
   dmdReconstruct recon;
   recon.readControlPoints();
-  recon.ReconstructImage();
+  recon.ReconstructImage(true);//true for interpolation method.
 
   createMenus();
   createToolBar();

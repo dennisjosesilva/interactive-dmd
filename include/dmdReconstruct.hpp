@@ -1,5 +1,5 @@
 #include <vector>
-#include <skeleton_cuda.hpp>
+#include <skeleton_cuda_recon.hpp>
 #include <BSplineCurveFitterWindow3.h>
 
 //typedef Triple<int, int, int> coord3D_t;
@@ -16,12 +16,18 @@ class dmdReconstruct {
 
     void readControlPoints();
     void loadSample();
-    void ReconstructImage();
+    void ReconstructImage(bool interpolate);
+
+
+    void get_interp_layer(int intensity, int SuperResolution, bool last_layer);
+    FIELD<float>* get_dt_of_alpha(FIELD<float>* alpha);
+ 
     layer_t *readLayer(int l);
     void drawEachLayer(int intensity);
-    void initOUT();
+    FIELD<float>* drawEachLayer_interp(int intensity);
+    void init();
 
-    int width, height;
+    int width, height, clearColor;
 
   private:
     vector<int> gray_levels;

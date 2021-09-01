@@ -26,8 +26,7 @@ dmdProcess::dmdProcess() {
 
 dmdProcess::~dmdProcess() {
     free(importance);
-    deallocateCudaMem();
-
+    //deallocateCudaMem();
 }
 
 void dmdProcess::removeIslands(float islandThreshold) {
@@ -587,12 +586,13 @@ void dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFil
         }
     }
       //cout<<"enterORnot: "<<enterORnot<<" "<<i<<endl;
-    if(WriteToFile>0 && SkelPoints == 0)  clear_color = i; //There are no skeletons produced for this layer, so this layer will be the clear_color layer.
+    if(WriteToFile>0 && SkelPoints == 0)  
+        printf(" Attention: There are no skeletons produced for this layer. \n");
+    
     //if(WriteToFile>0 && i == 68){
     //    skelCurr->writePGM("skel68.pgm");
     //}
 
-    
     ///////new method-----segment and store into the BranchSets;
      for (y = 0; y < skelCurr->dimY(); ++y) {
         for (x = 0; x < skelCurr->dimX(); ++x) {
@@ -632,6 +632,7 @@ void dmdProcess::computeSkeletons(){
     ofstream OutFile1;
     OutFile1.open("controlPoints.txt");
     OutFile1<<processedImage->dimX()<<" "<<processedImage->dimY()<<endl; // the final end tag for one channel.
+    OutFile1<<clear_color<<endl; // the final end tag for one channel.
     
 
     int fboSize = initialize_skeletonization(processedImage);
@@ -670,26 +671,6 @@ void dmdProcess::computeSkeletons(){
                 else
                 {
                     printf("Adaptive Layer Encoding method will be added later...\n");
-                    /*
-                    int background = CalculateCPnum(i,imDupeBack,0);
-
-                    imDupeFore = processedImage->dupe();
-                    imDupeFore->threshold_(i); //foreground <-> background
-               
-                    int foreground = CalculateCPnum(i,imDupeFore,0);
-                   // cout<<"background: "<<background<<" foreground: "<<foreground<<endl;
-
-                    int sign;
-
-                    imDupe = processedImage->dupe();
-                    if(background > foreground)
-                        {imDupe->threshold_(i); sign = 1;}
-                    else
-                        {imDupe->threshold(i); sign = 2;}
-                     
-                
-                    CalculateCPnum(i,imDupe,sign);
-                    */
                     
                 }
                     

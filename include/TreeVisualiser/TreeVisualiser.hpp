@@ -72,6 +72,8 @@ protected:
   QLayout* createButtons();
   QLayout* createTreeSimplificationControls();
 
+  std::shared_ptr<TreeSimplification> duplicateTreeSimplification();
+
 protected slots:
   void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);
 

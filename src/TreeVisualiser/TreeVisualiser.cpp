@@ -145,8 +145,8 @@ QLayout *TreeVisualiser::createTreeSimplificationControls()
   areaDiffLayout->addWidget(new QLabel{"area diff: ", this});
   areaDiffSlider_ = new QSlider{Qt::Horizontal, this};
   areaDiffSlider_->setRange(0, 1000);
-  areaDiffSlider_->setValue(200);
-  areaDiffValueLabel_ = new QLabel{"200", this};
+  areaDiffSlider_->setValue(180);
+  areaDiffValueLabel_ = new QLabel{"180", this};
   areaDiffValueLabel_->setFixedWidth(35);
   areaDiffValueLabel_->setAlignment(Qt::AlignRight);
   connect(areaDiffSlider_, &QSlider::sliderMoved, this,
@@ -332,6 +332,7 @@ void TreeVisualiser::numberLeavesSlider_onValueChange(int val)
   std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
     ->numberOfLeavesToKeep(val);
 
+  curNodeSelection_ = nullptr;
   treeWidget_->redrawTree();
 }
 
@@ -345,6 +346,7 @@ void TreeVisualiser::areaSlider_onValueChange(int val)
   std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
     ->areaThresholdToKeep(val);
 
+  curNodeSelection_ = nullptr;
   treeWidget_->redrawTree();
 }
 
@@ -358,6 +360,7 @@ void TreeVisualiser::areaDiffSlider_onValueChange(int val)
   std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
     ->progDifferenceThreholdToKeep(val);
 
+  curNodeSelection_ = nullptr;
   treeWidget_->redrawTree();
 }
 

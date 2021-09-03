@@ -9,7 +9,7 @@
 
 typedef std::pair<int, int> coord2D_t;
 typedef vector<coord2D_t> coord2D_list_t;
-
+extern float SKELETON_SALIENCY_THRESHOLD;
 
 int EPSILON=0.00001;
 int max_elem = 0;
@@ -165,6 +165,7 @@ void find_peaks(double* importance, double width) {
             break;
         if(impfac < 0.0002) break;//Too small, then break
         numiters++;
+        cout<<" "<<impfac;
     } 
     memset(importance, 0, 256 * sizeof(double));
     for (auto elem : v)
@@ -255,13 +256,16 @@ void dmdProcess::calculateImportance(bool cumulative, int num_layers) {
     int normFac = 0;
     float *c = processedImage->data();
     float *end = processedImage->data() + nPix;
-
+   
     int min_elem = 1e5;
     while (c != end){
-        max_elem = Fieldmax(max_elem, *c);
-        min_elem = Fieldmin(min_elem, *c++);
+        //max_elem = Fieldmax(max_elem, *c);
+        //min_elem = Fieldmin(min_elem, *c++);
+        max_elem = (max_elem<*c)? *c : max_elem;
+        min_elem = (min_elem<*c)? min_elem : *c;
+        c++;
     }
-        
+    cout<< "max_elem: " << max_elem <<" min_elem: "<<min_elem<<endl;
     clear_color = min_elem;
     
     /* If importance was already calculated before, cleanup! */
@@ -279,7 +283,7 @@ void dmdProcess::calculateImportance(bool cumulative, int num_layers) {
     while (c < end) {
         importance[static_cast<int>(*c++)] += 1;
     }
-
+cout<<" Create a histogram"<<endl;
     UpperLevelSet[0] = importance[0];
     for (int i = 0; i < 255; i++)
         UpperLevelSet[i+1] = importance[i+1] + UpperLevelSet[i];
@@ -589,9 +593,9 @@ void dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFil
     if(WriteToFile>0 && SkelPoints == 0)  
         printf(" Attention: There are no skeletons produced for this layer. \n");
     
-    //if(WriteToFile>0 && i == 68){
-    //    skelCurr->writePGM("skel68.pgm");
-    //}
+    std::stringstream ske;
+    ske<<"output/s"<<i<<".pgm";
+    skelCurr->writePGM(ske.str().c_str());
 
     ///////new method-----segment and store into the BranchSets;
      for (y = 0; y < skelCurr->dimY(); ++y) {
@@ -624,7 +628,8 @@ void dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFil
     delete skelCurr;
 }
 
-void dmdProcess::computeSkeletons(){
+void dmdProcess::computeSkeletons(float saliency_threshold){
+    SKELETON_SALIENCY_THRESHOLD = saliency_threshold;
     //ofstream clear;
     //clear.open("controlPoints.txt");
     //clear.close();
@@ -661,10 +666,10 @@ void dmdProcess::computeSkeletons(){
                 imDupeBack->threshold(i);
 
                  //debug--print layer
-                /* stringstream ss;
-                ss<<"level/l"<<time1<<"-"<<i<<".pgm";
+                 stringstream ss;
+                ss<<"output/l"<<i<<".pgm";
                 imDupeBack->writePGM(ss.str().c_str());
-                 */  
+                /* */  
                 bool ADAPTIVE = false;
                 if(!ADAPTIVE)
                     CalculateCPnum(i,imDupeBack,2);
@@ -679,7 +684,7 @@ void dmdProcess::computeSkeletons(){
     }
     ofstream OutFile2;
     OutFile2.open("controlPoints.txt",ios_base::app);
-    OutFile2<<255<<endl; // the final end tag for one channel.
+    OutFile2<<65536<<endl; // the final end tag for one channel.
     
     OutFile2.close(); /**/
     printf("Skeletonization Done!\n");
@@ -821,3 +826,89 @@ void dmdProcess::Encoding(){
 */
 }
 
+void dmdProcess::Init_indexingSkeletons(){
+    SKELETON_SALIENCY_THRESHOLD = 0.4;//need to be improved, set by users.
+    int clear_color = 0;
+    int width = processedImage->dimX();
+    int height = processedImage->dimY();
+    diagonal  = sqrt((float)(width * width + height * height));
+    
+    //clear controlPoints.txt first and then write width, height, and clear_color.
+    ofstream OutFile1;
+    OutFile1.open("controlPoints.txt");
+    OutFile1<<width<<" "<<height<<endl; // 
+    OutFile1<<clear_color<<endl; // 
+
+    int fboSize = initialize_skeletonization(processedImage);
+
+}
+//CC-connected component.
+//0-foreground; 1- background.
+void dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
+    bool ADAPTIVE = false;
+    if(!ADAPTIVE)
+    {
+        FIELD<float> *skelCurr = 0;
+        int seq = 0, x, y; 
+        int CPnum = 0;
+        int SkelPoints = 0;
+        
+        skelImp = computeSkeleton(intensity, CC);
+        
+        //skel importance map or saliency map transforms to skel.
+        skelCurr = new FIELD<float>(skelImp->dimX(), skelImp->dimY());
+        for (int i = 0; i < skelImp->dimX(); ++i) {
+            for (int j = 0; j < skelImp->dimY(); ++j) {
+                bool is_skel_point = skelImp->value(i,j);
+                skelCurr->set(i, j, is_skel_point ? 255 : 0);
+            }
+        } 
+        
+        analyze_cca(intensity, skelCurr);
+        removeDoubleSkel(skelCurr);
+        
+        for (y = 0; y < skelCurr->dimY(); ++y) {
+            for (x = 0; x < skelCurr->dimX(); ++x) {
+                if (skelCurr->value(x, y) > 0) {
+                    SkelPoints++;
+                    if(CC->value(x,y) == 0)//dt=0
+                        skelCurr->set(x,y,0);
+                }
+            }
+        }
+        
+        if(SkelPoints == 0)  
+            printf(" Attention: There are no skeletons produced for this layer. \n");
+        /*
+        std::stringstream ske;
+        ske<<"output/s"<<i<<".pgm";
+        skelCurr->writePGM(ske.str().c_str());
+        */
+        ///////new method-----segment and store into the BranchSets;
+        for (y = 0; y < skelCurr->dimY(); ++y) {
+            for (x = 0; x < skelCurr->dimX(); ++x) {
+                if (skelCurr->value(x, y) > 0) {
+                    vector<Vector3<float>> Branch;
+                    //if(imDupeCurr->value(x,y) == 0) cout<<"! ";
+                    tracePath(x, y, skelCurr, CC, Branch, seq);//get the connection
+                    seq++;
+                }
+            }
+        }
+        ////fit with spline///
+        
+        float hausdorff = 0.002; //spline fitting error threshold
+        if(BranchSet.size()>0){
+            BSplineCurveFitterWindow3 spline;
+            spline.indexingSpline(BranchSet, hausdorff, diagonal, intensity, index);//
+            
+            BranchSet.clear();//important.
+            connection.clear();
+        }
+       
+        delete skelCurr;
+    }
+    else
+        printf("Adaptive Layer Encoding method will be added later...\n");
+    
+}

@@ -22,8 +22,9 @@ class dmdProcess {
     //API
     void removeIslands(float islandThreshold);
     void LayerSelection(bool cumulative, int num_layers);
-    void computeSkeletons();
-    
+    void computeSkeletons(float saliency_threshold);
+    void Init_indexingSkeletons();
+    void indexingSkeletons(FIELD<float> * CC, int intensity, int index);
     
 
     //

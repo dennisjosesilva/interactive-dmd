@@ -85,6 +85,81 @@ void dmdReconstruct::readControlPoints(){
     loadSample();
 }
 
+void dmdReconstruct::loadIndexingSample() {
+    int SuperResolution = 1;
+    image_index* img = new image_index();
+    
+    path_index* layer;
+
+    int intensity, x, index;
+    Vector4<int> CurrentPx;
+    
+
+    for (int i = 0; i < 0xff; ++i) {
+        path_index *p = new path_index();
+        img->push_back(p);
+    }
+    
+    ifstream ifs("sample.txt"); 
+    string str;
+    ifs >> str;
+    width = (int)atof(str.c_str());
+    ifs >> str;
+    height = (int)atof(str.c_str()); 
+    ifs >> str;
+    clearColor = (int)atof(str.c_str()); 
+    
+    ifs >> str;
+    if((int)atof(str.c_str())==65536) printf("ERROR!!!!!!!!");
+
+    while(true)
+    {
+        intensity = (int)atof(str.c_str());
+        if(!count(gray_levels.begin(),gray_levels.end(), intensity)) // has not contain intensity yet
+            gray_levels.push_back(intensity);
+        //of_uncompressed << "Intensity " << +intensity << endl;
+        //cout<<"intensity: "<<intensity<<endl;
+        
+        layer = (*img)[intensity];
+        ifs >> str;
+        index = (int)atof(str.c_str()); 
+    
+        //cout<<"layer.size() "<<layer->size()<<endl;
+        while(true)
+        {
+            ifs >> str;
+            x = (round)(atof(str.c_str()));
+
+            if (x != 65535)
+            {
+                CurrentPx[0] = x*SuperResolution;
+                ifs >> str;
+                CurrentPx[1] = (round)(atof(str.c_str())*SuperResolution);
+                ifs >> str;
+                CurrentPx[2] = (round)(atof(str.c_str())*SuperResolution);
+                CurrentPx[3] = index;
+                //of_uncompressed << x << " - " << y << " - " << dt << endl;
+                layer->push_back(CurrentPx);
+            }
+            else break;
+        }
+        ifs >> str;
+        if((int)atof(str.c_str())==65536) break;
+    }
+      
+    
+    //of_uncompressed.close();
+    ifs.close();
+    indexing_image = img;
+    
+}
+
+void dmdReconstruct::readIndexingControlPoints(){
+    BSplineCurveFitterWindow3 readCPs;
+    readCPs.ReadIndexingSpline();
+    loadIndexingSample();
+}
+
 void dmdReconstruct::init() {
     output = new FIELD<float>(width, height);
     prev_layer = new FIELD<float>(width, height);
@@ -97,8 +172,20 @@ void dmdReconstruct::init() {
 
     initialize_skeletonization_recon(width, height);//initCUDA
 }
+
+void dmdReconstruct::init_index() {
+    output = new FIELD<float>(width, height);
+    
+    for (unsigned int x = 0; x < width; x++) 
+        for (unsigned int y = 0; y < height; y++)
+            output->set(x, y, clearColor);
+
+}
 layer_t *dmdReconstruct::readLayer(int l) {
     return (*r_image)[l];
+}
+layer_index *dmdReconstruct::readIndexLayer(int l) {
+    return (*indexing_image)[l];
 }
 
 void dmdReconstruct::drawEachLayer(int intensity){
@@ -298,6 +385,76 @@ void dmdReconstruct::ReconstructImage(bool interpolate){
         }
 
         output->NewwritePGM("output.pgm");
+        printf("DMD finished!\n");
+
+    }
+    else printf("gray_levels is empty!");
+
+}
+
+
+void dmdReconstruct::drawEachIndexLayer(int intensity, int nodeID, int action){
+    layer_index *layer = readIndexLayer(intensity);
+    int x, y, r, index;
+    
+    for (unsigned int k = 0; k < layer->size(); ++k) {
+        //x = (*layer)[k].first;
+        //y = (*layer)[k].second;
+        //r = (*layer)[k].third;
+        x = (*layer)[k][0];
+        y = (*layer)[k][1];
+        r = (*layer)[k][2];
+        index = (*layer)[k][3];
+        
+
+        if(action==0){//delete
+            if(index!=nodeID){
+                for(int i = x-r; i < x+r+1; i++)
+                    for(int j = y-r; j < y+r+1; j++)
+                    {
+                        if(output->value(i,j) > clearColor) continue;
+                        if(i > x - (double)r/sqrt(2) && i < x + (double)r/sqrt(2) && j > y - (double)r/sqrt(2) && j > y - (double)r/sqrt(2)){
+                            output->set(i, j, intensity);
+                        }
+                        else if (sqrt((i-x)*(i-x)+(j-y)*(j-y)) < r+1) output->set(i, j, intensity);
+                    }
+            }
+        }
+        else{//hignlight
+         if(index==nodeID){
+                for(int i = x-r; i < x+r+1; i++)
+                    for(int j = y-r; j < y+r+1; j++)
+                    {
+                        if(output->value(i,j) > clearColor) continue;
+                        if(i > x - (double)r/sqrt(2) && i < x + (double)r/sqrt(2) && j > y - (double)r/sqrt(2) && j > y - (double)r/sqrt(2)){
+                            output->set(i, j, intensity);
+                        }
+                        else if (sqrt((i-x)*(i-x)+(j-y)*(j-y)) < r+1) output->set(i, j, intensity);
+                    }
+            }
+        } 
+        
+    }
+}
+
+void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int action){
+    init_index();
+    
+    if(!gray_levels.empty())
+    {
+        if(interpolate){
+            //add interpolate method later
+        }
+        else{
+            vector<int>::reverse_iterator it;
+            for(it = gray_levels.rbegin();it!=gray_levels.rend();it++){
+                std::cout << *it << "\t";
+                drawEachIndexLayer(*it, nodeID, action);
+            }
+        }
+
+        output->NewwritePGM("output.pgm");
+        printf("DMD finished!\n");
 
     }
     else printf("gray_levels is empty!");

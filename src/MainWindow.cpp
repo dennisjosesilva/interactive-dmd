@@ -20,13 +20,19 @@
 
 MainWindow::MainWindow()
 {
-  setWindowTitle("Interactive DMD");  
+  setWindowTitle("Interactive DMD"); 
+  //const QString filename = "../../images/Zuckerberg.pgm";
+  const QString filename = "../images/art_deco.pgm";
 
   mainWidget_ = new MainWidget{this};
-  mainWidget_->loadImage("../../images/Zuckerberg.pgm");
+  mainWidget_->loadImage(filename);
   setCentralWidget(mainWidget_);
 
   dmd = new dmdProcess();
+  const char *c_str = filename.toLocal8Bit().data();
+  dmd->set_filename(c_str);
+  dmd->readImage();
+  printf("Read image from: %s \n",c_str);
 
   createMenus();
   createToolBar();
@@ -166,18 +172,36 @@ void MainWindow::treeVisAct_onToggled(bool checked)
 void MainWindow::dmdProcessAct_onTrigged()
 {
   //dmd->curImage()->NewwritePGM("dmd01.pgm");
-
+/*
   // remove islands
-  dmd->removeIslands(0.01);
-  //dmd.curImage()->NewwritePGM("dmd02.pgm");
-
-  dmd->LayerSelection(true, 10);
-  //dmd.curImage()->NewwritePGM("dmd03.pgm");
-  dmd->computeSkeletons();
-  //dmd.Encoding();
-
+  dmd->removeIslands(0.1);
+  
+  dmd->LayerSelection(false, 2);
+  
+  dmd->computeSkeletons(0.2);
+  
   dmdReconstruct recon;
   recon.readControlPoints();
-  recon.ReconstructImage(true);//true for interpolation method.
+  recon.ReconstructImage(false);//true for interpolation method.
+  */
+  dmd->Init_indexingSkeletons();
+
+  const QString filename = "../images/l146.pgm";
+  const char *c_str = filename.toLocal8Bit().data();
+  FIELD<float> *cc = FIELD<float>::read(c_str);
+  dmd->indexingSkeletons(cc, 146, 0);
+
+  const QString filename_ = "../images/l240.pgm";
+  c_str = filename_.toLocal8Bit().data();
+  cc = FIELD<float>::read(c_str);
+  
+  dmd->indexingSkeletons(cc, 240, 1);
+
+  dmdReconstruct recon;
+  recon.readIndexingControlPoints();
+  int nodeID = 1;
+  //int action = 0;//delete
+  int action = 1;//highlight
+  recon.ReconstructIndexingImage(false, nodeID, action);//true for interpolation method.
 
 }

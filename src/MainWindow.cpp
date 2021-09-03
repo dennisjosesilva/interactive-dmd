@@ -16,13 +16,23 @@
 
 #include <QDebug>
 
+#include "dmdReconstruct.hpp"
+
 MainWindow::MainWindow()
 {
-  setWindowTitle("Interactive DMD");  
+  setWindowTitle("Interactive DMD"); 
+  //const QString filename = "../../images/Zuckerberg.pgm";
+  const QString filename = "../images/art_deco.pgm";
 
   mainWidget_ = new MainWidget{this};
-  mainWidget_->loadImage("../../images/Zuckerberg.pgm");
+  mainWidget_->loadImage(filename);
   setCentralWidget(mainWidget_);
+
+  dmd = new dmdProcess();
+  const char *c_str = filename.toLocal8Bit().data();
+  dmd->set_filename(c_str);
+  dmd->readImage();
+  printf("Read image from: %s \n",c_str);
 
   createMenus();
   createToolBar();
@@ -88,6 +98,7 @@ void MainWindow::createToolBar()
   imageToolBar->addAction(imageZoomOutAct_);
 }
 
+
 static void initialiseImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode)
 {
   static bool firstDialog = true;
@@ -131,6 +142,14 @@ void MainWindow::open()
         mainWidget_->updateTreeVisualiser();
 
     }
+
+    //for DMD 
+     ///Read the filename
+    
+    const char *c_str = filename.toLocal8Bit().data();
+    dmd->set_filename(c_str);
+    dmd->readImage();
+    printf("Read image from: %s \n",c_str);
   }
   else {
     statusBar()->showMessage(tr("Image open has been canceled"), 3000);
@@ -165,17 +184,3 @@ void MainWindow::treeVisAct_onToggled(bool checked)
     dockMorphotreeWidget->setVisible(false);
 }
 
-void MainWindow::nodeSelectionClickAct_onToggled(bool checked)
-{
-  mainWidget_->setNodeSelectionByClickActivated(checked);
-}
-
-void MainWindow::imageZoomInAct_onTrigged()
-{ 
-  mainWidget_->zoomIn();
-}
-
-void MainWindow::imageZoomOutAct_onTrigged()
-{ 
-  mainWidget_->zoomOut();
-}

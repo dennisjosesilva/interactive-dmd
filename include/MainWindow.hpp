@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 #include "MainWidget.hpp"
+#include "dmdProcess.hpp"
 
 class QDockWidget;
 class QAction;

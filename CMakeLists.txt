@@ -1,3 +1,6 @@
+#set(CMAKE_CXX_COMPILER "/usr/bin/g++-10")
+project(interactive-dmd)
+
 # CMAKE MINIMUM VERSION
 cmake_minimum_required(VERSION 3.10)
 

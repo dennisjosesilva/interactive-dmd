@@ -134,7 +134,7 @@ QLayout *TreeVisualiser::createTreeSimplificationControls()
   areaValueLabel_->setFixedWidth(35);
   areaValueLabel_->setAlignment(Qt::AlignRight);
   connect(areaSlider_, &QSlider::sliderMoved, this, 
-    &TreeVisualiser::areaDiffSlider_onValueChange);
+    &TreeVisualiser::areaSlider_onValueChange);
 
   areaLayout->addWidget(areaSlider_);
   areaLayout->addWidget(areaValueLabel_);
@@ -162,7 +162,14 @@ QLayout *TreeVisualiser::createTreeSimplificationControls()
 
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 {  
-  treeWidget_->loadImage(domain, f, treeSimplification_);
+  namespace mw = MorphotreeWidget;
+
+  if (treeWidget_->treeSimplification() == nullptr) 
+    treeWidget_->loadImage(domain, f, 
+      std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
+  else 
+    treeWidget_->loadImage(domain, f, treeWidget_->treeSimplification());
+    
   domain_ = domain;
 }
 

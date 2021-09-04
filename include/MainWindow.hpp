@@ -19,6 +19,8 @@ private slots:
   void saveAs();
   void open();
 
+  void dmdProcessAct_onTrigged();
+
   void treeVisAct_onToggled(bool checked=true);
   void nodeSelectionClickAct_onToggled(bool checked);
   void imageZoomInAct_onTrigged();
@@ -36,4 +38,8 @@ private:
   QAction *nodeSelectionClickAct_;
   QAction *imageZoomInAct_;
   QAction *imageZoomOutAct_;
+
+// for dmd
+  dmdProcess *dmd;
+  QAction *dmdProcessAct_;
 };

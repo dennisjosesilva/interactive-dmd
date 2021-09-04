@@ -96,6 +96,16 @@ void MainWindow::createToolBar()
   connect(imageZoomOutAct_, &QAction::triggered, this, 
     &MainWindow::imageZoomOutAct_onTrigged);
   imageToolBar->addAction(imageZoomOutAct_);
+
+  // ========= DMD tool bar ==============
+  QToolBar *dmdToolBar = addToolBar("DMD Toolbar");
+  dmdToolBar->setIconSize(QSize{ 32, 32});
+
+  const QIcon dmdProcessIcon = QIcon{":/images/Skel_icon.png"};
+  dmdProcessAct_ = new QAction{dmdProcessIcon, tr("DMD process"), this};
+  dmdProcessAct_->setStatusTip("DMD process");
+  connect(dmdProcessAct_, &QAction::triggered, this, &MainWindow::dmdProcessAct_onTrigged);
+  dmdToolBar->addAction(dmdProcessAct_);
 }
 
 
@@ -175,6 +185,42 @@ void MainWindow::saveAs()
   }  
 }
 
+void MainWindow::dmdProcessAct_onTrigged()
+{
+  dmd->curImage()->NewwritePGM("dmd01.pgm");
+
+  // remove island
+  /*dmd->removeIslands(0.1);
+
+  dmd->LayerSelection(false, 2);
+  
+  dmd->computeSkeletons(0.2);
+
+  dmdReconstruct recon;
+  recon.readControlPoints();
+  recon.ReconstructImage(false); // true for interpolation method.
+  */
+ dmd->Init_indexingSkeletons();
+
+ const QString filename = "../images/l146.pgm";
+ const char *c_str = filename.toLocal8Bit().data();
+ FIELD<float> *cc = FIELD<float>::read(c_str);
+ dmd->indexingSkeletons(cc, 146, 0);
+
+ const QString filename_ = "../images/l240.pgm";
+ c_str = filename_.toLocal8Bit().data();
+ cc = FIELD<float>::read(c_str);
+
+ dmd->indexingSkeletons(cc, 240, 1);
+
+ dmdReconstruct recon;
+ recon.readIndexingControlPoints();
+ int nodeID = 1;
+ // int action = 0; //delete
+ int action = 1; //highlight
+ recon.ReconstructIndexingImage(false, nodeID, action); //true for interpolation method.
+}
+
 void MainWindow::treeVisAct_onToggled(bool checked)
 {  
   QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
@@ -184,3 +230,17 @@ void MainWindow::treeVisAct_onToggled(bool checked)
     dockMorphotreeWidget->setVisible(false);
 }
 
+void MainWindow::nodeSelectionClickAct_onToggled(bool checked)
+{
+  mainWidget_->setNodeSelectionByClickActivated(checked);
+}
+
+void MainWindow::imageZoomInAct_onTrigged()
+{
+  mainWidget_->zoomIn();
+}
+
+void MainWindow::imageZoomOutAct_onTrigged()
+{
+  mainWidget_->zoomOut();
+}

@@ -4,8 +4,6 @@ project(interactive-dmd)
 # CMAKE MINIMUM VERSION
 cmake_minimum_required(VERSION 3.10)
 
-# PROJECT
-project(interactive-dmd LANGUAGES CUDA CXX)
 
 # CXX STANDARD
 set(CMAKE_CXX_STANDARD 14)
@@ -16,6 +14,7 @@ find_package(CUDA REQUIRED)
 
 # INCLUDE DIRECTORIES
 include_directories(include "${CUDA_INCLUDE_DIRS}")
+link_directories(/usr/local/cuda/lib64)
 
 # SETUP CUDA STANDARD
 if (NOT DEFINED CMAKE_CUDA_STANDARD)
@@ -53,4 +52,4 @@ target_link_libraries(interactive-dmd PUBLIC
   Qt5::Gui
   cgraph
   gvc
-  ${CUDA_LIBRARIES})
+  cudart)

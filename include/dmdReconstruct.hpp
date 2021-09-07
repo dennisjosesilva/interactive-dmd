@@ -27,6 +27,7 @@ class dmdReconstruct {
 
 
     void get_interp_layer(int intensity, int SuperResolution, bool last_layer);
+    void get_interp_index_layer(int intensity, int nodeID, int SuperResolution, bool last_layer);
     FIELD<float>* get_dt_of_alpha(FIELD<float>* alpha);
  
     layer_t *readLayer(int l);
@@ -35,8 +36,9 @@ class dmdReconstruct {
     void drawEachIndexLayer(int intensity, int nodeID, int action);
  
     FIELD<float>* drawEachLayer_interp(int intensity);
+    FIELD<float>* drawEachIndexLayer_interp(int intensity, int nodeID);
+ 
     void init();
-    void init_index();
 
     int width, height, clearColor;
 

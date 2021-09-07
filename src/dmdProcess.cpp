@@ -666,10 +666,10 @@ void dmdProcess::computeSkeletons(float saliency_threshold){
                 imDupeBack->threshold(i);
 
                  //debug--print layer
-                 stringstream ss;
+                /* stringstream ss;
                 ss<<"output/l"<<i<<".pgm";
                 imDupeBack->writePGM(ss.str().c_str());
-                /* */  
+                 */  
                 bool ADAPTIVE = false;
                 if(!ADAPTIVE)
                     CalculateCPnum(i,imDupeBack,2);

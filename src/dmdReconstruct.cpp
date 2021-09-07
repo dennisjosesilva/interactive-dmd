@@ -173,14 +173,6 @@ void dmdReconstruct::init() {
     initialize_skeletonization_recon(width, height);//initCUDA
 }
 
-void dmdReconstruct::init_index() {
-    output = new FIELD<float>(width, height);
-    
-    for (unsigned int x = 0; x < width; x++) 
-        for (unsigned int y = 0; y < height; y++)
-            output->set(x, y, clearColor);
-
-}
 layer_t *dmdReconstruct::readLayer(int l) {
     return (*r_image)[l];
 }
@@ -393,7 +385,140 @@ void dmdReconstruct::ReconstructImage(bool interpolate){
 }
 
 
+FIELD<float>* dmdReconstruct::drawEachIndexLayer_interp(int intensity, int nodeID){
+    FIELD<float>* binaryLayer = new FIELD<float>(width, height);
+    
+    for (unsigned int x = 0; x < width; x++) 
+        for (unsigned int y = 0; y < height; y++)
+            binaryLayer->set(x, y, 0);
+
+    layer_index *layer = readIndexLayer(intensity);
+    int x, y, r, index;
+    
+     for (unsigned int k = 0; k < layer->size(); ++k) {
+       
+        x = (*layer)[k][0];
+        y = (*layer)[k][1];
+        r = (*layer)[k][2];
+        index = (*layer)[k][3];
+        
+        if(index!=nodeID){
+            for(int i = x-r; i < x+r+1; i++)
+                for(int j = y-r; j < y+r+1; j++)
+                {
+                    if(i<0 || j<0 || i>width-1 ||j>height-1) continue;
+                    if(binaryLayer->value(i,j) > 0) continue;
+                    if(i > x - (double)r/sqrt(2) && i < x + (double)r/sqrt(2) && j > y - (double)r/sqrt(2) && j > y - (double)r/sqrt(2)){
+                        binaryLayer->set(i, j, 1);
+                    }
+                    else if (sqrt((i-x)*(i-x)+(j-y)*(j-y)) < r+1) binaryLayer->set(i, j, 1);
+                }
+        }
+        
+    }
+    return binaryLayer;
+}
+
+
+void dmdReconstruct::get_interp_index_layer(int intensity, int nodeID, int SuperResolution, bool last_layer)
+{
+    bool interp_firstLayer = 1;
+    int prev_intensity, prev_bound_value, curr_bound_value;
+    unsigned int x, y;
+    FIELD<float>* first_layer_forDT = new FIELD<float>(width, height);
+    FIELD<float>* curr_layer = drawEachIndexLayer_interp(intensity, nodeID);
+    
+    FIELD<float>* curr_dt = get_dt_of_alpha(curr_layer);
+    /*stringstream layer;
+    layer<<"layer"<<intensity<<".pgm";
+    curr_layer->NewwritePGM(layer.str().c_str());
+    */
+ if(interp_firstLayer) {
+    if(firstTime){//first layer
+        firstTime = false;
+        prev_intensity = clearColor;
+        prev_bound_value = clearColor;
+        for (int i = 0; i < width; ++i) 
+            for (int j = 0; j < height; ++j){
+                if(i==0 || j==0 || i==width-1 || j==height-1)    first_layer_forDT -> set(i, j, 0); 
+                else first_layer_forDT -> set(i, j, 1); 
+                prev_layer -> set(i, j, 1);
+            }
+
+        prev_layer_dt = get_dt_of_alpha(first_layer_forDT);
+    }
+    
+    curr_bound_value = (prev_intensity + intensity)/2;
+
+    for (x = 0; x < width; ++x) 
+        for (y = 0; y < height; ++y)
+        {
+            if(!curr_layer->value(x, y) && prev_layer->value(x, y))
+            {// If there are pixels active between boundaries we smoothly interpolate them
+                    
+                float prev_dt_val = prev_layer_dt->value(x, y);
+                float curr_dt_val = curr_dt->value(x, y);
+
+                float interp_alpha = prev_dt_val / ( prev_dt_val + curr_dt_val);
+                float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
+                
+                output->set(x, y, interp_color);
+                
+            }
+        }
+
+     }
+     else{
+          if(firstTime){ 
+              firstTime = false;  
+              curr_bound_value = (clearColor + intensity)/2;
+          }
+          else{
+            curr_bound_value = (prev_intensity + intensity)/2;
+            
+            for (x = 0; x < width; ++x) 
+                for (y = 0; y < height; ++y)
+                {
+                    if(!curr_layer->value(x, y) && prev_layer->value(x, y))// If there are pixels active between boundaries we smoothly interpolate them
+                    { 
+                        float prev_dt_val = prev_layer_dt->value(x, y);
+                        float curr_dt_val = curr_dt->value(x, y);
+
+                        float interp_alpha = prev_dt_val / ( prev_dt_val + curr_dt_val);
+                        float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
+                        
+                        output->set(x, y, interp_color);
+                    }
+                }
+        }   
+     }
+
+    prev_bound_value = curr_bound_value;
+
+    if(last_layer){
+        for (x = 0; x < width; ++x) 
+            for (y = 0; y < height; ++y){
+                if(curr_layer->value(x, y))
+                {
+                    int interp_last_layer_value = prev_bound_value + (curr_dt->value(x, y)/10);
+                    int MaxIntensity = (intensity+10) > 255 ? 255 : (intensity+10);
+                    output->set(x, y, (interp_last_layer_value > MaxIntensity) ? MaxIntensity : interp_last_layer_value);
+                
+                }
+            }
+    }
+
+    prev_intensity = intensity;
+    prev_layer = curr_layer->dupe();
+    prev_layer_dt = curr_dt->dupe();
+
+    delete curr_layer;
+    delete curr_dt;
+}
+
+//can be improved by adding nodeLevel parameter
 void dmdReconstruct::drawEachIndexLayer(int intensity, int nodeID, int action){
+    
     layer_index *layer = readIndexLayer(intensity);
     int x, y, r, index;
     
@@ -438,12 +563,29 @@ void dmdReconstruct::drawEachIndexLayer(int intensity, int nodeID, int action){
 }
 
 void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int action){
-    init_index();
+    init();
     
     if(!gray_levels.empty())
     {
         if(interpolate){
-            //add interpolate method later
+            if(action)//highlight
+            {
+                for (int inty : gray_levels) 
+                    drawEachIndexLayer(inty, nodeID, action);
+  
+            }
+            else{
+                bool last_layer = false;
+                int SuperResolution = 1;
+                int max_level = *std::max_element(gray_levels.begin(), gray_levels.begin() + gray_levels.size());
+    
+                for (int inty : gray_levels) {
+
+                    if(inty == max_level) last_layer = true;
+                    get_interp_index_layer(inty, nodeID, SuperResolution, last_layer);
+            
+                }
+            }
         }
         else{
             vector<int>::reverse_iterator it;

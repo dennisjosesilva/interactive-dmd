@@ -187,18 +187,19 @@ void MainWindow::saveAs()
 
 void MainWindow::dmdProcessAct_onTrigged()
 {
-  dmd->curImage()->NewwritePGM("dmd01.pgm");
-
+ // dmd->curImage()->NewwritePGM("dmd01.pgm");
+/* 
   // remove island
-  /*dmd->removeIslands(0.1);
+  dmd->removeIslands(0.1);
 
   dmd->LayerSelection(false, 2);
   
-  dmd->computeSkeletons(0.2);
+  dmd->computeSkeletons(0.4);
 
   dmdReconstruct recon;
   recon.readControlPoints();
-  recon.ReconstructImage(false); // true for interpolation method.
+  recon.ReconstructImage(true); // true for interpolation method.
+ 
   */
  dmd->Init_indexingSkeletons();
 
@@ -215,10 +216,11 @@ void MainWindow::dmdProcessAct_onTrigged()
 
  dmdReconstruct recon;
  recon.readIndexingControlPoints();
- int nodeID = 1;
+ int nodeID = 0;
  // int action = 0; //delete
- int action = 1; //highlight
- recon.ReconstructIndexingImage(false, nodeID, action); //true for interpolation method.
+ int action = 0; //highlight
+ recon.ReconstructIndexingImage(true, nodeID, action); //true for interpolation method.
+ 
 }
 
 void MainWindow::treeVisAct_onToggled(bool checked)

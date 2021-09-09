@@ -65,6 +65,7 @@ public:
   void loadImage(Box domain, const std::vector<morphotree::uint8> &f);
 
   void selectNodeByPixel(int x, int y);
+  dmdProcess *dmd_;
 
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
@@ -120,6 +121,6 @@ private:
   MainWidget *mainWidget_;
   std::shared_ptr<TreeSimplification> treeSimplification_;
 
-  dmdProcess dmd_;
+  
   dmdReconstruct dmdrecon_;
 };

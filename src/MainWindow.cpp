@@ -188,7 +188,7 @@ void MainWindow::saveAs()
 
 void MainWindow::dmdProcessAct_onTrigged()
 {
-  dmd->curImage()->NewwritePGM("dmd01.pgm");
+  //dmd->curImage()->NewwritePGM("dmd01.pgm");
 
   // remove island
   /*dmd->removeIslands(0.1);
@@ -221,10 +221,12 @@ void MainWindow::dmdProcessAct_onTrigged()
 //  int action = 1; //highlight
 //  recon.ReconstructIndexingImage(false, nodeID, action); //true for interpolation method.
 
+  //dmd->Init_indexingSkeletons();
   const QString filename = "../images/CC-id=212.pgm";
   const char *c_str = filename.toLocal8Bit().data();
   FIELD<float> *cc = FIELD<float>::read(c_str);
   dmd->indexingSkeletons(cc, 240, 0);
+  delete cc;
 
   dmdReconstruct recon;
   recon.readIndexingControlPoints();
@@ -235,6 +237,8 @@ void MainWindow::dmdProcessAct_onTrigged()
 
 void MainWindow::treeVisAct_onToggled(bool checked)
 {  
+  mainWidget_->treeVisualiser()->dmd_ = dmd;
+
   QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
   if (checked) 
     dockMorphotreeWidget->setVisible(true);

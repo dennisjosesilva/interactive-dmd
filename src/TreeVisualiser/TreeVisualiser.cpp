@@ -257,7 +257,7 @@ void TreeVisualiser::registerDMDSkeletons()
 {
   const MTree &tree = treeWidget_->tree();
   
-  dmd_.Init_indexingSkeletons();
+  dmd_->Init_indexingSkeletons();
   
   FIELD<float> *fnode = nullptr;
   tree.tranverse([&fnode, this](NodePtr node) {
@@ -266,7 +266,7 @@ void TreeVisualiser::registerDMDSkeletons()
     if (node->id() == 212)
       fnode->writePGM("newnode.pgm");
 
-    dmd_.indexingSkeletons(fnode, node->level(), node->id());
+    dmd_->indexingSkeletons(fnode, node->level(), node->id());
     
     // delete[] fnode->data();
     // delete fnode;

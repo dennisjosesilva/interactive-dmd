@@ -829,6 +829,7 @@ void dmdProcess::Encoding(){
 }
 
 void dmdProcess::Init_indexingSkeletons(){
+    
     SKELETON_SALIENCY_THRESHOLD = 0.4;//need to be improved, set by users.
     int clear_color = 0;
     int width = processedImage->dimX();

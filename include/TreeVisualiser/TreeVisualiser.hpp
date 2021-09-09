@@ -14,6 +14,9 @@
 #include <QDockWidget>
 #include <QString>
 
+#include "dmdProcess.hpp"
+#include "dmdReconstruct.hpp"
+
 class RecNodeButton;
 class QGraphicsSceneMouseEvent;
 class MainWidget;
@@ -66,13 +69,17 @@ public:
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   
+  // FIELD<float> *binimageToField(const std::vector<uint32> &pidx) const;
+  FIELD<float> *binimageToField(const std::vector<bool> &bimg) const;
+  void registerDMDSkeletons();
+
   void reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node);
   void reconstructGreyImage(SimpleImageViewer *iv, NodePtr node);
 
   QLayout* createButtons();
   QLayout* createTreeSimplificationControls();
 
-  std::shared_ptr<TreeSimplification> duplicateTreeSimplification();
+  std::shared_ptr<TreeSimplification> duplicateTreeSimplification();  
 
 protected slots:
   void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);
@@ -112,4 +119,7 @@ private:
 
   MainWidget *mainWidget_;
   std::shared_ptr<TreeSimplification> treeSimplification_;
+
+  dmdProcess dmd_;
+  dmdReconstruct dmdrecon_;
 };

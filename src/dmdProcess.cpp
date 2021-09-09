@@ -7,6 +7,8 @@
 #include "dmdProcess.hpp"
 #include <BSplineCurveFitterWindow3.h>
 
+#include <QDebug>
+
 typedef std::pair<int, int> coord2D_t;
 typedef vector<coord2D_t> coord2D_list_t;
 extern float SKELETON_SALIENCY_THRESHOLD;
@@ -848,6 +850,10 @@ void dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
     bool ADAPTIVE = false;
     if(!ADAPTIVE)
     {
+        if (index == 212) {
+            CC->writePGM("CC-id=212.pgm");
+        }
+
         FIELD<float> *skelCurr = 0;
         int seq = 0, x, y; 
         int CPnum = 0;

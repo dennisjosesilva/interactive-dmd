@@ -23,6 +23,7 @@ MainWindow::MainWindow()
   setWindowTitle("Interactive DMD"); 
   //const QString filename = "../../images/Zuckerberg.pgm";
   const QString filename = "../images/art_deco.pgm";
+  
 
   mainWidget_ = new MainWidget{this};
   mainWidget_->loadImage(filename);
@@ -200,25 +201,36 @@ void MainWindow::dmdProcessAct_onTrigged()
   recon.readControlPoints();
   recon.ReconstructImage(false); // true for interpolation method.
   */
- dmd->Init_indexingSkeletons();
+//  dmd->Init_indexingSkeletons();
 
- const QString filename = "../images/l146.pgm";
- const char *c_str = filename.toLocal8Bit().data();
- FIELD<float> *cc = FIELD<float>::read(c_str);
- dmd->indexingSkeletons(cc, 146, 0);
+//  const QString filename = "../images/l146.pgm";
+//  const char *c_str = filename.toLocal8Bit().data();
+//  FIELD<float> *cc = FIELD<float>::read(c_str);
+//  dmd->indexingSkeletons(cc, 146, 0);
 
- const QString filename_ = "../images/l240.pgm";
- c_str = filename_.toLocal8Bit().data();
- cc = FIELD<float>::read(c_str);
+//  const QString filename_ = "../images/l240.pgm";
+//  c_str = filename_.toLocal8Bit().data();
+//  cc = FIELD<float>::read(c_str);
 
- dmd->indexingSkeletons(cc, 240, 1);
+//  dmd->indexingSkeletons(cc, 240, 1);
 
- dmdReconstruct recon;
- recon.readIndexingControlPoints();
- int nodeID = 1;
- // int action = 0; //delete
- int action = 1; //highlight
- recon.ReconstructIndexingImage(false, nodeID, action); //true for interpolation method.
+//  dmdReconstruct recon;
+//  recon.readIndexingControlPoints();
+//  int nodeID = 1;
+//  // int action = 0; //delete
+//  int action = 1; //highlight
+//  recon.ReconstructIndexingImage(false, nodeID, action); //true for interpolation method.
+
+  const QString filename = "../images/CC-id=212.pgm";
+  const char *c_str = filename.toLocal8Bit().data();
+  FIELD<float> *cc = FIELD<float>::read(c_str);
+  dmd->indexingSkeletons(cc, 240, 0);
+
+  dmdReconstruct recon;
+  recon.readIndexingControlPoints();
+  int nodeID = 0;
+  int action = 1;
+  recon.ReconstructIndexingImage(false, nodeID, action);  
 }
 
 void MainWindow::treeVisAct_onToggled(bool checked)

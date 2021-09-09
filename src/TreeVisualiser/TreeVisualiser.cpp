@@ -171,6 +171,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
     treeWidget_->loadImage(domain, f, treeWidget_->treeSimplification());
     
   domain_ = domain;
+  registerDMDSkeletons();
 }
 
 std::vector<morphotree::uint8> TreeVisualiser::bool2UInt8(
@@ -214,6 +215,66 @@ std::shared_ptr<MorphotreeWidget::TreeSimplification> TreeVisualiser::duplicateT
   return std::make_shared<TSType>(ts->numberOfLeavesToKeep(), 
     ts->areaThresholdToKeep(), ts->progDiffThresholdToKeep());
 }
+
+// FIELD<float> *TreeVisualiser::binimageToField(const std::vector<uint32> &pidx) const
+// {
+//   using Point = morphotree::I32Point;
+
+//   FIELD<float> *f = new FIELD<float>;
+//   float *fdata = new float[domain_.numberOfPoints()] {255.f}; // 1.f means background pixels
+
+//   for (uint32 fpidx : pidx) {
+//     Point p = domain_.indexToPoint(fpidx);
+    
+//     fdata[fpidx] = 0.f;   // 0.f means foreground pixel
+
+//   }
+
+//   f->setAll(domain_.width(), domain_.height(), fdata);
+
+//   return f;
+// }
+
+FIELD<float> *TreeVisualiser::binimageToField(const std::vector<bool> &bimg) const
+{
+  using Point = morphotree::I32Point;
+
+  FIELD<float> *fimg = new FIELD<float>{domain_.width(), domain_.height()};
+
+  for (int x = domain_.left(); x <= domain_.right(); x++) {
+    for (int y = domain_.top(); y <= domain_.bottom(); y++) {
+      if (bimg[ domain_.pointToIndex(Point{x, y}) ]) 
+        fimg->set(x, y, 0.f);   // foreground pixel
+      else 
+        fimg->set(x, y, 1.f);   // background pixel
+    }
+  }
+
+  return fimg;
+}
+
+void TreeVisualiser::registerDMDSkeletons()
+{
+  const MTree &tree = treeWidget_->tree();
+  
+  dmd_.Init_indexingSkeletons();
+  
+  FIELD<float> *fnode = nullptr;
+  tree.tranverse([&fnode, this](NodePtr node) {
+    fnode = binimageToField(node->reconstruct(domain_));
+    
+    if (node->id() == 212)
+      fnode->writePGM("newnode.pgm");
+
+    dmd_.indexingSkeletons(fnode, node->level(), node->id());
+    
+    // delete[] fnode->data();
+    // delete fnode;
+  });
+
+  //dmdrecon_.readControlPoints(); // pre-upload
+}
+
 
 void TreeVisualiser::binRecBtn_press()
 {  

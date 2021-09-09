@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <skeleton_cuda_recon.hpp>
 #include <BSplineCurveFitterWindow3.h>

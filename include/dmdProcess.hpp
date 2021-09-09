@@ -1,9 +1,9 @@
+#pragma once
+
 #include <sstream>
 #include <stdio.h>
 #include <connected.hpp>
 #include <skeleton_cuda.hpp>
-
-
 
 class dmdProcess {
   public:

@@ -17,6 +17,12 @@ class dmdProcess {
       nPix = processedImage->dimX() * processedImage->dimY();
     }
 
+    inline void setProcessedImage(FIELD<float> *pimg) 
+    { 
+      processedImage  = pimg;
+      nPix = processedImage->dimX() * processedImage->dimY();
+    }
+
     inline FIELD<float> *curImage() { return processedImage; }
 
     //API
@@ -26,7 +32,6 @@ class dmdProcess {
     void Init_indexingSkeletons();
     void indexingSkeletons(FIELD<float> * CC, int intensity, int index);
     
-
     //
     void Encoding(); //To be added..
     void find_layers(int clear_color, double* importance_upper, double width);

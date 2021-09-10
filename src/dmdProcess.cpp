@@ -851,10 +851,6 @@ void dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
     bool ADAPTIVE = false;
     if(!ADAPTIVE)
     {
-        if (index == 212) {
-            CC->writePGM("CC-id=212.pgm");
-        }
-
         FIELD<float> *skelCurr = 0;
         int seq = 0, x, y; 
         int CPnum = 0;

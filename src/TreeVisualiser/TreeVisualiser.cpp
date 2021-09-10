@@ -171,6 +171,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
     treeWidget_->loadImage(domain, f, treeWidget_->treeSimplification());
     
   domain_ = domain;
+  dmd_.setProcessedImage(greyImageToField(f));
   registerDMDSkeletons();
 }
 
@@ -235,15 +236,14 @@ std::shared_ptr<MorphotreeWidget::TreeSimplification> TreeVisualiser::duplicateT
 //   return f;
 // }
 
-FIELD<float> *TreeVisualiser::binimageToField(const std::vector<bool> &bimg) const
+FIELD<float> *TreeVisualiser::binImageToField(const std::vector<bool> &bimg) const
 {
-  using Point = morphotree::I32Point;
+  FIELD<float> *fimg = new FIELD<float>{
+    static_cast<int>(domain_.width()), static_cast<int>(domain_.height()) };
 
-  FIELD<float> *fimg = new FIELD<float>{domain_.width(), domain_.height()};
-
-  for (int x = domain_.left(); x <= domain_.right(); x++) {
-    for (int y = domain_.top(); y <= domain_.bottom(); y++) {
-      if (bimg[ domain_.pointToIndex(Point{x, y}) ]) 
+  for (int y = domain_.top(); y <= domain_.bottom(); y++) {
+    for (int x = domain_.left(); x <= domain_.right(); x++) {
+      if (bimg[ domain_.pointToIndex(x, y)]) 
         fimg->set(x, y, 0.f);   // foreground pixel
       else 
         fimg->set(x, y, 1.f);   // background pixel
@@ -253,26 +253,40 @@ FIELD<float> *TreeVisualiser::binimageToField(const std::vector<bool> &bimg) con
   return fimg;
 }
 
+FIELD<float> *TreeVisualiser::greyImageToField(const std::vector<uint8> &img) const 
+{
+  FIELD<float> *fimg = new FIELD<float>{ 
+    static_cast<int>(domain_.width()), static_cast<int>(domain_.height()) };
+
+  for (int y = domain_.top(); y <= domain_.bottom(); y++) {
+    for (int x = domain_.left(); x <= domain_.right(); x++) {
+      fimg->set(x, y, static_cast<float>(img[domain_.pointToIndex(x, y)]));
+    }
+  }
+  
+  return fimg;
+}
+
 void TreeVisualiser::registerDMDSkeletons()
 {
   const MTree &tree = treeWidget_->tree();
   
-  dmd_->Init_indexingSkeletons();
+  dmd_.Init_indexingSkeletons();
   
   FIELD<float> *fnode = nullptr;
   tree.tranverse([&fnode, this](NodePtr node) {
-    fnode = binimageToField(node->reconstruct(domain_));
+    fnode = binImageToField(node->reconstruct(domain_));
     
     if (node->id() == 212)
       fnode->writePGM("newnode.pgm");
 
-    dmd_->indexingSkeletons(fnode, node->level(), node->id());
+    dmd_.indexingSkeletons(fnode, node->level(), node->id());
     
     // delete[] fnode->data();
-    // delete fnode;
+    delete fnode;
   });
 
-  //dmdrecon_.readControlPoints(); // pre-upload
+  dmdrecon_.readIndexingControlPoints(); // pre-upload
 }
 
 

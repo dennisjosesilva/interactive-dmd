@@ -64,14 +64,14 @@ public:
 
   void loadImage(Box domain, const std::vector<morphotree::uint8> &f);
 
-  void selectNodeByPixel(int x, int y);
-  dmdProcess *dmd_;
+  void selectNodeByPixel(int x, int y);  
 
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   
   // FIELD<float> *binimageToField(const std::vector<uint32> &pidx) const;
-  FIELD<float> *binimageToField(const std::vector<bool> &bimg) const;
+  FIELD<float> *binImageToField(const std::vector<bool> &bimg) const;
+  FIELD<float> *greyImageToField(const std::vector<uint8> &img) const;
   void registerDMDSkeletons();
 
   void reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node);
@@ -121,6 +121,6 @@ private:
   MainWidget *mainWidget_;
   std::shared_ptr<TreeSimplification> treeSimplification_;
 
-  
+  dmdProcess dmd_;
   dmdReconstruct dmdrecon_;
 };

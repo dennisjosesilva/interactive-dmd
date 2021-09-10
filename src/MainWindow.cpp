@@ -29,11 +29,11 @@ MainWindow::MainWindow()
   mainWidget_->loadImage(filename);
   setCentralWidget(mainWidget_);
 
-  dmd = new dmdProcess();
-  const char *c_str = filename.toLocal8Bit().data();
-  dmd->set_filename(c_str);
-  dmd->readImage();
-  printf("Read image from: %s \n",c_str);
+  // dmd = new dmdProcess();
+  // const char *c_str = filename.toLocal8Bit().data();
+  // dmd->set_filename(c_str);
+  // dmd->readImage();
+  // printf("Read image from: %s \n",c_str);
 
   createMenus();
   createToolBar();
@@ -237,7 +237,7 @@ void MainWindow::dmdProcessAct_onTrigged()
 
 void MainWindow::treeVisAct_onToggled(bool checked)
 {  
-  mainWidget_->treeVisualiser()->dmd_ = dmd;
+  // mainWidget_->treeVisualiser()->dmd_ = dmd;
 
   QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
   if (checked) 

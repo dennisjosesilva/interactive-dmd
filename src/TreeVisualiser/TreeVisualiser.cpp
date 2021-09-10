@@ -6,8 +6,6 @@
 
 #include <morphotree/tree/mtree.hpp>
 
-#include <QImage>
-
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
@@ -35,7 +33,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   : mainWidget_{mainWidget},
     curNodeSelection_{nullptr},
     binRecDock_{nullptr},
-    greyRecDock_{nullptr}
+    greyRecDock_{nullptr},
+    skelRecDock_{nullptr}
 {
   namespace mw = MorphotreeWidget;
 
@@ -92,12 +91,17 @@ QLayout *TreeVisualiser::createButtons()
   inspectNodeMinusBtn->setIconSize(QSize{32, 32});
   connect(inspectNodeMinusBtn, &QPushButton::clicked, this, &TreeVisualiser::inspectNodeMinusBtn_press);
 
+  QPushButton *skelRecBtn = new QPushButton{ QIcon{":/images/Skel_icon.png"}, "", this};
+  skelRecBtn->setIconSize(QSize{32, 32});
+  connect(skelRecBtn, &QPushButton::clicked, this, &TreeVisualiser::skelRecBtn_press);
+  
   btnLayout->addWidget(binRecBtn);
   btnLayout->addWidget(binRecPlusBtn);
   btnLayout->addWidget(greyRecBtn);
   btnLayout->addWidget(greyRecPlusBtn);
   btnLayout->addWidget(inspectNodePlusBtn);
   btnLayout->addWidget(inspectNodeMinusBtn);
+  btnLayout->addWidget(skelRecBtn);
 
   return btnLayout;
 }
@@ -217,25 +221,6 @@ std::shared_ptr<MorphotreeWidget::TreeSimplification> TreeVisualiser::duplicateT
     ts->areaThresholdToKeep(), ts->progDiffThresholdToKeep());
 }
 
-// FIELD<float> *TreeVisualiser::binimageToField(const std::vector<uint32> &pidx) const
-// {
-//   using Point = morphotree::I32Point;
-
-//   FIELD<float> *f = new FIELD<float>;
-//   float *fdata = new float[domain_.numberOfPoints()] {255.f}; // 1.f means background pixels
-
-//   for (uint32 fpidx : pidx) {
-//     Point p = domain_.indexToPoint(fpidx);
-    
-//     fdata[fpidx] = 0.f;   // 0.f means foreground pixel
-
-//   }
-
-//   f->setAll(domain_.width(), domain_.height(), fdata);
-
-//   return f;
-// }
-
 FIELD<float> *TreeVisualiser::binImageToField(const std::vector<bool> &bimg) const
 {
   FIELD<float> *fimg = new FIELD<float>{
@@ -267,6 +252,19 @@ FIELD<float> *TreeVisualiser::greyImageToField(const std::vector<uint8> &img) co
   return fimg;
 }
 
+QImage TreeVisualiser::fieldToQImage(FIELD<float> *fimg) const
+{
+  QImage img{fimg->dimX(), fimg->dimY(), QImage::Format_Grayscale8};
+  float *fimg_data = fimg->data();
+  uchar *img_data = img.bits();
+
+  int N = fimg->dimX() * fimg->dimY();
+  for (int i = 0; i < N; ++i)
+    img_data[i] = static_cast<uchar>(fimg_data[i]);
+ 
+  return img;
+}
+
 void TreeVisualiser::registerDMDSkeletons()
 {
   const MTree &tree = treeWidget_->tree();
@@ -275,17 +273,14 @@ void TreeVisualiser::registerDMDSkeletons()
   
   FIELD<float> *fnode = nullptr;
   tree.tranverse([&fnode, this](NodePtr node) {
-    fnode = binImageToField(node->reconstruct(domain_));
-    
-    if (node->id() == 212)
-      fnode->writePGM("newnode.pgm");
-
+    fnode = binImageToField(node->reconstruct(domain_));    
     dmd_.indexingSkeletons(fnode, node->level(), node->id());
     
     // delete[] fnode->data();
     delete fnode;
   });
 
+  
   dmdrecon_.readIndexingControlPoints(); // pre-upload
 }
 
@@ -351,6 +346,28 @@ void TreeVisualiser::greyRecPlusBtn_press()
 
   dock->setFixedSize(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
   reconstructGreyImage(iv, curNodeSelection_->mtreeNode());  
+}
+
+void TreeVisualiser::skelRecBtn_press()
+{
+  if (curNodeSelection_ != nullptr) {
+    SimpleImageViewer *iv = nullptr;
+    if (skelRecDock_ == nullptr) {
+      iv = new SimpleImageViewer;
+      skelRecDock_ = mainWidget_->createDockWidget(tr("DMD reconstruction"), iv);
+      skelRecDock_->setGNode(curNodeSelection_);
+      connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
+    }
+    else {
+      iv = qobject_cast<SimpleImageViewer *>(skelRecDock_->widget());
+    }
+
+    NodePtr mnode = curNodeSelection_->mtreeNode();
+    dmdrecon_.ReconstructIndexingImage(false, mnode->id(), 1);
+    QImage img = fieldToQImage(dmdrecon_.getOutput());
+    skelRecDock_->setFixedSize(img.size());
+    iv->setImage(img);
+  }
 }
 
 void TreeVisualiser::nodeMousePress(GNode *node, 
@@ -454,6 +471,11 @@ void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)
 void TreeVisualiser::greyRecDock_onClose(MyDockWidget *dock)
 {
   greyRecDock_ = nullptr;
+}
+
+void TreeVisualiser::skelRecDock_onClose(MyDockWidget *dock)
+{
+  skelRecDock_ = nullptr;
 }
 
 void TreeVisualiser::selectNodeByPixel(int x, int y)

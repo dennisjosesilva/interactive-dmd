@@ -42,6 +42,8 @@ class dmdReconstruct {
 
     int width, height, clearColor;
 
+    inline FIELD<float>* getOutput() { return output; }
+    
   private:
     vector<int> gray_levels;
     image_t* r_image = nullptr;

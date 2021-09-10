@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <QWidget>
+#include <QImage>
 #include <QMap>
 
 #include <MorphotreeWidget/Graphics/GNode.hpp>
@@ -72,6 +73,7 @@ protected:
   // FIELD<float> *binimageToField(const std::vector<uint32> &pidx) const;
   FIELD<float> *binImageToField(const std::vector<bool> &bimg) const;
   FIELD<float> *greyImageToField(const std::vector<uint8> &img) const;
+  QImage fieldToQImage(FIELD<float> *field) const; 
   void registerDMDSkeletons();
 
   void reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node);
@@ -87,11 +89,13 @@ protected slots:
 
   void binRecDock_onClose(MyDockWidget *dock);
   void greyRecDock_onClose(MyDockWidget *dock);
+  void skelRecDock_onClose(MyDockWidget *dock);
 
   void binRecBtn_press();
   void binRecPlusBtn_press();
   void greyRecBtn_press();
-  void greyRecPlusBtn_press();  
+  void greyRecPlusBtn_press(); 
+  void skelRecBtn_press(); 
 
   void inspectNodePlusBtn_press();
   void inspectNodeMinusBtn_press();
@@ -117,6 +121,7 @@ private:
 
   MyDockWidget *binRecDock_;
   MyDockWidget *greyRecDock_;
+  MyDockWidget *skelRecDock_;
 
   MainWidget *mainWidget_;
   std::shared_ptr<TreeSimplification> treeSimplification_;

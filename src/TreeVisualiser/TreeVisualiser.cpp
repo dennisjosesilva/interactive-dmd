@@ -34,7 +34,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     curNodeSelection_{nullptr},
     binRecDock_{nullptr},
     greyRecDock_{nullptr},
-    skelRecDock_{nullptr}
+    skelRecDock_{nullptr},
+    removeSkelDock_{nullptr}
 {
   namespace mw = MorphotreeWidget;
 
@@ -95,6 +96,10 @@ QLayout *TreeVisualiser::createButtons()
   skelRecBtn->setIconSize(QSize{32, 32});
   connect(skelRecBtn, &QPushButton::clicked, this, &TreeVisualiser::skelRecBtn_press);
   
+  QPushButton *removeSkelBtn = new QPushButton { QIcon{":/images/Remove_Skel_icon.png"}, "", this};
+  removeSkelBtn->setIconSize(QSize{32, 32});
+  connect(removeSkelBtn, &QPushButton::clicked, this, &TreeVisualiser::removeSkelBtn_press);
+
   btnLayout->addWidget(binRecBtn);
   btnLayout->addWidget(binRecPlusBtn);
   btnLayout->addWidget(greyRecBtn);
@@ -102,6 +107,7 @@ QLayout *TreeVisualiser::createButtons()
   btnLayout->addWidget(inspectNodePlusBtn);
   btnLayout->addWidget(inspectNodeMinusBtn);
   btnLayout->addWidget(skelRecBtn);
+  btnLayout->addWidget(removeSkelBtn);
 
   return btnLayout;
 }
@@ -175,8 +181,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
     treeWidget_->loadImage(domain, f, treeWidget_->treeSimplification());
     
   domain_ = domain;
-  dmd_.setProcessedImage(greyImageToField(f));
-  registerDMDSkeletons();
+  dmd_.setProcessedImage(greyImageToField(f));  
 }
 
 std::vector<morphotree::uint8> TreeVisualiser::bool2UInt8(
@@ -272,9 +277,14 @@ void TreeVisualiser::registerDMDSkeletons()
   dmd_.Init_indexingSkeletons();
   
   FIELD<float> *fnode = nullptr;
-  tree.tranverse([&fnode, this](NodePtr node) {
+  uint32 nodeSequence = 0;
+  
+  tree.tranverse([&fnode, &nodeSequence, this](NodePtr node) {
     fnode = binImageToField(node->reconstruct(domain_));    
     dmd_.indexingSkeletons(fnode, node->level(), node->id());
+
+    emit associateNodeToSkeleton(nodeSequence);
+    nodeSequence++;
     
     // delete[] fnode->data();
     delete fnode;
@@ -366,6 +376,28 @@ void TreeVisualiser::skelRecBtn_press()
     dmdrecon_.ReconstructIndexingImage(false, mnode->id(), 1);
     QImage img = fieldToQImage(dmdrecon_.getOutput());
     skelRecDock_->setFixedSize(img.size());
+    iv->setImage(img);
+  }
+}
+
+void TreeVisualiser::removeSkelBtn_press()
+{
+  if (curNodeSelection_ != nullptr) {
+    SimpleImageViewer *iv = nullptr;
+    if (removeSkelDock_ == nullptr) {
+      iv = new SimpleImageViewer;
+      removeSkelDock_ = mainWidget_->createDockWidget(tr("DMD remove skeleton reconstruction"), iv);
+      removeSkelDock_->setGNode(curNodeSelection_);
+      connect(removeSkelDock_, &MyDockWidget::closed, this, &TreeVisualiser::removeSkelDock_onClose);
+    }
+    else {
+      iv = qobject_cast<SimpleImageViewer *>(removeSkelDock_->widget());
+    }
+
+    NodePtr mnode = curNodeSelection_->mtreeNode();
+    dmdrecon_.ReconstructIndexingImage(false, mnode->id(), 0);
+    QImage img = fieldToQImage(dmdrecon_.getOutput());
+    removeSkelDock_->setFixedSize(img.size());
     iv->setImage(img);
   }
 }
@@ -476,6 +508,11 @@ void TreeVisualiser::greyRecDock_onClose(MyDockWidget *dock)
 void TreeVisualiser::skelRecDock_onClose(MyDockWidget *dock)
 {
   skelRecDock_ = nullptr;
+}
+
+void TreeVisualiser::removeSkelDock_onClose(MyDockWidget *dock)
+{
+  removeSkelDock_ = nullptr;
 }
 
 void TreeVisualiser::selectNodeByPixel(int x, int y)

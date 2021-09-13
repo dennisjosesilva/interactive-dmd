@@ -3,10 +3,11 @@
 #include <QMainWindow>
 #include "MainWidget.hpp"
 #include "dmdProcess.hpp"
+#include "CustomWidgets/LabelWithProgressBar.hpp"
 
 class QDockWidget;
 class QAction;
-
+class QProgressBar;
 
 class MainWindow : public QMainWindow
 {
@@ -14,6 +15,7 @@ class MainWindow : public QMainWindow
 public:
   MainWindow();
 
+  void setMinMaxProgressBar(int min, int max);
 
 private slots:
   void saveAs();
@@ -26,9 +28,15 @@ private slots:
   void imageZoomInAct_onTrigged();
   void imageZoomOutAct_onTrigged();
 
+  void treeVis_onNodeSkeletonAssociation(int numberOfNodes);
+
+  
+
 private:
   void createMenus();
   void createToolBar();
+
+  void showProgressBar();
 
 private:
   MainWidget *mainWidget_;
@@ -42,4 +50,6 @@ private:
 // for dmd
   dmdProcess *dmd;
   QAction *dmdProcessAct_;
+
+  LabelWithProgressBar *progressBar_;
 };

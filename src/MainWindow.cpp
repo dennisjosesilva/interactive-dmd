@@ -14,6 +14,10 @@
 #include <QToolBar>
 #include <QIcon>
 
+#include <QStatusBar>
+#include <QProgressBar>
+#include <QApplication>
+
 #include <QDebug>
 
 #include "dmdReconstruct.hpp"
@@ -36,9 +40,25 @@ MainWindow::MainWindow()
   // printf("Read image from: %s \n",c_str);
 
   createMenus();
-  createToolBar();
+  createToolBar();  
+
+  progressBar_ = new LabelWithProgressBar(statusBar());
+  progressBar_->setLabelText(tr("Loading skeletons (DMD)"));
+  progressBar_->hide();
   
+  statusBar()->addPermanentWidget(progressBar_);
+  
+  connect(mainWidget_->treeVisualiser(), &TreeVisualiser::associateNodeToSkeleton,
+    this, &MainWindow::treeVis_onNodeSkeletonAssociation);
+  connect(progressBar_, &LabelWithProgressBar::fullProgressBar, 
+    [this] { progressBar_->hide(); });
+      
   statusBar()->showMessage(tr("Ready"), 3000);
+}
+
+void MainWindow::setMinMaxProgressBar(int min, int max)
+{
+  progressBar_->setProgressBarRange(min, max);  
 }
 
 void MainWindow::createMenus()
@@ -237,11 +257,13 @@ void MainWindow::dmdProcessAct_onTrigged()
 
 void MainWindow::treeVisAct_onToggled(bool checked)
 {  
-  // mainWidget_->treeVisualiser()->dmd_ = dmd;
+  showProgressBar();
 
   QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
-  if (checked) 
-    dockMorphotreeWidget->setVisible(true);
+  
+  if (checked) {
+    dockMorphotreeWidget->setVisible(true);    
+  }
   else 
     dockMorphotreeWidget->setVisible(false);
 }
@@ -259,4 +281,15 @@ void MainWindow::imageZoomInAct_onTrigged()
 void MainWindow::imageZoomOutAct_onTrigged()
 {
   mainWidget_->zoomOut();
+}
+
+void MainWindow::treeVis_onNodeSkeletonAssociation(int numberOfNodes)
+{    
+  progressBar_->setValue(numberOfNodes); 
+}
+
+void MainWindow::showProgressBar()
+{
+  statusBar()->clearMessage();
+  progressBar_->show();  
 }

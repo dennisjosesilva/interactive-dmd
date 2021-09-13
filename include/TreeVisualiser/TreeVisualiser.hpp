@@ -67,6 +67,11 @@ public:
 
   void selectNodeByPixel(int x, int y);  
 
+  inline uint32 numberOfNodesOfTree() { return treeWidget_->mtree().numberOfNodes(); }
+  inline uint32 numberOfNodesOfSimplifiedTree() { return treeWidget_->stree().numberOfNodes(); }
+
+  void registerDMDSkeletons();
+
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   
@@ -74,7 +79,6 @@ protected:
   FIELD<float> *binImageToField(const std::vector<bool> &bimg) const;
   FIELD<float> *greyImageToField(const std::vector<uint8> &img) const;
   QImage fieldToQImage(FIELD<float> *field) const; 
-  void registerDMDSkeletons();
 
   void reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node);
   void reconstructGreyImage(SimpleImageViewer *iv, NodePtr node);
@@ -82,7 +86,17 @@ protected:
   QLayout* createButtons();
   QLayout* createTreeSimplificationControls();
 
+  inline const MTree& mtree() const { return treeWidget_->mtree(); }
+  inline const MTree& stree() const { return treeWidget_->stree(); }
+
+  inline uint32 numberOfNodesMtree() const { return treeWidget_->mtree().numberOfNodes(); }
+  inline uint32 numberOfNodesSTree() const { return treeWidget_->stree().numberOfNodes(); }
+
   std::shared_ptr<TreeSimplification> duplicateTreeSimplification();  
+
+public: 
+signals: 
+  void associateNodeToSkeleton(int numberOfNodes);
 
 protected slots:
   void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);
@@ -90,12 +104,14 @@ protected slots:
   void binRecDock_onClose(MyDockWidget *dock);
   void greyRecDock_onClose(MyDockWidget *dock);
   void skelRecDock_onClose(MyDockWidget *dock);
+  void removeSkelDock_onClose(MyDockWidget *dock);
 
   void binRecBtn_press();
   void binRecPlusBtn_press();
   void greyRecBtn_press();
   void greyRecPlusBtn_press(); 
   void skelRecBtn_press(); 
+  void removeSkelBtn_press();
 
   void inspectNodePlusBtn_press();
   void inspectNodeMinusBtn_press();
@@ -122,6 +138,7 @@ private:
   MyDockWidget *binRecDock_;
   MyDockWidget *greyRecDock_;
   MyDockWidget *skelRecDock_;
+  MyDockWidget *removeSkelDock_;
 
   MainWidget *mainWidget_;
   std::shared_ptr<TreeSimplification> treeSimplification_;

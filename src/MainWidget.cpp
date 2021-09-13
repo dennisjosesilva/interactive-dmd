@@ -24,6 +24,7 @@
 
 #include "TreeVisualiser/TreeVisualiser.hpp"
 
+#include "MainWindow.hpp"
 
 MainWidget::MainWidget(QWidget *parent)
   :QWidget{parent},
@@ -103,6 +104,10 @@ void MainWidget::updateTreeVisualiser()
   //   std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 1000, 180));
 
   needTreeVisualiserUpdate_ = false;
+
+  qobject_cast<MainWindow*>(parent())->setMinMaxProgressBar(0, 
+    treeVis_->numberOfNodesOfTree()-1);
+  treeVis_->registerDMDSkeletons();
 }
 
 void MainWidget::zoomOut()

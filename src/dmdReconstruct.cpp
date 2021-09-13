@@ -396,7 +396,8 @@ void dmdReconstruct::ReconstructImage(bool interpolate){
 void dmdReconstruct::drawEachIndexLayer(int intensity, int nodeID, int action){
     layer_index *layer = readIndexLayer(intensity);
     int x, y, r, index;
-    
+    //cout<<"intensity "<<intensity<<"nodeID "<<nodeID<<endl;
+
     for (unsigned int k = 0; k < layer->size(); ++k) {
         //x = (*layer)[k].first;
         //y = (*layer)[k].second;
@@ -446,10 +447,8 @@ void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int 
             //add interpolate method later
         }
         else{
-            vector<int>::reverse_iterator it;
-            for(it = gray_levels.rbegin();it!=gray_levels.rend();it++){
-                std::cout << *it << "\t";
-                drawEachIndexLayer(*it, nodeID, action);
+            for (int inty : gray_levels) {
+                drawEachIndexLayer(inty, nodeID, action);
             }
         }
 

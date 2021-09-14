@@ -7,6 +7,8 @@
 #include "dmdProcess.hpp"
 #include <BSplineCurveFitterWindow3.h>
 
+#include <QDebug>
+
 typedef std::pair<int, int> coord2D_t;
 typedef vector<coord2D_t> coord2D_list_t;
 extern float SKELETON_SALIENCY_THRESHOLD;
@@ -827,6 +829,7 @@ void dmdProcess::Encoding(){
 }
 
 void dmdProcess::Init_indexingSkeletons(){
+    
     SKELETON_SALIENCY_THRESHOLD = 0.4;//need to be improved, set by users.
     int clear_color = 0;
     int width = processedImage->dimX();

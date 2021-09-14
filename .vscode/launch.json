@@ -11,7 +11,7 @@
       "program": "${workspaceFolder}/debug/bin/interactive-dmd",
       "args": [],
       "stopAtEntry": false,
-      "cwd": "${fileDirname}",
+      "cwd": "${workspaceFolder}/debug/",
       "environment": [],
       "externalConsole": false,
       "MIMode": "gdb",

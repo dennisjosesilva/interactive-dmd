@@ -14,6 +14,10 @@
 #include <QToolBar>
 #include <QIcon>
 
+#include <QStatusBar>
+#include <QProgressBar>
+#include <QApplication>
+
 #include <QDebug>
 
 #include "dmdReconstruct.hpp"
@@ -23,6 +27,7 @@ MainWindow::MainWindow()
   setWindowTitle("Interactive DMD"); 
   //const QString filename = "../../images/Zuckerberg.pgm";
   const QString filename = "../images/art_deco.pgm";
+  
 
   mainWidget_ = new MainWidget{this};
   mainWidget_->loadImage(filename);
@@ -35,9 +40,28 @@ MainWindow::MainWindow()
   printf("Read image from: %s \n",c_str);
 
   createMenus();
-  createToolBar();
+  createToolBar();  
+
+  progressBar_ = new LabelWithProgressBar(statusBar());
+  progressBar_->setLabelText(tr(""));
+  progressBar_->hide();
   
+  statusBar()->addPermanentWidget(progressBar_);
+  
+  connect(mainWidget_->treeVisualiser(), &TreeVisualiser::associateNodeToSkeleton,
+    this, &MainWindow::treeVis_onNodeSkeletonAssociation);
+  connect(progressBar_, &LabelWithProgressBar::fullProgressBar, 
+    [this] {
+      statusBar()->clearMessage(); 
+      progressBar_->hide(); 
+  });
+      
   statusBar()->showMessage(tr("Ready"), 3000);
+}
+
+void MainWindow::setMinMaxProgressBar(int min, int max)
+{
+  progressBar_->setProgressBarRange(min, max);  
 }
 
 void MainWindow::createMenus()
@@ -225,9 +249,13 @@ void MainWindow::dmdProcessAct_onTrigged()
 
 void MainWindow::treeVisAct_onToggled(bool checked)
 {  
+  showProgressBar();
+
   QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
-  if (checked) 
-    dockMorphotreeWidget->setVisible(true);
+  
+  if (checked) {
+    dockMorphotreeWidget->setVisible(true);    
+  }
   else 
     dockMorphotreeWidget->setVisible(false);
 }
@@ -245,4 +273,15 @@ void MainWindow::imageZoomInAct_onTrigged()
 void MainWindow::imageZoomOutAct_onTrigged()
 {
   mainWidget_->zoomOut();
+}
+
+void MainWindow::treeVis_onNodeSkeletonAssociation(int numberOfNodes)
+{    
+  progressBar_->setValue(numberOfNodes); 
+}
+
+void MainWindow::showProgressBar()
+{
+  statusBar()->clearMessage();
+  progressBar_->show();  
 }

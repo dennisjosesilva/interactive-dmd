@@ -11,7 +11,6 @@ LabelWithProgressBar::LabelWithProgressBar(QWidget *parent)
   label_->setContentsMargins(0, 0, 5, 0);
   layout->addWidget(label_);
   
-
   progressBar_ = new QProgressBar{this};
   layout->addWidget(progressBar_);
 

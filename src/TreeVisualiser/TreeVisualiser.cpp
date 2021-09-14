@@ -285,8 +285,7 @@ void TreeVisualiser::registerDMDSkeletons()
 
     emit associateNodeToSkeleton(nodeSequence);
     nodeSequence++;
-    
-    // delete[] fnode->data();
+        
     delete fnode;
   });
 

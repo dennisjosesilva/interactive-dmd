@@ -99,15 +99,14 @@ void MainWidget::updateTreeVisualiser()
   std::vector<mt::uint8> f{ bits, bits + domain.numberOfPoints() };
 
   treeVis_->loadImage(domain, f);
-
-  // treeVis_->loadImage(domain, f, 
-  //   std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 1000, 180));
-
+  
   needTreeVisualiserUpdate_ = false;
 
-  qobject_cast<MainWindow*>(parent())->setMinMaxProgressBar(0, 
-    treeVis_->numberOfNodesOfTree()-1);
-  treeVis_->registerDMDSkeletons();
+  MainWindow *mainWindow = qobject_cast<MainWindow*>(parent());
+  mainWindow->setMinMaxProgressBar(0, treeVis_->numberOfNodesOfTree()-1);
+  mainWindow->statusBar()->clearMessage();
+  mainWindow->statusBar()->showMessage(tr("Loading Skeleton (DMD)"));
+  treeVis_->registerDMDSkeletons();  
 }
 
 void MainWidget::zoomOut()

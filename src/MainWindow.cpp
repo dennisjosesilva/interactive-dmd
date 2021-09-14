@@ -33,17 +33,17 @@ MainWindow::MainWindow()
   mainWidget_->loadImage(filename);
   setCentralWidget(mainWidget_);
 
-  // dmd = new dmdProcess();
-  // const char *c_str = filename.toLocal8Bit().data();
-  // dmd->set_filename(c_str);
-  // dmd->readImage();
-  // printf("Read image from: %s \n",c_str);
+  dmd = new dmdProcess();
+  const char *c_str = filename.toLocal8Bit().data();
+  dmd->set_filename(c_str);
+  dmd->readImage();
+  printf("Read image from: %s \n",c_str);
 
   createMenus();
   createToolBar();  
 
   progressBar_ = new LabelWithProgressBar(statusBar());
-  progressBar_->setLabelText(tr("Loading skeletons (DMD)"));
+  progressBar_->setLabelText(tr(""));
   progressBar_->hide();
   
   statusBar()->addPermanentWidget(progressBar_);
@@ -51,7 +51,10 @@ MainWindow::MainWindow()
   connect(mainWidget_->treeVisualiser(), &TreeVisualiser::associateNodeToSkeleton,
     this, &MainWindow::treeVis_onNodeSkeletonAssociation);
   connect(progressBar_, &LabelWithProgressBar::fullProgressBar, 
-    [this] { progressBar_->hide(); });
+    [this] {
+      statusBar()->clearMessage(); 
+      progressBar_->hide(); 
+  });
       
   statusBar()->showMessage(tr("Ready"), 3000);
 }
@@ -221,38 +224,27 @@ void MainWindow::dmdProcessAct_onTrigged()
   recon.readControlPoints();
   recon.ReconstructImage(false); // true for interpolation method.
   */
-//  dmd->Init_indexingSkeletons();
+ dmd->Init_indexingSkeletons();
 
-//  const QString filename = "../images/l146.pgm";
-//  const char *c_str = filename.toLocal8Bit().data();
-//  FIELD<float> *cc = FIELD<float>::read(c_str);
-//  dmd->indexingSkeletons(cc, 146, 0);
+ const QString filename = "../images/l146.pgm";
+ const char *c_str = filename.toLocal8Bit().data();
+ FIELD<float> *cc = FIELD<float>::read(c_str);
+ dmd->indexingSkeletons(cc, 146, 0);
 
-//  const QString filename_ = "../images/l240.pgm";
-//  c_str = filename_.toLocal8Bit().data();
-//  cc = FIELD<float>::read(c_str);
+ const QString filename_ = "../images/l240.pgm";
+ c_str = filename_.toLocal8Bit().data();
+ cc = FIELD<float>::read(c_str);
 
-//  dmd->indexingSkeletons(cc, 240, 1);
+ dmd->indexingSkeletons(cc, 240, 1);
 
-//  dmdReconstruct recon;
-//  recon.readIndexingControlPoints();
-//  int nodeID = 1;
-//  // int action = 0; //delete
-//  int action = 1; //highlight
-//  recon.ReconstructIndexingImage(false, nodeID, action); //true for interpolation method.
+ dmdReconstruct recon;
+ recon.readIndexingControlPoints();
+ int nodeID = 1;
+ // int action = 0; //delete
+ int action = 1; //highlight
+ recon.ReconstructIndexingImage(false, nodeID, action); //true for interpolation method.
 
-  //dmd->Init_indexingSkeletons();
-  const QString filename = "../images/CC-id=212.pgm";
-  const char *c_str = filename.toLocal8Bit().data();
-  FIELD<float> *cc = FIELD<float>::read(c_str);
-  dmd->indexingSkeletons(cc, 240, 0);
-  delete cc;
-
-  dmdReconstruct recon;
-  recon.readIndexingControlPoints();
-  int nodeID = 0;
-  int action = 1;
-  recon.ReconstructIndexingImage(false, nodeID, action);  
+  dmd->Init_indexingSkeletons();  
 }
 
 void MainWindow::treeVisAct_onToggled(bool checked)

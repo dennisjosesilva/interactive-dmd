@@ -13,6 +13,243 @@ dmdReconstruct::~dmdReconstruct() {
     deallocateCudaMem_recon();
 }
 
+
+void dmdReconstruct::openglSetup(){
+
+    openGLContext.setFormat(surfaceFormat);
+    openGLContext.create();
+    if(!openGLContext.isValid()) qDebug("Unable to create context");
+
+    surface.setFormat(surfaceFormat);
+    surface.create();
+    if(!surface.isValid()) qDebug("Unable to create the Offscreen surface");
+
+    openGLContext.makeCurrent(&surface);
+    contextFunc =  openGLContext.functions();
+    //generate Framebuffer;
+    contextFunc->glGenFramebuffers(1, &buffer);
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+
+        //generate tex and bind to Framebuffer;
+    contextFunc->glGenTextures(1, &tex);
+    contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+    contextFunc->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+                    GL_RGBA, GL_UNSIGNED_BYTE, NULL); 
+    contextFunc->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    contextFunc->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+    contextFunc->glBindTexture(GL_TEXTURE_2D, 0);
+        
+    contextFunc->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                    GL_TEXTURE_2D, tex, 0);
+/// Attach depth buffer 
+    contextFunc->glGenRenderbuffers(1, &depthbuffer);
+    contextFunc->glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
+    contextFunc->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    contextFunc->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
+       
+    contextFunc->glViewport(0,0, width, height);
+
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);                                
+//    ========GEOMEETRY SETUP========
+
+    program.addShaderFromSourceCode(QOpenGLShader::Vertex,
+                                   "#version 330\r\n"
+                                   "in vec2 position;\n"
+                                   "void main() {\n"
+                                   "    gl_Position = vec4(position, 0.0, 1.0);\n"
+                                   "}\n"
+                                   );
+    program.addShaderFromSourceCode(QOpenGLShader::Fragment,
+                                   "#version 330\r\n"
+                                   "uniform float r;\n"
+                                   "uniform float x0;\n"
+                                   "uniform float y0;\n"
+                                   "uniform float width_2;\n"
+                                   "uniform float height_2;\n"
+                                   "void main() {\n"
+                                   "float trans_x = gl_FragCoord.x/width_2-1.0;\n"
+                                   "float trans_y = gl_FragCoord.y/height_2-1.0;\n"
+                                   "    float alpha = ((trans_x-x0) * (trans_x-x0) + (trans_y-y0) * (trans_y-y0)) <= r*r ? 1.0 : 0.0;\n"
+                                   "    gl_FragColor = vec4(alpha,alpha,alpha,alpha);\n"
+                                   "    gl_FragDepth = 1.0-alpha;\n"
+                                   "}\n"
+                                   );
+  
+}
+
+
+void dmdReconstruct::renderLayer(int intensity){
+    program.link();
+    program.bind();
+
+//    ==============DRAWING TO THE FBO============
+
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+
+    contextFunc->glEnable(GL_DEPTH_TEST);
+    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
+    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
+
+
+    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
+    vertexPositionBuffer.create();
+    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vertexPositionBuffer.bind();
+
+    GLfloat width_2 = (GLfloat)width/2.0;
+    program.setUniformValue("width_2", width_2);
+    GLfloat height_2 = (GLfloat)height/2.0;
+    program.setUniformValue("height_2", height_2);
+
+    //read each skeleton point
+    float x, y, r;
+   
+    layer_t *layer = readLayer(intensity);
+     
+    for (unsigned int k = 0; k < layer->size(); ++k) {
+        x = (*layer)[k][0];
+        y = height - (*layer)[k][1] - 1;
+        r = (*layer)[k][2];  
+ 
+        float vertexPositions[] = {
+            (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
+            (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
+            (x+r+1)/width_2 - 1, (y+r+1)/height_2 - 1,
+            (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
+        };
+        
+        vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
+        
+        program.enableAttributeArray("position");
+        program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
+        GLfloat r0 = (GLfloat)r/width_2;
+        program.setUniformValue("r", r0);
+        GLfloat x0 = (GLfloat)x/width_2 - 1;
+        program.setUniformValue("x0", x0);
+        GLfloat y0 = (GLfloat)y/height_2 - 1;
+        program.setUniformValue("y0", y0);
+
+        contextFunc->glDrawArrays(GL_QUADS, 0, 4);
+    }
+
+//    ========SAVE IMAGE===========
+    
+    float *data = (float *) malloc(width * height * sizeof (float));
+    
+    contextFunc->glEnable(GL_TEXTURE_2D);
+    contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+
+    // Altering range [0..1] -> [0 .. 255] 
+    contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
+
+
+    for (unsigned int x = 0; x < width; ++x) 
+        for (unsigned int y = 0; y < height; ++y)
+        {
+            unsigned int y_ = height - 1 -y;
+
+            if(*(data + y * width + x))
+                output->set(x, y_, intensity);
+        }
+    
+    free(data);
+    program.release();
+    vertexPositionBuffer.release();
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+}
+
+
+FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity){
+    program.link();
+    program.bind();
+
+//    ==============DRAWING TO THE FBO============
+
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+
+    contextFunc->glEnable(GL_DEPTH_TEST);
+    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
+    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
+
+
+    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
+    vertexPositionBuffer.create();
+    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vertexPositionBuffer.bind();
+
+    GLfloat width_2 = (GLfloat)width/2.0;
+    program.setUniformValue("width_2", width_2);
+    GLfloat height_2 = (GLfloat)height/2.0;
+    program.setUniformValue("height_2", height_2);
+
+    //read each skeleton point
+    float x, y, r;
+   
+    layer_t *layer = readLayer(intensity);
+     
+    for (unsigned int k = 0; k < layer->size(); ++k) {
+        x = (*layer)[k][0];
+        y = height - (*layer)[k][1] - 1;
+        r = (*layer)[k][2];  
+ 
+        float vertexPositions[] = {
+            (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
+            (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
+            (x+r+1)/width_2 - 1, (y+r+1)/height_2 - 1,
+            (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
+        };
+        
+        vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
+        
+        program.enableAttributeArray("position");
+        program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
+        GLfloat r0 = (GLfloat)r/width_2;
+        program.setUniformValue("r", r0);
+        GLfloat x0 = (GLfloat)x/width_2 - 1;
+        program.setUniformValue("x0", x0);
+        GLfloat y0 = (GLfloat)y/height_2 - 1;
+        program.setUniformValue("y0", y0);
+
+        contextFunc->glDrawArrays(GL_QUADS, 0, 4);
+}
+
+//    ========SAVE IMAGE===========
+    
+    float *data = (float *) malloc(width * height * sizeof (float));
+    
+    contextFunc->glEnable(GL_TEXTURE_2D);
+    contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+
+    // Altering range [0..1] -> [0 .. 255] 
+    contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
+
+    FIELD<float>* CrtLayer = new FIELD<float>(width, height);
+    
+    for (unsigned int x = 0; x < width; ++x) 
+        for (unsigned int y = 0; y < height; ++y)
+        {
+            unsigned int y_ = height - 1 -y;
+
+            CrtLayer->set(x, y_, 0); //ensure that the init value is 0 everywhere.
+
+            if(*(data + y * width + x))
+                CrtLayer->set(x, y_, 1);
+        
+        }
+
+    
+    free(data);
+    program.release();
+    vertexPositionBuffer.release();
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+    return CrtLayer;
+
+}
+
 void dmdReconstruct::loadSample() {
     int SuperResolution = 1;
     image_t* img = new image_t();
@@ -83,6 +320,8 @@ void dmdReconstruct::readControlPoints(){
     BSplineCurveFitterWindow3 readCPs;
     readCPs.SplineGenerate(1);//super-resolution = 1
     loadSample();
+    openglSetup();
+    init();
 }
 
 void dmdReconstruct::loadIndexingSample() {
@@ -158,6 +397,8 @@ void dmdReconstruct::readIndexingControlPoints(){
     BSplineCurveFitterWindow3 readCPs;
     readCPs.ReadIndexingSpline();
     loadIndexingSample();
+    openglSetup();
+    //init();
 }
 
 void dmdReconstruct::init() {
@@ -171,6 +412,7 @@ void dmdReconstruct::init() {
             output->set(x, y, clearColor);
 
     initialize_skeletonization_recon(width, height);//initCUDA
+    
 }
 
 layer_t *dmdReconstruct::readLayer(int l) {
@@ -180,76 +422,9 @@ layer_index *dmdReconstruct::readIndexLayer(int l) {
     return (*indexing_image)[l];
 }
 
-void dmdReconstruct::drawEachLayer(int intensity){
-    layer_t *layer = readLayer(intensity);
-    int x, y, r;
-    
-    for (unsigned int k = 0; k < layer->size(); ++k) {
-        //x = (*layer)[k].first;
-        //y = (*layer)[k].second;
-        //r = (*layer)[k].third;
-        x = (*layer)[k][0];
-        y = (*layer)[k][1];
-        r = (*layer)[k][2];
-
-        for(int i = x-r; i < x+r+1; i++)
-            for(int j = y-r; j < y+r+1; j++)
-            {
-                if(output->value(i,j) > clearColor) continue;
-                if(i > x - (double)r/sqrt(2) && i < x + (double)r/sqrt(2) && j > y - (double)r/sqrt(2) && j > y - (double)r/sqrt(2)){
-                    output->set(i, j, intensity);
-                }
-                else if (sqrt((i-x)*(i-x)+(j-y)*(j-y)) < r+1) output->set(i, j, intensity);
-            }
-        
-    }
-
-}
-
-FIELD<float>* dmdReconstruct::drawEachLayer_interp(int intensity){
-    FIELD<float>* binaryLayer = new FIELD<float>(width, height);
-    
-    for (unsigned int x = 0; x < width; x++) 
-        for (unsigned int y = 0; y < height; y++)
-            binaryLayer->set(x, y, 0);
-
-    layer_t *layer = readLayer(intensity);
-    int x, y, r;
-    
-    for (unsigned int k = 0; k < layer->size(); ++k) {
-        
-        x = (*layer)[k][0];
-        y = (*layer)[k][1];
-        r = (*layer)[k][2];
-
-        for(int i = x-r; i < x+r+1; i++)
-            for(int j = y-r; j < y+r+1; j++)
-            {
-                if(binaryLayer->value(i,j) > 0) continue;
-                if(i > x - (double)r/sqrt(2) && i < x + (double)r/sqrt(2) && j > y - (double)r/sqrt(2) && j > y - (double)r/sqrt(2)){
-                    binaryLayer->set(i, j, 1);
-                }
-                else if (sqrt((i-x)*(i-x)+(j-y)*(j-y)) < r+1) binaryLayer->set(i, j, 1);
-            }
-        
-    }
-    //debug
-    /*
-    std::stringstream ske;
-    ske<<"skel/s"<<intensity<<".pgm";
-    binaryLayer->writePGM(ske.str().c_str());
-    */
-    return binaryLayer;
-}
 
 FIELD<float>* dmdReconstruct::get_dt_of_alpha(FIELD<float>* alpha) {
     auto alpha_dupe = alpha->dupe();
-    auto data = alpha_dupe->data();
-    // Widen the image range from [0..1] to [0..255]
-
-    for (int i = 0; i < width * height; i++) {
-        data[i] *= 255;
-    }
     
     auto dt = computeCUDADT(alpha_dupe);
     return dt;
@@ -258,16 +433,20 @@ FIELD<float>* dmdReconstruct::get_dt_of_alpha(FIELD<float>* alpha) {
 
 void dmdReconstruct::get_interp_layer(int intensity, int SuperResolution, bool last_layer)
 {
-    bool interp_firstLayer = 1;
+    bool interp_firstLayer = 0;
     int prev_intensity, prev_bound_value, curr_bound_value;
     unsigned int x, y;
     FIELD<float>* first_layer_forDT = new FIELD<float>(width, height);
-    FIELD<float>* curr_layer = drawEachLayer_interp(intensity);
+    FIELD<float>* curr_layer = renderLayer_interp(intensity);
     FIELD<float>* curr_dt = get_dt_of_alpha(curr_layer);
-    /*stringstream dt;
-    dt<<"skel/dt"<<inty<<".pgm";
+    //debug
+    stringstream skel;
+    skel<<"s"<<intensity<<".pgm";
+    curr_layer->writePGM(skel.str().c_str());
+    stringstream dt;
+    dt<<"dt"<<intensity<<".pgm";
     curr_dt->writePGM(dt.str().c_str());
-    */
+   /* */
  if(interp_firstLayer) {
     if(firstTime){//first layer
         firstTime = false;
@@ -298,7 +477,7 @@ void dmdReconstruct::get_interp_layer(int intensity, int SuperResolution, bool l
                     float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
                     
                     output->set(x, y, interp_color);
-                //}
+                
             }
         }
 
@@ -352,28 +531,21 @@ void dmdReconstruct::get_interp_layer(int intensity, int SuperResolution, bool l
 }
 
 void dmdReconstruct::ReconstructImage(bool interpolate){
-    init();
     if(!gray_levels.empty())
     {
-        if(interpolate){
-            bool last_layer = false;
-            int SuperResolution = 1;
-            int max_level = *std::max_element(gray_levels.begin(), gray_levels.begin() + gray_levels.size());
-   
-            for (int inty : gray_levels) {
+        for (int inty : gray_levels) {
+            if(interpolate){
+                bool last_layer = false;
+                int SuperResolution = 1;
+                int max_level = *std::max_element(gray_levels.begin(), gray_levels.begin() + gray_levels.size());
 
                 if(inty == max_level) last_layer = true;
                 get_interp_layer(inty, SuperResolution, last_layer);
-        
-            }
 
-        }
-        else{
-            vector<int>::reverse_iterator it;
-            for(it = gray_levels.rbegin();it!=gray_levels.rend();it++){
-                std::cout << *it << "\t";
-                drawEachLayer(*it);
             }
+            else{
+                renderLayer(inty);
+            } 
         }
 
         output->NewwritePGM("output.pgm");
@@ -385,48 +557,106 @@ void dmdReconstruct::ReconstructImage(bool interpolate){
 }
 
 
-FIELD<float>* dmdReconstruct::drawEachIndexLayer_interp(int intensity, int nodeID){
-    FIELD<float>* binaryLayer = new FIELD<float>(width, height);
-    
-    for (unsigned int x = 0; x < width; x++) 
-        for (unsigned int y = 0; y < height; y++)
-            binaryLayer->set(x, y, 0);
+FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, int nodeID){
+    program.link();
+    program.bind();
 
+//    ==============DRAWING TO THE FBO============
+
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+
+    contextFunc->glEnable(GL_DEPTH_TEST);
+    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
+    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
+
+
+    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
+    vertexPositionBuffer.create();
+    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vertexPositionBuffer.bind();
+
+    GLfloat width_2 = (GLfloat)width/2.0;
+    program.setUniformValue("width_2", width_2);
+    GLfloat height_2 = (GLfloat)height/2.0;
+    program.setUniformValue("height_2", height_2);
+
+    //read each skeleton point
     layer_index *layer = readIndexLayer(intensity);
-    int x, y, r, index;
-    
-     for (unsigned int k = 0; k < layer->size(); ++k) {
-       
+    float x, y, r;
+    int index;
+   
+    for (unsigned int k = 0; k < layer->size(); ++k) {
         x = (*layer)[k][0];
-        y = (*layer)[k][1];
-        r = (*layer)[k][2];
-        index = (*layer)[k][3];
-        
+        y = height - (*layer)[k][1] - 1;
+        r = (*layer)[k][2]; 
+        index = (*layer)[k][3]; 
+
         if(index!=nodeID){
-            for(int i = x-r; i < x+r+1; i++)
-                for(int j = y-r; j < y+r+1; j++)
-                {
-                    if(i<0 || j<0 || i>width-1 ||j>height-1) continue;
-                    if(binaryLayer->value(i,j) > 0) continue;
-                    if(i > x - (double)r/sqrt(2) && i < x + (double)r/sqrt(2) && j > y - (double)r/sqrt(2) && j > y - (double)r/sqrt(2)){
-                        binaryLayer->set(i, j, 1);
-                    }
-                    else if (sqrt((i-x)*(i-x)+(j-y)*(j-y)) < r+1) binaryLayer->set(i, j, 1);
-                }
+            float vertexPositions[] = {
+                (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
+                (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
+                (x+r+1)/width_2 - 1, (y+r+1)/height_2 - 1,
+                (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
+            };
+            
+            vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
+            
+            program.enableAttributeArray("position");
+            program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
+            GLfloat r0 = (GLfloat)r/width_2;
+            program.setUniformValue("r", r0);
+            GLfloat x0 = (GLfloat)x/width_2 - 1;
+            program.setUniformValue("x0", x0);
+            GLfloat y0 = (GLfloat)y/height_2 - 1;
+            program.setUniformValue("y0", y0);
+
+            contextFunc->glDrawArrays(GL_QUADS, 0, 4);
         }
-        
     }
-    return binaryLayer;
+
+//    ========SAVE IMAGE===========
+    
+    float *data = (float *) malloc(width * height * sizeof (float));
+    
+    contextFunc->glEnable(GL_TEXTURE_2D);
+    contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+
+    // Altering range [0..1] -> [0 .. 255] 
+    contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
+
+    FIELD<float>* CrtLayer = new FIELD<float>(width, height);
+    
+    for (unsigned int x = 0; x < width; ++x) 
+        for (unsigned int y = 0; y < height; ++y)
+        {
+            unsigned int y_ = height - 1 -y;
+
+            CrtLayer->set(x, y_, 0); //ensure that the init value is 0 everywhere.
+
+            if(*(data + y * width + x))
+                CrtLayer->set(x, y_, 1);
+        
+        }
+
+    
+    free(data);
+    program.release();
+    vertexPositionBuffer.release();
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+    return CrtLayer;
+
 }
 
 
-void dmdReconstruct::get_interp_index_layer(int intensity, int nodeID, int SuperResolution, bool last_layer)
+void dmdReconstruct::get_interp_layer(int intensity, int nodeID, int SuperResolution, bool last_layer)
 {
     bool interp_firstLayer = 1;
     int prev_intensity, prev_bound_value, curr_bound_value;
     unsigned int x, y;
     FIELD<float>* first_layer_forDT = new FIELD<float>(width, height);
-    FIELD<float>* curr_layer = drawEachIndexLayer_interp(intensity, nodeID);
+    FIELD<float>* curr_layer = renderLayer_interp(intensity, nodeID);
     
     FIELD<float>* curr_dt = get_dt_of_alpha(curr_layer);
     /*stringstream layer;
@@ -517,80 +747,130 @@ void dmdReconstruct::get_interp_index_layer(int intensity, int nodeID, int Super
 }
 
 //can be improved by adding nodeLevel parameter
-void dmdReconstruct::drawEachIndexLayer(int intensity, int nodeID, int action){
-    
+void dmdReconstruct::renderLayer(int intensity, int nodeID, int action){
+    program.link();
+    program.bind();
+
+//    ==============DRAWING TO THE FBO============
+
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+
+    contextFunc->glEnable(GL_DEPTH_TEST);
+    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
+    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
+
+
+    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
+    vertexPositionBuffer.create();
+    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vertexPositionBuffer.bind();
+
+    GLfloat width_2 = (GLfloat)width/2.0;
+    program.setUniformValue("width_2", width_2);
+    GLfloat height_2 = (GLfloat)height/2.0;
+    program.setUniformValue("height_2", height_2);
+
+    //read each skeleton point
+    float x, y, r;
+    int index;
+    bool draw = false;
+   
     layer_index *layer = readIndexLayer(intensity);
-    int x, y, r, index;
-    //cout<<"intensity "<<intensity<<"nodeID "<<nodeID<<endl;
-
+     
     for (unsigned int k = 0; k < layer->size(); ++k) {
-        //x = (*layer)[k].first;
-        //y = (*layer)[k].second;
-        //r = (*layer)[k].third;
-        x = (*layer)[k][0];
-        y = (*layer)[k][1];
-        r = (*layer)[k][2];
-        index = (*layer)[k][3];
         
+        index = (*layer)[k][3]; 
 
-        if(action==0){//delete
-            if(index!=nodeID){
-                for(int i = x-r; i < x+r+1; i++)
-                    for(int j = y-r; j < y+r+1; j++)
-                    {
-                        if(output->value(i,j) > clearColor) continue;
-                        if(i > x - (double)r/sqrt(2) && i < x + (double)r/sqrt(2) && j > y - (double)r/sqrt(2) && j > y - (double)r/sqrt(2)){
-                            output->set(i, j, intensity);
-                        }
-                        else if (sqrt((i-x)*(i-x)+(j-y)*(j-y)) < r+1) output->set(i, j, intensity);
-                    }
-            }
-        }
-        else{//hignlight
-         if(index==nodeID){
-                for(int i = x-r; i < x+r+1; i++)
-                    for(int j = y-r; j < y+r+1; j++)
-                    {
-                        if(output->value(i,j) > clearColor) continue;
-                        if(i > x - (double)r/sqrt(2) && i < x + (double)r/sqrt(2) && j > y - (double)r/sqrt(2) && j > y - (double)r/sqrt(2)){
-                            output->set(i, j, intensity);
-                        }
-                        else if (sqrt((i-x)*(i-x)+(j-y)*(j-y)) < r+1) output->set(i, j, intensity);
-                    }
-            }
-        } 
+        if(action==0)//delete
+            draw = (nodeID == index) ? false : true;
+        else//hignlight
+            draw = (nodeID == index) ? true : false;
         
+        if(draw){
+            x = (*layer)[k][0];
+            y = height - (*layer)[k][1] - 1;
+            r = (*layer)[k][2]; 
+
+            float vertexPositions[] = {
+            (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
+            (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
+            (x+r+1)/width_2 - 1, (y+r+1)/height_2 - 1,
+            (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
+            };
+
+            vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
+            
+            program.enableAttributeArray("position");
+            program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
+            GLfloat r0 = (GLfloat)r/width_2;
+            program.setUniformValue("r", r0);
+            GLfloat x0 = (GLfloat)x/width_2 - 1;
+            program.setUniformValue("x0", x0);
+            GLfloat y0 = (GLfloat)y/height_2 - 1;
+            program.setUniformValue("y0", y0);
+
+            contextFunc->glDrawArrays(GL_QUADS, 0, 4);
+
+        } 
     }
+
+
+    //========SAVE IMAGE===========
+    
+    float *data = (float *) malloc(width * height * sizeof (float));
+    
+    contextFunc->glEnable(GL_TEXTURE_2D);
+    contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+
+    // Altering range [0..1] -> [0 .. 255] 
+    contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
+
+
+    for (unsigned int x = 0; x < width; ++x) 
+        for (unsigned int y = 0; y < height; ++y)
+        {
+            unsigned int y_ = height - 1 -y;
+
+            if(*(data + y * width + x))
+                output->set(x, y_, intensity);
+        }
+    
+    free(data);
+    program.release();
+    vertexPositionBuffer.release();
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
 }
 
 void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int action){
     init();
-    
     if(!gray_levels.empty())
     {
         if(interpolate){
             if(action)//highlight
             {
                 for (int inty : gray_levels) 
-                    drawEachIndexLayer(inty, nodeID, action);
-  
+                    renderLayer(inty, nodeID, action);
             }
             else{
                 bool last_layer = false;
                 int SuperResolution = 1;
                 int max_level = *std::max_element(gray_levels.begin(), gray_levels.begin() + gray_levels.size());
     
-                for (int inty : gray_levels) {
-
-                    if(inty == max_level) last_layer = true;
-                    get_interp_index_layer(inty, nodeID, SuperResolution, last_layer);
+                vector<int>::reverse_iterator it;
+                for(it = gray_levels.rbegin();it!=gray_levels.rend();it++){//draw order is very important
+                    if(*it == max_level) last_layer = true;
+                    get_interp_layer(*it, nodeID, SuperResolution, last_layer);
             
                 }
             }
         }
         else{
-            for (int inty : gray_levels) {
-                drawEachIndexLayer(inty, nodeID, action);
+            vector<int>::reverse_iterator it;
+            for(it = gray_levels.rbegin();it!=gray_levels.rend();it++){//draw order is very important
+                //cout<<"inty: "<<*it<<endl;
+                renderLayer(*it, nodeID, action);
             }
         }
 

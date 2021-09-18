@@ -49,6 +49,7 @@ private:
 
 // for dmd
   dmdProcess *dmd;
+  dmdReconstruct *recon;
   QAction *dmdProcessAct_;
 
   LabelWithProgressBar *progressBar_;

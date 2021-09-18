@@ -4,6 +4,18 @@
 #include <skeleton_cuda_recon.hpp>
 #include <BSplineCurveFitterWindow3.h>
 
+#include <QDebug>
+#include <QOffscreenSurface>
+#include <QOpenGLFunctions>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLBuffer>
+#include <QOpenGLVertexArrayObject>
+#include <QDebug>
+#include <QImage>
+#include <QLoggingCategory>
+#include <QOpenGLTexture>
+
 //typedef Triple<int, int, int> coord3D_t;
 typedef vector<Vector3<int>> layer_t;
 typedef layer_t path_t;
@@ -20,6 +32,13 @@ class dmdReconstruct {
     dmdReconstruct();
     ~dmdReconstruct();
 
+    void openglSetup();
+    void renderLayer(int intensity);
+    void renderLayer(int intensity, int nodeID, int action);
+ 
+    FIELD<float>* renderLayer_interp(int intensity);
+
+
     void readControlPoints();
     void readIndexingControlPoints();
     void loadSample();
@@ -29,28 +48,33 @@ class dmdReconstruct {
 
 
     void get_interp_layer(int intensity, int SuperResolution, bool last_layer);
-    void get_interp_index_layer(int intensity, int nodeID, int SuperResolution, bool last_layer);
+    void get_interp_layer(int intensity, int nodeID, int SuperResolution, bool last_layer);
     FIELD<float>* get_dt_of_alpha(FIELD<float>* alpha);
  
     layer_t *readLayer(int l);
     layer_index *readIndexLayer(int l);
-    void drawEachLayer(int intensity);
-    void drawEachIndexLayer(int intensity, int nodeID, int action);
  
-    FIELD<float>* drawEachLayer_interp(int intensity);
-    FIELD<float>* drawEachIndexLayer_interp(int intensity, int nodeID);
- 
+    FIELD<float>* renderLayer_interp(int intensity, int nodeID);
+    
     void init();
 
-    int width, height, clearColor;
 
     inline FIELD<float>* getOutput() { return output; }
     
   private:
+
+    int width, height, clearColor;
     vector<int> gray_levels;
     image_t* r_image = nullptr;
     image_index* indexing_image = nullptr;
 
     FIELD<float>* output;
+
+    QSurfaceFormat surfaceFormat;
+    QOpenGLContext openGLContext;
+    QOffscreenSurface surface;
+    GLuint buffer, tex, depthbuffer;
+    QOpenGLFunctions *contextFunc;
+    QOpenGLShaderProgram program;
 };
 

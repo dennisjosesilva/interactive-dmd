@@ -212,38 +212,18 @@ void MainWindow::saveAs()
 void MainWindow::dmdProcessAct_onTrigged()
 {
  // dmd->curImage()->NewwritePGM("dmd01.pgm");
-/* 
-  // remove island
+ 
+  // Run whole SDMD pipeline.
   dmd->removeIslands(0.1);
 
   dmd->LayerSelection(false, 2);
   
   dmd->computeSkeletons(0.4);
 
-  dmdReconstruct recon;
-  recon.readControlPoints();
-  recon.ReconstructImage(true); // true for interpolation method.
- 
-  */
- dmd->Init_indexingSkeletons();
-
- const QString filename = "../images/l146.pgm";
- const char *c_str = filename.toLocal8Bit().data();
- FIELD<float> *cc = FIELD<float>::read(c_str);
- dmd->indexingSkeletons(cc, 146, 0);
-
- const QString filename_ = "../images/l240.pgm";
- c_str = filename_.toLocal8Bit().data();
- cc = FIELD<float>::read(c_str);
-
- dmd->indexingSkeletons(cc, 240, 1);
-
- dmdReconstruct recon;
- recon.readIndexingControlPoints();
- int nodeID = 0;
- // int action = 0; //delete
- int action = 0; //highlight
- recon.ReconstructIndexingImage(true, nodeID, action); //true for interpolation method.
+  recon = new dmdReconstruct();
+  recon->readControlPoints();
+  
+  recon->ReconstructImage(false); // true for interpolation method.
  
 }
 

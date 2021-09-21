@@ -214,6 +214,7 @@ void MainWindow::dmdProcessAct_onTrigged()
  // dmd->curImage()->NewwritePGM("dmd01.pgm");
  
   // Run whole SDMD pipeline.
+  /**/
   dmd->removeIslands(0.1);
 
   dmd->LayerSelection(false, 2);

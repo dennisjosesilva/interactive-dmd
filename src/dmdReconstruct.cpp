@@ -64,11 +64,11 @@ void dmdReconstruct::openglSetup(){
                                    "uniform float r;\n"
                                    "uniform float x0;\n"
                                    "uniform float y0;\n"
-                                   "uniform float width_2;\n"
-                                   "uniform float height_2;\n"
                                    "void main() {\n"
-                                   "float trans_x = gl_FragCoord.x/width_2-1.0;\n"
-                                   "float trans_y = gl_FragCoord.y/height_2-1.0;\n"
+                                   //"float trans_x = gl_FragCoord.x/width_2-1.0;\n"
+                                   //"float trans_y = gl_FragCoord.y/height_2-1.0;\n"
+                                   "float trans_x = gl_FragCoord.x;\n"
+                                   "float trans_y = gl_FragCoord.y;\n"
                                    "    float alpha = ((trans_x-x0) * (trans_x-x0) + (trans_y-y0) * (trans_y-y0)) <= r*r ? 1.0 : 0.0;\n"
                                    "    gl_FragColor = vec4(alpha,alpha,alpha,alpha);\n"
                                    "    gl_FragDepth = 1.0-alpha;\n"
@@ -98,9 +98,9 @@ void dmdReconstruct::renderLayer(int intensity){
     vertexPositionBuffer.bind();
 
     GLfloat width_2 = (GLfloat)width/2.0;
-    program.setUniformValue("width_2", width_2);
+    //program.setUniformValue("width_2", width_2);
     GLfloat height_2 = (GLfloat)height/2.0;
-    program.setUniformValue("height_2", height_2);
+    //program.setUniformValue("height_2", height_2);
 
     //read each skeleton point
     float x, y, r;
@@ -123,12 +123,12 @@ void dmdReconstruct::renderLayer(int intensity){
         
         program.enableAttributeArray("position");
         program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
-        GLfloat r0 = (GLfloat)r/width_2;
-        program.setUniformValue("r", r0);
-        GLfloat x0 = (GLfloat)x/width_2 - 1;
-        program.setUniformValue("x0", x0);
-        GLfloat y0 = (GLfloat)y/height_2 - 1;
-        program.setUniformValue("y0", y0);
+        
+        program.setUniformValue("r", (GLfloat)r);
+        
+        program.setUniformValue("x0", (GLfloat)x);
+        
+        program.setUniformValue("y0", (GLfloat)y);
 
         contextFunc->glDrawArrays(GL_QUADS, 0, 4);
     }
@@ -181,9 +181,9 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity){
     vertexPositionBuffer.bind();
 
     GLfloat width_2 = (GLfloat)width/2.0;
-    program.setUniformValue("width_2", width_2);
+    //program.setUniformValue("width_2", width_2);
     GLfloat height_2 = (GLfloat)height/2.0;
-    program.setUniformValue("height_2", height_2);
+    //program.setUniformValue("height_2", height_2);
 
     //read each skeleton point
     float x, y, r;
@@ -206,12 +206,12 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity){
         
         program.enableAttributeArray("position");
         program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
-        GLfloat r0 = (GLfloat)r/width_2;
-        program.setUniformValue("r", r0);
-        GLfloat x0 = (GLfloat)x/width_2 - 1;
-        program.setUniformValue("x0", x0);
-        GLfloat y0 = (GLfloat)y/height_2 - 1;
-        program.setUniformValue("y0", y0);
+        
+        program.setUniformValue("r", (GLfloat)r);
+        
+        program.setUniformValue("x0", (GLfloat)x);
+        
+        program.setUniformValue("y0", (GLfloat)y);
 
         contextFunc->glDrawArrays(GL_QUADS, 0, 4);
 }
@@ -464,62 +464,28 @@ void dmdReconstruct::get_interp_layer(int intensity, int SuperResolution, bool l
     
     curr_bound_value = (prev_intensity + intensity)/2;
 
-    for (x = 0; x < width; ++x) 
-        for (y = 0; y < height; ++y)
-        {
-            if(!curr_layer->value(x, y) && prev_layer->value(x, y))
-            {// If there are pixels active between boundaries we smoothly interpolate them
-                    
-                    float prev_dt_val = prev_layer_dt->value(x, y);
-                    float curr_dt_val = curr_dt->value(x, y);
-
-                    float interp_alpha = prev_dt_val / ( prev_dt_val + curr_dt_val);
-                    float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
-                    
-                    output->set(x, y, interp_color);
-                
-            }
-        }
+    CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, 0);
 
      }
      else{
           if(firstTime){ 
-              firstTime = false;  
+              firstTime = false; 
+              CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, clearColor, true, 0);//draw clear_color
+             
               curr_bound_value = (clearColor + intensity)/2;
           }
           else{
             curr_bound_value = (prev_intensity + intensity)/2;
+            CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, 0);
             
-            for (x = 0; x < width; ++x) 
-                for (y = 0; y < height; ++y)
-                {
-                    if(!curr_layer->value(x, y) && prev_layer->value(x, y))// If there are pixels active between boundaries we smoothly interpolate them
-                    { 
-                        float prev_dt_val = prev_layer_dt->value(x, y);
-                        float curr_dt_val = curr_dt->value(x, y);
-
-                        float interp_alpha = prev_dt_val / ( prev_dt_val + curr_dt_val);
-                        float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
-                        
-                        output->set(x, y, interp_color);
-                    }
-                }
         }   
      }
 
     prev_bound_value = curr_bound_value;
 
     if(last_layer){
-        for (x = 0; x < width; ++x) 
-            for (y = 0; y < height; ++y){
-                if(curr_layer->value(x, y))
-                {
-                    int interp_last_layer_value = prev_bound_value + (curr_dt->value(x, y)/10);
-                    int MaxIntensity = (intensity+10) > 255 ? 255 : (intensity+10);
-                    output->set(x, y, (interp_last_layer_value > MaxIntensity) ? MaxIntensity : interp_last_layer_value);
-                
-                }
-            }
+        output = CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, intensity);
+
     }
 
     prev_intensity = intensity;
@@ -577,9 +543,9 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, int nodeID){
     vertexPositionBuffer.bind();
 
     GLfloat width_2 = (GLfloat)width/2.0;
-    program.setUniformValue("width_2", width_2);
+    //program.setUniformValue("width_2", width_2);
     GLfloat height_2 = (GLfloat)height/2.0;
-    program.setUniformValue("height_2", height_2);
+    //program.setUniformValue("height_2", height_2);
 
     //read each skeleton point
     layer_index *layer = readIndexLayer(intensity);
@@ -600,18 +566,19 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, int nodeID){
                 (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
             };
             
-            vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
             
-            program.enableAttributeArray("position");
-            program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
-            GLfloat r0 = (GLfloat)r/width_2;
-            program.setUniformValue("r", r0);
-            GLfloat x0 = (GLfloat)x/width_2 - 1;
-            program.setUniformValue("x0", x0);
-            GLfloat y0 = (GLfloat)y/height_2 - 1;
-            program.setUniformValue("y0", y0);
+        vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
+        
+        program.enableAttributeArray("position");
+        program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
+        
+        program.setUniformValue("r", (GLfloat)r);
+        
+        program.setUniformValue("x0", (GLfloat)x);
+        
+        program.setUniformValue("y0", (GLfloat)y);
 
-            contextFunc->glDrawArrays(GL_QUADS, 0, 4);
+        contextFunc->glDrawArrays(GL_QUADS, 0, 4);
         }
     }
 
@@ -652,17 +619,17 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, int nodeID){
 
 void dmdReconstruct::get_interp_layer(int intensity, int nodeID, int SuperResolution, bool last_layer)
 {
-    bool interp_firstLayer = 1;
+    bool interp_firstLayer = 0;
     int prev_intensity, prev_bound_value, curr_bound_value;
     unsigned int x, y;
     FIELD<float>* first_layer_forDT = new FIELD<float>(width, height);
     FIELD<float>* curr_layer = renderLayer_interp(intensity, nodeID);
     
     FIELD<float>* curr_dt = get_dt_of_alpha(curr_layer);
-    /*stringstream layer;
+    /**/stringstream layer;
     layer<<"layer"<<intensity<<".pgm";
     curr_layer->NewwritePGM(layer.str().c_str());
-    */
+    
  if(interp_firstLayer) {
     if(firstTime){//first layer
         firstTime = false;
@@ -679,63 +646,28 @@ void dmdReconstruct::get_interp_layer(int intensity, int nodeID, int SuperResolu
     }
     
     curr_bound_value = (prev_intensity + intensity)/2;
-
-    for (x = 0; x < width; ++x) 
-        for (y = 0; y < height; ++y)
-        {
-            if(!curr_layer->value(x, y) && prev_layer->value(x, y))
-            {// If there are pixels active between boundaries we smoothly interpolate them
-                    
-                float prev_dt_val = prev_layer_dt->value(x, y);
-                float curr_dt_val = curr_dt->value(x, y);
-
-                float interp_alpha = prev_dt_val / ( prev_dt_val + curr_dt_val);
-                float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
-                
-                output->set(x, y, interp_color);
-                
-            }
-        }
+    CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, 0);
 
      }
      else{
           if(firstTime){ 
-              firstTime = false;  
+              firstTime = false;
+              CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, clearColor, true, 0);//draw clear_color
+              
               curr_bound_value = (clearColor + intensity)/2;
           }
           else{
             curr_bound_value = (prev_intensity + intensity)/2;
+            CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, 0);
             
-            for (x = 0; x < width; ++x) 
-                for (y = 0; y < height; ++y)
-                {
-                    if(!curr_layer->value(x, y) && prev_layer->value(x, y))// If there are pixels active between boundaries we smoothly interpolate them
-                    { 
-                        float prev_dt_val = prev_layer_dt->value(x, y);
-                        float curr_dt_val = curr_dt->value(x, y);
-
-                        float interp_alpha = prev_dt_val / ( prev_dt_val + curr_dt_val);
-                        float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
-                        
-                        output->set(x, y, interp_color);
-                    }
-                }
         }   
      }
 
     prev_bound_value = curr_bound_value;
 
     if(last_layer){
-        for (x = 0; x < width; ++x) 
-            for (y = 0; y < height; ++y){
-                if(curr_layer->value(x, y))
-                {
-                    int interp_last_layer_value = prev_bound_value + (curr_dt->value(x, y)/10);
-                    int MaxIntensity = (intensity+10) > 255 ? 255 : (intensity+10);
-                    output->set(x, y, (interp_last_layer_value > MaxIntensity) ? MaxIntensity : interp_last_layer_value);
-                
-                }
-            }
+        output = CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, intensity);
+
     }
 
     prev_intensity = intensity;
@@ -799,18 +731,19 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID, int action){
             (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
             };
 
-            vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
             
-            program.enableAttributeArray("position");
-            program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
-            GLfloat r0 = (GLfloat)r/width_2;
-            program.setUniformValue("r", r0);
-            GLfloat x0 = (GLfloat)x/width_2 - 1;
-            program.setUniformValue("x0", x0);
-            GLfloat y0 = (GLfloat)y/height_2 - 1;
-            program.setUniformValue("y0", y0);
+        vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
+        
+        program.enableAttributeArray("position");
+        program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
+        
+        program.setUniformValue("r", (GLfloat)r);
+        
+        program.setUniformValue("x0", (GLfloat)x);
+        
+        program.setUniformValue("y0", (GLfloat)y);
 
-            contextFunc->glDrawArrays(GL_QUADS, 0, 4);
+        contextFunc->glDrawArrays(GL_QUADS, 0, 4);
 
         } 
     }

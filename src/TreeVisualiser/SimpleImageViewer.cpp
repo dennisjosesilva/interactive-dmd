@@ -80,3 +80,10 @@ bool SimpleImageViewer::eventFilter(QObject *obj, QEvent *e)
     return QWidget::eventFilter(obj, e);
   }
 }
+
+QSize SimpleImageViewer::sizeHint() const
+{
+  const QImage img = imageViewer_->image();
+
+  return QSize{ img.width(), img.height() + 32 };
+}

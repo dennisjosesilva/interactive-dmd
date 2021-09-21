@@ -15,6 +15,7 @@
 #include <QLabel>
 #include <QSlider>
 #include <QSpacerItem>
+#include <QSizePolicy>
 
 #include <QDebug>
 
@@ -27,6 +28,14 @@ MyDockWidget::MyDockWidget(const QString &title, QWidget *mainwindow)
 void MyDockWidget::closeEvent(QCloseEvent *e)
 {
   emit closed(this);
+}
+
+QSize MyDockWidget::sizeHint() const 
+{
+  if (widget())
+    return widget()->sizeHint();
+  else 
+    return QDockWidget::sizeHint();
 }
 
 TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
@@ -304,13 +313,13 @@ void TreeVisualiser::binRecBtn_press()
         tr("binary node reconstruction"), iv);
       binRecDock_->setGNode(curNodeSelection_);
       connect(binRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::binRecDock_onClose);
+      binRecDock_->resize(domain_.width()+22, domain_.height()+84);    
     }
     else {
       iv = qobject_cast<SimpleImageViewer *>(binRecDock_->widget());
     }
     
-    binRecDock_->setFixedSize(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
-    reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());
+    reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());    
   }
 }
 
@@ -321,7 +330,7 @@ void TreeVisualiser::binRecPlusBtn_press()
     tr("binary node reconstruction"), iv);
   dock->setGNode(curNodeSelection_);
 
-  dock->setFixedSize(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
+  dock->resize(domain_.width() + 22, domain_.height() + 84);
   reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());  
 }
 
@@ -335,13 +344,12 @@ void TreeVisualiser::greyRecBtn_press()
         tr("grey node reconstruction"), iv);      
       greyRecDock_->setGNode(curNodeSelection_);
       connect(greyRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::greyRecDock_onClose);
+      greyRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
     }
     else {
       iv = qobject_cast<SimpleImageViewer *>(greyRecDock_->widget());
     }
-
-    greyRecDock_->setFixedSize(static_cast<int>(domain_.width()), 
-      static_cast<int>(domain_.height()));
+    
     reconstructGreyImage(iv, curNodeSelection_->mtreeNode());    
   }
 }
@@ -353,7 +361,7 @@ void TreeVisualiser::greyRecPlusBtn_press()
     tr("greyscale node reconstruction"), iv);
   dock->setGNode(curNodeSelection_);
 
-  dock->setFixedSize(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
+  dock->resize(domain_.width() + 22, domain_.height() + 84);
   reconstructGreyImage(iv, curNodeSelection_->mtreeNode());  
 }
 
@@ -366,6 +374,7 @@ void TreeVisualiser::skelRecBtn_press()
       skelRecDock_ = mainWidget_->createDockWidget(tr("DMD reconstruction"), iv);
       skelRecDock_->setGNode(curNodeSelection_);
       connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
+      skelRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
     }
     else {
       iv = qobject_cast<SimpleImageViewer *>(skelRecDock_->widget());
@@ -373,8 +382,7 @@ void TreeVisualiser::skelRecBtn_press()
 
     NodePtr mnode = curNodeSelection_->mtreeNode();
     dmdrecon_.ReconstructIndexingImage(false, mnode->id(), 1);
-    QImage img = fieldToQImage(dmdrecon_.getOutput());
-    skelRecDock_->setFixedSize(img.size());
+    QImage img = fieldToQImage(dmdrecon_.getOutput());    
     iv->setImage(img);
   }
 }
@@ -388,6 +396,7 @@ void TreeVisualiser::removeSkelBtn_press()
       removeSkelDock_ = mainWidget_->createDockWidget(tr("DMD remove skeleton reconstruction"), iv);
       removeSkelDock_->setGNode(curNodeSelection_);
       connect(removeSkelDock_, &MyDockWidget::closed, this, &TreeVisualiser::removeSkelDock_onClose);
+      removeSkelDock_->resize(domain_.width() + 22, domain_.height() + 84);
     }
     else {
       iv = qobject_cast<SimpleImageViewer *>(removeSkelDock_->widget());
@@ -395,8 +404,7 @@ void TreeVisualiser::removeSkelBtn_press()
 
     NodePtr mnode = curNodeSelection_->mtreeNode();
     dmdrecon_.ReconstructIndexingImage(false, mnode->id(), 0);
-    QImage img = fieldToQImage(dmdrecon_.getOutput());
-    removeSkelDock_->setFixedSize(img.size());
+    QImage img = fieldToQImage(dmdrecon_.getOutput());    
     iv->setImage(img);
   }
 }

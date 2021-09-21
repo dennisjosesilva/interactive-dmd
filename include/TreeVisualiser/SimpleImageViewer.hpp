@@ -15,6 +15,8 @@ public:
 
   inline void setImage(const QImage &newImage) { imageViewer_->setImage(newImage); }
 
+  QSize sizeHint() const override;
+
 protected slots:
   void zoomIn_onClick();
   void zoomOut_onClick();

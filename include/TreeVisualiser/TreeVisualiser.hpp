@@ -39,6 +39,8 @@ public:
   
   void closeEvent(QCloseEvent *e) override;
   
+  QSize sizeHint() const override;
+
 public:
 signals:
   void closed(MyDockWidget *dock);

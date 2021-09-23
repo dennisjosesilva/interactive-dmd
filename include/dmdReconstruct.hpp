@@ -30,7 +30,7 @@ class dmdReconstruct {
   public:
     
     dmdReconstruct();
-    ~dmdReconstruct();
+    //~dmdReconstruct();
 
     void openglSetup();
     void renderLayer(int intensity);
@@ -76,5 +76,6 @@ class dmdReconstruct {
     GLuint buffer, tex, depthbuffer;
     QOpenGLFunctions *contextFunc;
     QOpenGLShaderProgram program;
+    bool RunOnce;
 };
 

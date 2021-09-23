@@ -6,7 +6,7 @@
 #include <MorphotreeWidget/Graphics/GNode.hpp>
 
 #include "TreeVisualiser/TreeVisualiser.hpp"
-
+#include "InteractiveSdmd.hpp"
 #include <QDockWidget>
 
 class MainWidget : public QWidget
@@ -23,6 +23,7 @@ public:
   
   inline TreeVisualiser *treeVisualiser() { return treeVis_; }
   QDockWidget *morphotreeDockWidget();
+  QDockWidget *SdmdDockWidget() {return dockWidgetSdmd_;}
 
   MyDockWidget* createDockWidget(const QString &title, QWidget *widget);
 
@@ -47,6 +48,7 @@ protected:
 
 private:
   void createDockTreeVisualiser();
+  void createDockWidgetSdmd();
 
 
 private:
@@ -57,7 +59,10 @@ private:
   bool nodeSelectionByClickActivated_;
 
   QDockWidget *dockTreeVisualiser_;
+  QDockWidget *dockWidgetSdmd_;
 
   ImageViewerWidget::ImageViewerWidget *imageViewer_;
   TreeVisualiser *treeVis_;
+
+  InteractiveSdmd *Interactive_sdmd;
 };

@@ -26,7 +26,7 @@ dmdProcess::dmdProcess() {
     printf("Into dmdProcess class.\n");
     this->importance = NULL;
 }
-
+/**/
 dmdProcess::~dmdProcess() {
     free(importance);
     //deallocateCudaMem();
@@ -168,7 +168,7 @@ void find_peaks(double* importance, double width) {
             break;
         if(impfac < 0.0002) break;//Too small, then break
         numiters++;
-        cout<<" "<<impfac;
+        //cout<<" "<<impfac;
     } 
     memset(importance, 0, 256 * sizeof(double));
     for (auto elem : v)
@@ -268,9 +268,8 @@ void dmdProcess::calculateImportance(bool cumulative, int num_layers) {
         min_elem = (min_elem<*c)? min_elem : *c;
         c++;
     }
-    cout<< "max_elem: " << max_elem <<" min_elem: "<<min_elem<<endl;
+    //cout<< "max_elem: " << max_elem <<" min_elem: "<<min_elem<<endl;
     clear_color = min_elem;
-    
     /* If importance was already calculated before, cleanup! */
     if (importance) { free(importance); }
     importance = static_cast<double*>(calloc(256, sizeof(double)));
@@ -286,7 +285,7 @@ void dmdProcess::calculateImportance(bool cumulative, int num_layers) {
     while (c < end) {
         importance[static_cast<int>(*c++)] += 1;
     }
-cout<<" Create a histogram"<<endl;
+    //cout<<" Create a histogram"<<endl;
     UpperLevelSet[0] = importance[0];
     for (int i = 0; i < 255; i++)
         UpperLevelSet[i+1] = importance[i+1] + UpperLevelSet[i];

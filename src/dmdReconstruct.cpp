@@ -7,11 +7,12 @@ bool firstTime = true;
 
 dmdReconstruct::dmdReconstruct() {
     printf("dmdReconstruct....\n");
+    RunOnce = 1;
 }
-
+/*
 dmdReconstruct::~dmdReconstruct() {
     deallocateCudaMem_recon();
-}
+}*/
 
 
 void dmdReconstruct::openglSetup(){
@@ -320,7 +321,7 @@ void dmdReconstruct::readControlPoints(){
     BSplineCurveFitterWindow3 readCPs;
     readCPs.SplineGenerate(1);//super-resolution = 1
     loadSample();
-    openglSetup();
+    if (RunOnce) {openglSetup(); RunOnce = false;}
     init();
 }
 
@@ -397,7 +398,7 @@ void dmdReconstruct::readIndexingControlPoints(){
     BSplineCurveFitterWindow3 readCPs;
     readCPs.ReadIndexingSpline();
     loadIndexingSample();
-    openglSetup();
+    if (RunOnce) {openglSetup(); RunOnce = false;}
     //init();
 }
 

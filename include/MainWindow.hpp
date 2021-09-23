@@ -2,7 +2,6 @@
 
 #include <QMainWindow>
 #include "MainWidget.hpp"
-#include "dmdProcess.hpp"
 #include "CustomWidgets/LabelWithProgressBar.hpp"
 
 class QDockWidget;
@@ -47,9 +46,6 @@ private:
   QAction *imageZoomInAct_;
   QAction *imageZoomOutAct_;
 
-// for dmd
-  dmdProcess *dmd;
-  dmdReconstruct *recon;
   QAction *dmdProcessAct_;
 
   LabelWithProgressBar *progressBar_;

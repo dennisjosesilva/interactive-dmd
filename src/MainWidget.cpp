@@ -39,8 +39,10 @@ MainWidget::MainWidget(QWidget *parent)
 
   imageViewer_ = new iv::ImageViewerWidget{this};
   treeVis_ = new TreeVisualiser{this};
+  Interactive_sdmd = new InteractiveSdmd{this};
 
   createDockTreeVisualiser();
+  createDockWidgetSdmd();
 
   mainLayout->addWidget(imageViewer_);
 
@@ -69,6 +71,10 @@ bool MainWidget::loadImage(const QString &filename)
   imageViewer_->setImage(newImage);
   needTreeVisualiserUpdate_ = true;
 
+  Interactive_sdmd->setImage(newImage);
+  const char *c_str = filename.toLocal8Bit().data();
+  Interactive_sdmd->readIntoSdmd(c_str);
+  
   return true;
 }
 
@@ -127,6 +133,17 @@ void MainWidget::createDockTreeVisualiser()
   dockTreeVisualiser_->setVisible(false);
   dockTreeVisualiser_->setFloating(true);  
   dockTreeVisualiser_->setWidget(treeVis_);
+}
+
+void MainWidget::createDockWidgetSdmd()
+{
+  dockWidgetSdmd_ = new QDockWidget{"SDMD processing", 
+    qobject_cast<QMainWindow*>(parent())};
+    
+  dockWidgetSdmd_->setVisible(false);
+  dockWidgetSdmd_->setFloating(true);  
+  dockWidgetSdmd_->setWidget(Interactive_sdmd);
+ 
 }
 
 QDockWidget *MainWidget::morphotreeDockWidget()

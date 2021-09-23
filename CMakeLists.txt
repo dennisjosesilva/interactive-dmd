@@ -39,6 +39,7 @@ qt5_wrap_cpp(PROJECT_SOURCE
   include/TreeVisualiser/RecNodeButton.hpp
   include/TreeVisualiser/TreeVisualiser.hpp
   include/TreeVisualiser/SimpleImageViewer.hpp
+  include/InteractiveSdmd.hpp
   include/CustomWidgets/LabelWithProgressBar.hpp)
 
 # SET RESOURCE FILES

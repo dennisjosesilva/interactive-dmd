@@ -15,13 +15,6 @@ class dmdProcess {
       processedImage = FIELD<float>::read(c_str); 
       nPix = processedImage->dimX() * processedImage->dimY();
     }
-    /*
-    void set_filename (const char *c_str) {filename = c_str;}
-    void readImage () 
-    { 
-      processedImage = FIELD<float>::read(filename); 
-      nPix = processedImage->dimX() * processedImage->dimY();
-    }*/
 
     inline void setProcessedImage(FIELD<float> *pimg) 
     { 

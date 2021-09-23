@@ -20,6 +20,7 @@ FIELD<float>* skelImp;//for importance map
 vector<vector<Vector3<float>>> BranchSet;
 vector<int *> connection;
 extern float diagonal;
+int SkeletonNum = 0;
 
 dmdProcess::dmdProcess() {
     printf("Into dmdProcess class.\n");
@@ -512,6 +513,7 @@ void tracePath(int x, int y, FIELD<float> *skel, FIELD<float> *dt, vector<Vector
 	//OutFile<<seq<<" " << x << " " << y << " " <<dt->value(x, y)<< " " <<skelImp->value(x,y) <<endl;//for 4D
    
     Branch.push_back(CurrentPx);
+    SkeletonNum ++;
     
 	skel->set(x, y, 0);
     //segment->set(x,y,255);
@@ -536,9 +538,8 @@ void tracePath(int x, int y, FIELD<float> *skel, FIELD<float> *dt, vector<Vector
             int second = n.second;
             neigh->erase(neigh->begin());
 
-            for (auto i = neigh->begin(); i!=neigh->end();i++){//See the explainaton in my note
+            for (auto i = neigh->begin(); i!=neigh->end();i++){
                 skel->set((*i).first,(*i).second, 0);//first set to 0
-               
             }
             EachConnect[index] = seq;
             vector<Vector3<float>> NewBranch;
@@ -847,7 +848,7 @@ void dmdProcess::Init_indexingSkeletons(){
 }
 //CC-connected component.
 //0-foreground; 1- background.
-void dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
+int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
     bool ADAPTIVE = false;
     if(!ADAPTIVE)
     {
@@ -887,7 +888,8 @@ void dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
         ske<<"output/s"<<i<<".pgm";
         skelCurr->writePGM(ske.str().c_str());
         */
-        ///////new method-----segment and store into the BranchSets;
+        ///////segment and store into the BranchSets;
+        SkeletonNum = 0;
         for (y = 0; y < skelCurr->dimY(); ++y) {
             for (x = 0; x < skelCurr->dimX(); ++x) {
                 if (skelCurr->value(x, y) > 0) {
@@ -898,8 +900,8 @@ void dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
                 }
             }
         }
+        //cout<< " SkeletonNum "<<SkeletonNum;
         ////fit with spline///
-        
         float hausdorff = 0.002; //spline fitting error threshold
         if(BranchSet.size()>0){
             BSplineCurveFitterWindow3 spline;
@@ -914,4 +916,5 @@ void dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
     else
         printf("Adaptive Layer Encoding method will be added later...\n");
     
+    return SkeletonNum;
 }

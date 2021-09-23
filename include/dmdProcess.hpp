@@ -10,12 +10,18 @@ class dmdProcess {
     
     dmdProcess();
     ~dmdProcess();
+    void readFromFile (const char *c_str){
+      filename = c_str;
+      processedImage = FIELD<float>::read(c_str); 
+      nPix = processedImage->dimX() * processedImage->dimY();
+    }
+    /*
     void set_filename (const char *c_str) {filename = c_str;}
     void readImage () 
     { 
       processedImage = FIELD<float>::read(filename); 
       nPix = processedImage->dimX() * processedImage->dimY();
-    }
+    }*/
 
     inline void setProcessedImage(FIELD<float> *pimg) 
     { 
@@ -30,7 +36,7 @@ class dmdProcess {
     void LayerSelection(bool cumulative, int num_layers);
     void computeSkeletons(float saliency_threshold);
     void Init_indexingSkeletons();
-    void indexingSkeletons(FIELD<float> * CC, int intensity, int index);
+    int indexingSkeletons(FIELD<float> * CC, int intensity, int index);
     
     //
     void Encoding(); //To be added..

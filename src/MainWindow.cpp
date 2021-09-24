@@ -168,8 +168,9 @@ void MainWindow::open()
       statusBar()->showMessage(tr("loaded %1 : dim: (%2 x %3)").arg(filename) 
         .arg(image.width()).arg(image.height()), 3000); 
       
+      shouldUpdateProgressBar_ = true;
       if (showTreeVisAct_->isChecked()) {
-        shouldUpdateProgressBar_ = true;
+        showProgressBar();
         mainWidget_->updateTreeVisualiser();
       }
 

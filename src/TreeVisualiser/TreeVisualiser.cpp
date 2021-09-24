@@ -183,6 +183,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 {  
   namespace mw = MorphotreeWidget;
 
+  curNodeSelection_ = nullptr;
   if (treeWidget_->treeSimplification() == nullptr) 
     treeWidget_->loadImage(domain, f, 
       std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));

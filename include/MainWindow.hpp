@@ -16,6 +16,8 @@ public:
 
   void setMinMaxProgressBar(int min, int max);
 
+  QAction *showTreeVisAct() { return showTreeVisAct_; }
+
 private slots:
   void saveAs();
   void open();

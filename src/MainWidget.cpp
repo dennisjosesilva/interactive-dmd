@@ -12,7 +12,7 @@
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-
+#include <QAction>
 #include <ImageViewerWidget/ImageViewerWidget.hpp>
 
 #include <morphotree/core/box.hpp>
@@ -127,12 +127,16 @@ void MainWidget::zoomIn()
 
 void MainWidget::createDockTreeVisualiser()
 {
-  dockTreeVisualiser_ = new QDockWidget{"Morphotree", 
-    qobject_cast<QMainWindow*>(parent())};
+  MainWindow *mainWindow = qobject_cast<MainWindow*>(parent());
+  dockTreeVisualiser_ = new QDockWidget{"Morphotree", mainWindow};
 
   dockTreeVisualiser_->setVisible(false);
   dockTreeVisualiser_->setFloating(true);  
   dockTreeVisualiser_->setWidget(treeVis_);
+
+  connect(dockTreeVisualiser_, &QDockWidget::visibilityChanged, 
+    [mainWindow](bool visible) { if(!visible) mainWindow->showTreeVisAct()->setChecked(false); }
+  );
 }
 
 void MainWidget::createDockWidgetSdmd()

@@ -128,14 +128,14 @@ void MainWidget::zoomIn()
 void MainWidget::createDockTreeVisualiser()
 {
   MainWindow *mainWindow = qobject_cast<MainWindow*>(parent());
-  dockTreeVisualiser_ = new QDockWidget{"Morphotree", mainWindow};
+  dockTreeVisualiser_ = new ClosableDockWidget{"Morphotree", mainWindow};
 
   dockTreeVisualiser_->setVisible(false);
   dockTreeVisualiser_->setFloating(true);  
   dockTreeVisualiser_->setWidget(treeVis_);
 
-  connect(dockTreeVisualiser_, &QDockWidget::visibilityChanged, 
-    [mainWindow](bool visible) { if(!visible) mainWindow->showTreeVisAct()->setChecked(false); }
+  connect(dockTreeVisualiser_, &ClosableDockWidget::closed, 
+    [mainWindow](ClosableDockWidget *dock) { mainWindow->showTreeVisAct()->setChecked(false); }
   );
 }
 

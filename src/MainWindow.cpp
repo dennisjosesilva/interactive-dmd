@@ -23,6 +23,7 @@
 #include "dmdReconstruct.hpp"
 
 MainWindow::MainWindow()
+  :shouldUpdateProgressBar_{true}
 {
   setWindowTitle("Interactive DMD"); 
   //const QString filename = "../../images/Zuckerberg.pgm";
@@ -46,6 +47,7 @@ MainWindow::MainWindow()
     this, &MainWindow::treeVis_onNodeSkeletonAssociation);
   connect(progressBar_, &LabelWithProgressBar::fullProgressBar, 
     [this] {
+      shouldUpdateProgressBar_ = false;
       statusBar()->clearMessage(); 
       progressBar_->hide(); 
   });
@@ -166,8 +168,10 @@ void MainWindow::open()
       statusBar()->showMessage(tr("loaded %1 : dim: (%2 x %3)").arg(filename) 
         .arg(image.width()).arg(image.height()), 3000); 
       
-      if (showTreeVisAct_->isChecked())
+      if (showTreeVisAct_->isChecked()) {
+        shouldUpdateProgressBar_ = true;
         mainWidget_->updateTreeVisualiser();
+      }
 
     }
 
@@ -206,7 +210,8 @@ void MainWindow::dmdProcessAct_onTrigged()
 
 void MainWindow::treeVisAct_onToggled(bool checked)
 {  
-  showProgressBar();
+  if (shouldUpdateProgressBar_)
+    showProgressBar();
 
   QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
   

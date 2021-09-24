@@ -8,6 +8,7 @@
 #include "TreeVisualiser/TreeVisualiser.hpp"
 #include "InteractiveSdmd.hpp"
 #include <QDockWidget>
+#include "CustomWidgets/ClosableDockWidget.hpp"
 
 class MainWidget : public QWidget
 {  
@@ -58,7 +59,7 @@ private:
 
   bool nodeSelectionByClickActivated_;
 
-  QDockWidget *dockTreeVisualiser_;
+  ClosableDockWidget *dockTreeVisualiser_;
   QDockWidget *dockWidgetSdmd_;
 
   ImageViewerWidget::ImageViewerWidget *imageViewer_;

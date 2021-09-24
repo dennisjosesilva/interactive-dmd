@@ -51,4 +51,5 @@ private:
   QAction *dmdProcessAct_;
 
   LabelWithProgressBar *progressBar_;
+  bool shouldUpdateProgressBar_;
 };

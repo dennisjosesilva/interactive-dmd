@@ -40,7 +40,8 @@ qt5_wrap_cpp(PROJECT_SOURCE
   include/TreeVisualiser/TreeVisualiser.hpp
   include/TreeVisualiser/SimpleImageViewer.hpp
   include/InteractiveSdmd.hpp
-  include/CustomWidgets/LabelWithProgressBar.hpp)
+  include/CustomWidgets/LabelWithProgressBar.hpp
+  include/CustomWidgets/ClosableDockWidget.hpp)
 
 # SET RESOURCE FILES
 qt5_add_resources(PROJECT_SOURCE resources.qrc)

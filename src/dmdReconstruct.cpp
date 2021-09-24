@@ -322,7 +322,8 @@ void dmdReconstruct::readControlPoints(){
     readCPs.SplineGenerate(1);//super-resolution = 1
     loadSample();
     if (RunOnce) {openglSetup(); RunOnce = false;}
-    init();
+    initialize_skeletonization_recon(width, height);//initCUDA
+    
 }
 
 void dmdReconstruct::loadIndexingSample() {
@@ -399,10 +400,11 @@ void dmdReconstruct::readIndexingControlPoints(){
     readCPs.ReadIndexingSpline();
     loadIndexingSample();
     if (RunOnce) {openglSetup(); RunOnce = false;}
-    //init();
+    initialize_skeletonization_recon(width, height);//initCUDA
+    
 }
 
-void dmdReconstruct::init() {
+void dmdReconstruct::initOutput() {
     output = new FIELD<float>(width, height);
     prev_layer = new FIELD<float>(width, height);
     prev_layer_dt = new FIELD<float>(width, height);
@@ -412,8 +414,6 @@ void dmdReconstruct::init() {
         for (unsigned int y = 0; y < height; y++)
             output->set(x, y, clearColor);
 
-    initialize_skeletonization_recon(width, height);//initCUDA
-    
 }
 
 layer_t *dmdReconstruct::readLayer(int l) {
@@ -498,6 +498,7 @@ void dmdReconstruct::get_interp_layer(int intensity, int SuperResolution, bool l
 }
 
 void dmdReconstruct::ReconstructImage(bool interpolate){
+    initOutput();
     if(!gray_levels.empty())
     {
         for (int inty : gray_levels) {
@@ -700,9 +701,9 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID, int action){
     vertexPositionBuffer.bind();
 
     GLfloat width_2 = (GLfloat)width/2.0;
-    program.setUniformValue("width_2", width_2);
+    //program.setUniformValue("width_2", width_2);
     GLfloat height_2 = (GLfloat)height/2.0;
-    program.setUniformValue("height_2", height_2);
+    //program.setUniformValue("height_2", height_2);
 
     //read each skeleton point
     float x, y, r;
@@ -778,7 +779,7 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID, int action){
 }
 
 void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int action){
-    init();
+    initOutput();
     if(!gray_levels.empty())
     {
         if(interpolate){

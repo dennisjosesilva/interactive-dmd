@@ -1,5 +1,5 @@
 
-#include "MainWidget.hpp"
+//#include "MainWidget.hpp"
 #include "InteractiveSdmd.hpp"
 
 #include <QHBoxLayout>
@@ -13,12 +13,10 @@
 #include <QSizePolicy>
 
 #include <QDebug>
-
 #include <QPushButton>
 
 
-InteractiveSdmd::InteractiveSdmd(MainWidget *mainWidget)
-  : mainWidget_{mainWidget}
+InteractiveSdmd::InteractiveSdmd()
 {
   QLayout *mainLayout = new QVBoxLayout;
   QLayout *ToolLayout = new QHBoxLayout;
@@ -32,8 +30,12 @@ InteractiveSdmd::InteractiveSdmd(MainWidget *mainWidget)
   mainLayout->addItem(ToolLayout);
   
   imageViewer_ = new ImageViewerWidget{this};
-  imageViewer_->scrollAreaWidget()->viewport()->installEventFilter(this);
+  //imageViewer_->scrollAreaWidget()->viewport()->installEventFilter(this);
   mainLayout->addWidget(imageViewer_);
+
+  bar = new QStatusBar;
+  bar->showMessage(tr("Set the thresholds and press the Run button."));
+  mainLayout->addWidget(bar);
 
   setLayout(mainLayout);
   
@@ -43,8 +45,11 @@ QLayout *InteractiveSdmd::createRunButtons()
 {
   QLayout *btnLayout = new QHBoxLayout;
 
-  QPushButton *skelRecBtn = new QPushButton{ QIcon{":/images/Skel_icon.png"}, "", this};
-  skelRecBtn->setIconSize(QSize{50, 50});
+  //QPushButton *skelRecBtn = new QPushButton{ QIcon{":/images/Skel_icon.png"}, "", this};
+  //skelRecBtn->setIconSize(QSize{50, 50});
+  QPushButton *skelRecBtn = new QPushButton();
+  skelRecBtn->setText("Run");
+  skelRecBtn->setFixedSize(QSize{50, 30});
   connect(skelRecBtn, &QPushButton::clicked, this, &InteractiveSdmd::RunBtn_press);
   
   btnLayout->addWidget(skelRecBtn);
@@ -115,16 +120,17 @@ QLayout *InteractiveSdmd::createSdmdControls()
 
 void InteractiveSdmd::RunBtn_press()
 {
+  bar->showMessage(tr("Removing Islands..."));
   dmdProcess_.removeIslands(IslandsVal);
-
+  bar->showMessage(tr("Selecting layers..."));
   dmdProcess_.LayerSelection(false, layerVal);
-  
+  bar->showMessage(tr("Computing Skeletons..."));
   dmdProcess_.computeSkeletons(SaliencyVal);
-
+  bar->showMessage(tr("Reading Control points..."));
   dmdRecon_.readControlPoints();
-  
+  bar->showMessage(tr("Reconstruction..."));
   dmdRecon_.ReconstructImage(false);
-  
+  bar->showMessage(tr("Reconstruction finished!"));
   QImage img = fieldToImage(dmdRecon_.getOutput());    
   setImage(img);
   
@@ -159,4 +165,12 @@ QImage InteractiveSdmd::fieldToImage(FIELD<float> *fimg) const
     img_data[i] = static_cast<uchar>(fimg_data[i]);
  
   return img;
+}
+
+
+QSize InteractiveSdmd::sizeHint() const //set the size of the DockWidget.
+{
+  const QImage img = imageViewer_->image();
+
+  return QSize{ img.width(), img.height() + 50 };
 }

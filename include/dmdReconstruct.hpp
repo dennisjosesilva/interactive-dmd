@@ -56,7 +56,7 @@ class dmdReconstruct {
  
     FIELD<float>* renderLayer_interp(int intensity, int nodeID);
     
-    void init();
+    void initOutput();
 
 
     inline FIELD<float>* getOutput() { return output; }

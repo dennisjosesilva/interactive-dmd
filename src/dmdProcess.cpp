@@ -594,11 +594,11 @@ void dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFil
       //cout<<"enterORnot: "<<enterORnot<<" "<<i<<endl;
     if(WriteToFile>0 && SkelPoints == 0)  
         printf(" Attention: There are no skeletons produced for this layer. \n");
-    
+    /*
     std::stringstream ske;
     ske<<"output/s"<<i<<".pgm";
     skelCurr->writePGM(ske.str().c_str());
-
+*/
     ///////new method-----segment and store into the BranchSets;
      for (y = 0; y < skelCurr->dimY(); ++y) {
         for (x = 0; x < skelCurr->dimX(); ++x) {
@@ -831,7 +831,16 @@ void dmdProcess::Encoding(){
 void dmdProcess::Init_indexingSkeletons(){
     
     SKELETON_SALIENCY_THRESHOLD = 0.4;//need to be improved, set by users.
-    int clear_color = 0;
+    
+    float *c = processedImage->data();
+    float *end = processedImage->data() + nPix;
+    int min_elem = 1e5;
+    while (c != end){
+        min_elem = (min_elem<*c)? min_elem : *c;
+        c++;
+    }
+    clear_color = min_elem;
+    
     int width = processedImage->dimX();
     int height = processedImage->dimY();
     diagonal  = sqrt((float)(width * width + height * height));
@@ -840,7 +849,7 @@ void dmdProcess::Init_indexingSkeletons(){
     ofstream OutFile1;
     OutFile1.open("controlPoints.txt");
     OutFile1<<width<<" "<<height<<endl; // 
-    OutFile1<<clear_color<<endl; // 
+    OutFile1<<clear_color<<endl; // clear_color
 
     int fboSize = initialize_skeletonization(processedImage);
 
@@ -848,6 +857,11 @@ void dmdProcess::Init_indexingSkeletons(){
 //CC-connected component.
 //0-foreground; 1- background.
 int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
+     /*std::stringstream ske;
+    ske<<"output/c"<<intensity<<"-"<<index<<".pgm";
+    CC->writePGM(ske.str().c_str());
+   */
+ 
     bool ADAPTIVE = false;
     if(!ADAPTIVE)
     {
@@ -882,11 +896,8 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
         
         if(SkelPoints == 0)  
             printf(" Attention: There are no skeletons produced for this layer. \n");
-        /*
-        std::stringstream ske;
-        ske<<"output/s"<<i<<".pgm";
-        skelCurr->writePGM(ske.str().c_str());
-        */
+        
+        
         ///////segment and store into the BranchSets;
         SkeletonNum = 0;
         for (y = 0; y < skelCurr->dimY(); ++y) {
@@ -899,15 +910,16 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
                 }
             }
         }
-        //cout<< " SkeletonNum "<<SkeletonNum;
-        ////fit with spline///
-        float hausdorff = 0.002; //spline fitting error threshold
-        if(BranchSet.size()>0){
-            BSplineCurveFitterWindow3 spline;
-            spline.indexingSpline(BranchSet, hausdorff, diagonal, intensity, index);//
-            
-            BranchSet.clear();//important.
-            connection.clear();
+        if(intensity != clear_color){
+            ////fit with spline///
+            float hausdorff = 0.002; //spline fitting error threshold
+            if(BranchSet.size()>0){
+                BSplineCurveFitterWindow3 spline;
+                spline.indexingSpline(BranchSet, hausdorff, diagonal, intensity, index);//
+                
+                BranchSet.clear();//important.
+                connection.clear();
+            }
         }
        
         delete skelCurr;
@@ -916,4 +928,5 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
         printf("Adaptive Layer Encoding method will be added later...\n");
     
     return SkeletonNum;
+    
 }

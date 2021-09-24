@@ -7,11 +7,10 @@
 #include <QSlider>
 #include <QDockWidget>
 #include <QString>
-
+#include <QStatusBar>
 #include <ImageViewerWidget/ImageViewerWidget.hpp>
 #include "dmdProcess.hpp"
 #include "dmdReconstruct.hpp"
-class MainWidget;
 
 class InteractiveSdmd : public QWidget
 {
@@ -22,9 +21,10 @@ protected:
 
 public:
 
-  InteractiveSdmd(MainWidget *mainWidget);
+  InteractiveSdmd();
   inline void setImage(const QImage &newImage) { imageViewer_->setImage(newImage); }
   inline void readIntoSdmd(const char *c_str) { dmdProcess_.readFromFile(c_str); }
+  QSize sizeHint() const override;
 
 protected:  
   
@@ -52,12 +52,11 @@ private:
   QSlider *SaliencySlider_;
   QLabel *SaliencyValueLabel_;
 
-  MainWidget *mainWidget_;
-  //std::shared_ptr<TreeSimplification> treeSimplification_;
 
   dmdProcess dmdProcess_;
   dmdReconstruct dmdRecon_;
   int layerVal;
   float IslandsVal, SaliencyVal;
+  QStatusBar *bar;
  
 };

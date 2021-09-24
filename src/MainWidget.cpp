@@ -39,7 +39,7 @@ MainWidget::MainWidget(QWidget *parent)
 
   imageViewer_ = new iv::ImageViewerWidget{this};
   treeVis_ = new TreeVisualiser{this};
-  Interactive_sdmd = new InteractiveSdmd{this};
+  Interactive_sdmd = new InteractiveSdmd();
 
   createDockTreeVisualiser();
   createDockWidgetSdmd();

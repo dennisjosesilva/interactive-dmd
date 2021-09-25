@@ -686,8 +686,7 @@ void dmdReconstruct::get_interp_layer(int intensity, int nodeID, int SuperResolu
 
 //can be improved by adding nodeLevel parameter
 void dmdReconstruct::renderLayer(int intensity, int nodeID, int action){
-    cout<<"nodeID: "<<nodeID<<endl;
-    int drawN = 0; int PrevIndex = 100;
+   
     program.link();
     program.bind();
 
@@ -721,7 +720,7 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID, int action){
     for (unsigned int k = 0; k < layer->size(); ++k) {
         
         index = (*layer)[k][3]; 
-if(index!=PrevIndex) {cout<<"drawN: "<<drawN<<endl; drawN = 0; PrevIndex = index;}
+
         if(action==0)//delete
             draw = (nodeID == index) ? false : true;
         else//hignlight
@@ -731,7 +730,7 @@ if(index!=PrevIndex) {cout<<"drawN: "<<drawN<<endl; drawN = 0; PrevIndex = index
             x = (*layer)[k][0];
             y = height - (*layer)[k][1] - 1;
             r = (*layer)[k][2]; 
-drawN++;
+
             float vertexPositions[] = {
             (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
             (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
@@ -810,7 +809,7 @@ void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int 
         else{
             vector<int>::reverse_iterator it;
             for(it = gray_levels.rbegin();it!=gray_levels.rend();it++){//draw order is very important
-                cout<<"inty: "<<*it<<endl;
+                //cout<<"inty: "<<*it<<endl;
                 renderLayer(*it, nodeID, action);
             }
         }

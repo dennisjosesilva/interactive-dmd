@@ -910,7 +910,8 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
                 }
             }
         }
-        if(intensity != clear_color){
+        if(intensity == clear_color) BranchSet.clear();
+        else{
             ////fit with spline///
             float hausdorff = 0.002; //spline fitting error threshold
             if(BranchSet.size()>0){

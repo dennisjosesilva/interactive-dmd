@@ -252,6 +252,8 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity){
 }
 
 void dmdReconstruct::loadSample() {
+    if(r_image!=nullptr) r_image->clear();
+    gray_levels.clear();
     int SuperResolution = 1;
     image_t* img = new image_t();
     
@@ -327,6 +329,8 @@ void dmdReconstruct::readControlPoints(){
 }
 
 void dmdReconstruct::loadIndexingSample() {
+    if(indexing_image!=nullptr) indexing_image->clear();//Make sure that it's clear before each loading.
+    gray_levels.clear();
     int SuperResolution = 1;
     image_index* img = new image_index();
     
@@ -408,7 +412,7 @@ void dmdReconstruct::initOutput() {
     output = new FIELD<float>(width, height);
     prev_layer = new FIELD<float>(width, height);
     prev_layer_dt = new FIELD<float>(width, height);
-    //cout<<"clear_color00 "<<clear_color<<endl;
+    //cout<<"clear_color: "<<clearColor<<endl;
     
     for (unsigned int x = 0; x < width; x++) 
         for (unsigned int y = 0; y < height; y++)
@@ -682,6 +686,8 @@ void dmdReconstruct::get_interp_layer(int intensity, int nodeID, int SuperResolu
 
 //can be improved by adding nodeLevel parameter
 void dmdReconstruct::renderLayer(int intensity, int nodeID, int action){
+    cout<<"nodeID: "<<nodeID<<endl;
+    int drawN = 0; int PrevIndex = 100;
     program.link();
     program.bind();
 
@@ -715,7 +721,7 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID, int action){
     for (unsigned int k = 0; k < layer->size(); ++k) {
         
         index = (*layer)[k][3]; 
-
+if(index!=PrevIndex) {cout<<"drawN: "<<drawN<<endl; drawN = 0; PrevIndex = index;}
         if(action==0)//delete
             draw = (nodeID == index) ? false : true;
         else//hignlight
@@ -725,7 +731,7 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID, int action){
             x = (*layer)[k][0];
             y = height - (*layer)[k][1] - 1;
             r = (*layer)[k][2]; 
-
+drawN++;
             float vertexPositions[] = {
             (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
             (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
@@ -804,7 +810,7 @@ void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int 
         else{
             vector<int>::reverse_iterator it;
             for(it = gray_levels.rbegin();it!=gray_levels.rend();it++){//draw order is very important
-                //cout<<"inty: "<<*it<<endl;
+                cout<<"inty: "<<*it<<endl;
                 renderLayer(*it, nodeID, action);
             }
         }

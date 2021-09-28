@@ -77,6 +77,42 @@ void MainWindow::createMenus()
   QAction *exitAct = fileMenu->addAction(tr("E&xit"), this, &QWidget::close);
   exitAct->setToolTip("Finalise the application");
   exitAct->setShortcut(tr("Ctrl+Q"));
+
+  createTreeAttributeVisualitionMenus();
+}
+
+void MainWindow::createTreeAttributeVisualitionMenus()
+{
+  QMenu *attrVisMenu = menuBar()->addMenu(tr("&Attribute Visualisation"));
+
+  areaAct_ = attrVisMenu->addAction(tr("area"), this, &MainWindow::areaAct_onTriggered);
+  areaAct_->setCheckable(true);
+  areaAct_->setToolTip("Show colormap for attribute area.");
+  
+  perimeterAct_ = attrVisMenu->addAction(tr("perimeter"), this, &MainWindow::perimeterAct_onTriggered);
+  perimeterAct_->setCheckable(true);
+  perimeterAct_->setToolTip("Show colormap for attribute perimeter.");
+  
+  volumeAct_ = attrVisMenu->addAction(tr("volume"), this, &MainWindow::volumeAct_onTriggered);
+  volumeAct_->setCheckable(true);
+  volumeAct_->setToolTip("Show colormap for attribute volume.");
+  
+  circularityAct_ = attrVisMenu->addAction(tr("circularity"), this, &MainWindow::circularityAct_onTriggered);
+  circularityAct_->setCheckable(true);
+  circularityAct_->setToolTip("Show colormap for attribute circularity");
+  
+  complexityAct_ = attrVisMenu->addAction(tr("complexity"), this, &MainWindow::complexityAct_onTriggered);
+  complexityAct_->setCheckable(true);
+  complexityAct_->setToolTip("Show colormap for attribute complexity.");  
+}
+
+void  MainWindow::uncheckAttrVisActs()
+{
+  areaAct_->setChecked(false);
+  perimeterAct_->setChecked(false);
+  volumeAct_->setChecked(false);
+  circularityAct_->setChecked(false);
+  complexityAct_->setChecked(false);
 }
 
 void MainWindow::createToolBar()
@@ -173,9 +209,7 @@ void MainWindow::open()
         showProgressBar();
         mainWidget_->updateTreeVisualiser();
       }
-
     }
-
   }
   else {
     statusBar()->showMessage(tr("Image open has been canceled"), 3000);
@@ -247,4 +281,35 @@ void MainWindow::showProgressBar()
 {
   statusBar()->clearMessage();
   progressBar_->show();  
+}
+
+
+void MainWindow::areaAct_onTriggered(bool checked)
+{
+  uncheckAttrVisActs();
+  areaAct_->setChecked(checked);
+}
+
+void MainWindow::perimeterAct_onTriggered(bool checked)
+{
+  uncheckAttrVisActs();
+  perimeterAct_->setChecked(checked);
+}
+
+void MainWindow::volumeAct_onTriggered(bool checked)
+{
+  uncheckAttrVisActs();
+  volumeAct_->setChecked(checked);
+}
+
+void MainWindow::circularityAct_onTriggered(bool checked)
+{
+  uncheckAttrVisActs();
+  circularityAct_->setChecked(checked);
+}
+
+void MainWindow::complexityAct_onTriggered(bool checked)
+{
+  uncheckAttrVisActs();
+  complexityAct_->setChecked(checked);
 }

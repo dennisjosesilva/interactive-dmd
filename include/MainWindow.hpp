@@ -4,6 +4,8 @@
 #include "MainWidget.hpp"
 #include "CustomWidgets/LabelWithProgressBar.hpp"
 
+#include <QList>
+
 class QDockWidget;
 class QAction;
 class QProgressBar;
@@ -31,12 +33,19 @@ private slots:
 
   void treeVis_onNodeSkeletonAssociation(int numberOfNodes);
 
-  
+  void areaAct_onTriggered(bool checked);
+  void perimeterAct_onTriggered(bool checked);
+  void volumeAct_onTriggered(bool checked);
+  void circularityAct_onTriggered(bool checked);
+  void complexityAct_onTriggered(bool checked);
 
 private:
-  void createMenus();
-  void createToolBar();
+  void createMenus();  
+  void createTreeAttributeVisualitionMenus();
+  void uncheckAttrVisActs();
 
+  void createToolBar();
+  
   void showProgressBar();
 
 private:
@@ -52,4 +61,10 @@ private:
 
   LabelWithProgressBar *progressBar_;
   bool shouldUpdateProgressBar_;
+
+  QAction *areaAct_;
+  QAction *perimeterAct_;
+  QAction *volumeAct_;
+  QAction *circularityAct_;
+  QAction *complexityAct_;
 };

@@ -106,7 +106,7 @@ void MainWindow::createTreeAttributeVisualitionMenus()
   complexityAct_->setToolTip("Show colormap for attribute complexity.");  
 }
 
-void  MainWindow::uncheckAttrVisActs()
+void MainWindow::uncheckAttrVisActs()
 {
   areaAct_->setChecked(false);
   perimeterAct_->setChecked(false);

@@ -5,7 +5,6 @@
 #include <fstream>
 #include <bitset>
 #include "dmdProcess.hpp"
-#include <BSplineCurveFitterWindow3.h>
 
 #include <QDebug>
 
@@ -35,7 +34,8 @@ dmdProcess::~dmdProcess() {
 void dmdProcess::removeIslands(float islandThreshold) {
     int i, j, k;                    /* Iterators */
     FIELD<float> *inDuplicate = 0;  /* Duplicate, because of inplace modifications */
-    FIELD<float> *newImg = new FIELD<float>(processedImage->dimX(), processedImage->dimY());
+    FIELD<float> *newImg = new FIELD<float>(OriginalImage->dimX(), OriginalImage->dimY());
+    processedImage = new FIELD<float>(OriginalImage->dimX(), OriginalImage->dimY());
     int highestLabel;               /* for the CCA */
     int *ccaOut;                    /* labeled output */
     ConnectedComponents *CC;        /* CCA-object */
@@ -54,14 +54,14 @@ void dmdProcess::removeIslands(float islandThreshold) {
         CC = new ConnectedComponents(255);
         ccaOut = new int[nPix];
 
-        inDuplicate = (*processedImage).dupe();
+        inDuplicate = (*OriginalImage).dupe();
         inDuplicate->threshold(i);//threshold-set..
        
         
         fdata = inDuplicate->data();
  
         /* CCA -- store highest label in 'max' -- Calculate histogram */
-        highestLabel = CC->connected(fdata, ccaOut, processedImage->dimX(), processedImage->dimY(), std::equal_to<float>(), true);//true is 8-connect.
+        highestLabel = CC->connected(fdata, ccaOut, OriginalImage->dimX(), OriginalImage->dimY(), std::equal_to<float>(), true);//true is 8-connect.
         hist = static_cast<unsigned int*>(calloc(highestLabel + 1, sizeof(unsigned int)));
         if (!hist) {
             printf("Error: Could not allocate histogram for connected components\n");
@@ -72,15 +72,15 @@ void dmdProcess::removeIslands(float islandThreshold) {
 
         /* Remove small islands */
         for (j = 0; j < nPix; j++) {
-           fdata[j] = (hist[ccaOut[j]] >= (islandThreshold/100*processedImage->dimX()*processedImage->dimY())) ? fdata[j] : 255 - fdata[j]; //change the absolute num. to %
+           fdata[j] = (hist[ccaOut[j]] >= (islandThreshold/100*OriginalImage->dimX()*OriginalImage->dimY())) ? fdata[j] : 255 - fdata[j]; //change the absolute num. to %
              //fdata[j] = (hist[ccaOut[j]] >= islandThreshold) ? fdata[j] : 255 - fdata[j]; //change the absolute num. to %
         }
         
         #pragma omp critical
         {
-            for (j = 0; j < processedImage->dimY(); j++)
-                for (k = 0; k < processedImage->dimX(); k++)
-                    if (0 == fdata[j * processedImage->dimX() + k] && newImg->value(k, j) < i) { newImg->set(k, j, i); }
+            for (j = 0; j < OriginalImage->dimY(); j++)
+                for (k = 0; k < OriginalImage->dimX(); k++)
+                    if (0 == fdata[j * OriginalImage->dimX() + k] && newImg->value(k, j) < i) { newImg->set(k, j, i); }
         }
 
         /* Cleanup */
@@ -90,8 +90,8 @@ void dmdProcess::removeIslands(float islandThreshold) {
         delete inDuplicate;
     }
 
-    for (j = 0; j < processedImage->dimY(); j++)
-        for (k = 0; k < processedImage->dimX(); k++)
+    for (j = 0; j < OriginalImage->dimY(); j++)
+        for (k = 0; k < OriginalImage->dimX(); k++)
             processedImage->set(k, j, newImg->value(k, j));
 
     delete newImg;
@@ -215,12 +215,13 @@ void detect_layers(int clear_color, double* upper_level, double threshold, bool 
 //binary search
 void dmdProcess::find_layers(int clear_color, double* importance_upper, double width)
 {
+    //cout<<"width: "<<width<<endl;
     double impfac = 0.5;
     double head = 0;
     double tail = 0.5;
     int numiters = 0;
     while (numiters < 100) {
-        if(impfac < 0.03) break;//The difference is too small
+        if(impfac < 0.003) break;//The difference is too small
         detect_layers(clear_color, importance_upper, impfac, 0);
         if (peaks < width){//impfac need a smaller one
             tail = impfac;
@@ -255,7 +256,7 @@ void dmdProcess::find_layers(int clear_color, double* importance_upper, double w
 * Calculate the histogram of the image, which is equal to the importance for each level.
 */
 void dmdProcess::calculateImportance(bool cumulative, int num_layers) {
-    printf("Selecting %d layers...\n", num_layers);
+    //printf("Selecting %d layers...\n", num_layers);
     int normFac = 0;
     float *c = processedImage->data();
     float *end = processedImage->data() + nPix;
@@ -615,7 +616,7 @@ void dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFil
     //cout<<"BranchSet.size()--"<<BranchSet.size()<<endl;
      //begin = std::chrono::steady_clock::now();
     float hausdorff = 0.002; //spline fitting error threshold
-    if(BranchSet.size()>0){
+    if(BranchSet.size() > 0){
         BSplineCurveFitterWindow3 spline;
         if (WriteToFile>0) spline.SplineFit2(BranchSet, hausdorff, diagonal, i, connection, WriteToFile);
         else CPnum = spline.SplineFit(BranchSet, hausdorff, diagonal, i, connection);
@@ -632,23 +633,13 @@ void dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFil
 
 void dmdProcess::computeSkeletons(float saliency_threshold){
     SKELETON_SALIENCY_THRESHOLD = saliency_threshold;
-    //ofstream clear;
-    //clear.open("controlPoints.txt");
-    //clear.close();
-
-    ofstream OutFile1;
-    OutFile1.open("controlPoints.txt");
-    OutFile1<<processedImage->dimX()<<" "<<processedImage->dimY()<<endl; // the final end tag for one channel.
-    OutFile1<<clear_color<<endl; // the final end tag for one channel.
+    spline.clear_IndexingCP_Interactive();
+    if(!gray_levels.empty()) gray_levels.clear();
     
-
     int fboSize = initialize_skeletonization(processedImage);
     //time1++;
     FIELD<float> *imDupeBack = 0;
-    //FIELD<float> *imDupeFore = 0;
-    //FIELD<float> *imDupe;
-    //FIELD<float> *skelCurr = 0;
-    //int seq = 0;
+    
  
     diagonal  = sqrt((float)(processedImage->dimX() * processedImage->dimX() + processedImage->dimY() * processedImage->dimY()));
     bool firstTime = true;
@@ -662,178 +653,45 @@ void dmdProcess::computeSkeletons(float saliency_threshold){
                 firstTime = false; 
             else 
             { 
+                gray_levels.push_back(i);
                 // Threshold the image
                 imDupeBack = processedImage->dupe();
                 
                 imDupeBack->threshold(i);
 
                  //debug--print layer
-                /* stringstream ss;
-                ss<<"output/l"<<i<<".pgm";
+                 /* stringstream ss;
+                ss<<"out/l"<<i<<".pgm";
                 imDupeBack->writePGM(ss.str().c_str());
-                 */  
+                */  
                 bool ADAPTIVE = false;
                 if(!ADAPTIVE)
                     CalculateCPnum(i,imDupeBack,2);
                 else
                 {
                     printf("Adaptive Layer Encoding method will be added later...\n");
-                    
                 }
                     
             }
         }
     }
-    ofstream OutFile2;
+    /*ofstream OutFile2;
     OutFile2.open("controlPoints.txt",ios_base::app);
     OutFile2<<65536<<endl; // the final end tag for one channel.
     
-    OutFile2.close(); /**/
+    OutFile2.close(); */
     printf("Skeletonization Done!\n");
 
     //delete skelImp;
 }
 
-void dmdProcess::Encoding(){
-    //To be added...
-    /*
-    ofstream of;
-    ofstream of_unEncode;
-
-    of.open("EncodingOutput.sdmd", ios_base::out | ios::binary);
-    of_unEncode.open("unEncode.sdmd", ios_base::out | ios::binary);
-
-    if (!of.good() && !of_unEncode.good()) {
-        printf("Could not open file for output\n");
-        exit(1);
-    }
-
-    unsigned int width = processedImage->dimX();
-    unsigned int height = processedImage->dimY();
-    int colorspace = 1;
-    int clearcolor = clear_color;
-   
-    ifstream ifs("controlPoints.txt"); 
-    string str;
-    uint8_t out8;
-    int x,y,dt,imp; ////if we use uint16_t, then we cannot represent negative value.(-5 turns to 65531)
-    int BranchNum, CPnum, degree;
-    int last_x=0, last_y=0, last_dt=0;
-    int encode_x, encode_y, encode_dt;
-
-    of_unEncode << width << " - " << height << '\n';
-    
-    //writeBits(ofBuffer, bitset<16>(width).to_string() + bitset<16>(height).to_string());
-    of.close();
-    of_unEncode.close();
-
-    of_uncompressed << " colorspace "  << colorspace << '\n';
-    writeBits(ofBuffer, bitset<8>(colorspace).to_string());
-    writeBits(ssForCR, bitset<8>(colorspace).to_string());
-
-
-    out8 = clearcolor;
-    ofBuffer.write(reinterpret_cast<char *> (&out8), sizeof (uint8_t));
-    ssForCR.write(reinterpret_cast<char *> (&out8), sizeof (uint8_t));
-   
-
-    while(ifs)//each loop is each layer
-    {
-        //last_x = 0; last_y = 0; last_dt = 0;
-        ifs >> str;
-        if(ifs.fail())  break;
-
-        int layerNum = (int)(atof(str.c_str()));
-
-        if(layerNum==255){
-            of_uncompressed << "11111111" << '\n';
-            writeBits(ofBuffer, "11111111");
-            writeBits(ssForCR, "11111111");
-            
-            break;
-        }
-       
-        of_uncompressed << layerNum << '\n';
-        writeBits(ofBuffer, bitset<8>(layerNum).to_string());
-        writeBits(ssForCR, bitset<8>(layerNum).to_string());
-
-        ifs >> str;
-        string needToInvert = bitset<8>((int)(atof(str.c_str()))).to_string();
-        of_uncompressed << (int)(atof(str.c_str())) << '\n';
-        writeBits(ofBuffer, needToInvert);
-        writeBits(ssForCR, needToInvert);
-        
-    while(true)
-    {
-        ifs >> str;
-        CPnum = (int)(atof(str.c_str()));
-        if (CPnum == 0)
-        {
-            of_uncompressed << CPnum << '\n';
-            writeBits(ofBuffer, bitset<8>(CPnum).to_string());
-            writeBits(ssForCR, bitset<8>(CPnum).to_string());
-            break;
-        } 
-        
-        string firstFourBits = bitset<4>(CPnum).to_string();
-       
-        ifs >> str;
-        degree = (int)(atof(str.c_str()));
-        string lastFourBits = bitset<4>(degree).to_string();
-
-        //of_uncompressed << firstFourBits << " - " << lastFourBits << '\n';
-        of_uncompressed << CPnum << " - " << degree << '\n';
-        writeBits(ofBuffer, firstFourBits + lastFourBits);
-        writeBits(ssForCR, firstFourBits + lastFourBits);
-
-        ifs >> str;
-        string SampleNum = bitset<16>((int)(atof(str.c_str()))).to_string();
-        of_uncompressed << (int)(atof(str.c_str())) << '\n';
-        writeBits(ofBuffer, SampleNum);
-
-        while(CPnum--)  
-        {
-            ifs >> str;
-            x = (atof(str.c_str()));
-            ifs >> str;
-            y = (atof(str.c_str()));
-            ifs >> str;
-            dt = (atof(str.c_str()));
-            //ifs >> str;////4D
-            //imp = (atof(str.c_str()));
-            encode_x = x - last_x;//maybe negive value.
-            encode_y = y - last_y;//maybe negive value.
-            encode_dt = dt - last_dt;//maybe negive value.
-            if (encode_x == 0 && encode_y == 0) {encode_x = 1;cout<<"attention the error!"<<endl;}//To avoid conflict with the flag!!
-            if (encode_x > 127 || encode_y > 127 || encode_dt > 127 || encode_x < -127 || encode_y < -127 || encode_dt < -127)
-            {
-                of_uncompressed << "0000000000000000" << encode_x << " / " << encode_y << " / " << encode_dt << '\n';
-                writeBits(ofBuffer, "0000000000000000");
-                writeBits(ofBuffer, encode_16bit_point(encode_x,encode_y,encode_dt));
-                writeBits(ssForCR, "0000000000000000");
-                writeBits(ssForCR, encode_16bit_point(encode_x,encode_y,encode_dt));
-            }
-            else
-            {
-                of_uncompressed << encode_x << " / " << encode_y << " / " << encode_dt << '\n';
-                writeBits(ofBuffer, encode_8bit_point(encode_x,encode_y,encode_dt));
-                writeBits(ssForCR, encode_8bit_point(encode_x,encode_y,encode_dt));
-            }
-            last_x = x;
-            last_y = y;
-            last_dt = dt;
-        } 
-     }
-    }  
-*/
-}
 
 void dmdProcess::Init_indexingSkeletons(){
     
     SKELETON_SALIENCY_THRESHOLD = 0.4;//need to be improved, set by users.
     
-    float *c = processedImage->data();
-    float *end = processedImage->data() + nPix;
+    float *c = OriginalImage->data();
+    float *end = OriginalImage->data() + nPix;
     int min_elem = 1e5;
     while (c != end){
         min_elem = (min_elem<*c)? min_elem : *c;
@@ -841,17 +699,15 @@ void dmdProcess::Init_indexingSkeletons(){
     }
     clear_color = min_elem;
     
-    int width = processedImage->dimX();
-    int height = processedImage->dimY();
+    int width = OriginalImage->dimX();
+    int height = OriginalImage->dimY();
     diagonal  = sqrt((float)(width * width + height * height));
     
-    //clear controlPoints.txt first and then write width, height, and clear_color.
-    ofstream OutFile1;
-    OutFile1.open("controlPoints.txt");
-    OutFile1<<width<<" "<<height<<endl; // 
-    OutFile1<<clear_color<<endl; // clear_color
-
-    int fboSize = initialize_skeletonization(processedImage);
+    spline.clear_IndexingCP();
+    //if(!IntensityOfNode.empty()) IntensityOfNode.clear();
+    if(!Inty_node.empty()) Inty_node.clear();
+    
+    int fboSize = initialize_skeletonization(OriginalImage);
 
 }
 //CC-connected component.
@@ -861,7 +717,6 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
     ske<<"output/c"<<intensity<<"-"<<index<<".pgm";
     CC->writePGM(ske.str().c_str());
    */
- 
     bool ADAPTIVE = false;
     if(!ADAPTIVE)
     {
@@ -910,12 +765,14 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
                 }
             }
         }
-        if(intensity == clear_color) BranchSet.clear();
+        if(intensity == clear_color) BranchSet.clear();//nodeTD=0
         else{
+            //IntensityOfNode.push_back(intensity);
+            Inty_node.insert(make_pair(intensity, index));
             ////fit with spline///
             float hausdorff = 0.002; //spline fitting error threshold
             if(BranchSet.size()>0){
-                BSplineCurveFitterWindow3 spline;
+                //BSplineCurveFitterWindow3 spline;
                 spline.indexingSpline(BranchSet, hausdorff, diagonal, intensity, index);//
                 
                 BranchSet.clear();//important.

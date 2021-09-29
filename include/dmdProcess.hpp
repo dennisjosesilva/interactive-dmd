@@ -5,6 +5,8 @@
 #include <connected.hpp>
 #include <skeleton_cuda.hpp>
 
+#include <BSplineCurveFitterWindow3.h>
+using namespace std;
 class dmdProcess {
   public:
     
@@ -12,27 +14,29 @@ class dmdProcess {
     ~dmdProcess();
     void readFromFile (const char *c_str){
       filename = c_str;
-      processedImage = FIELD<float>::read(c_str); 
-      nPix = processedImage->dimX() * processedImage->dimY();
+      OriginalImage = FIELD<float>::read(c_str); 
+      nPix = OriginalImage->dimX() * OriginalImage->dimY();
     }
 
     inline void setProcessedImage(FIELD<float> *pimg) 
     { 
-      processedImage  = pimg;
-      nPix = processedImage->dimX() * processedImage->dimY();
+      OriginalImage  = pimg;
+      nPix = OriginalImage->dimX() * OriginalImage->dimY();
     }
 
-    inline FIELD<float> *curImage() { return processedImage; }
+    //inline FIELD<float> *curImage() { return processedImage; }
 
-    //API
+    //
     void removeIslands(float islandThreshold);
     void LayerSelection(bool cumulative, int num_layers);
     void computeSkeletons(float saliency_threshold);
     void Init_indexingSkeletons();
     int indexingSkeletons(FIELD<float> * CC, int intensity, int index);
+    //vector<int> getIntensityOfNode(){return IntensityOfNode;}
+    multimap<int,int> getInty_Node(){return Inty_node;}
+    vector<int> get_gray_levels() {return gray_levels;}
     
     //
-    void Encoding(); //To be added..
     void find_layers(int clear_color, double* importance_upper, double width);
     void calculateImportance(bool cumulative, int num_layers);
     void removeLayers();
@@ -42,9 +46,12 @@ class dmdProcess {
 
   private:
     const char *filename;
-    FIELD<float>* processedImage;
+    FIELD<float>* processedImage, *OriginalImage;
     int nPix;
     double *importance;
-    stringstream ofBuffer;
+    BSplineCurveFitterWindow3 spline;
+    vector<int> gray_levels;
+    multimap<int,int> Inty_node;
+    //stringstream ofBuffer;
 };
 

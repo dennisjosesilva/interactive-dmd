@@ -16,15 +16,6 @@
 #include <QLoggingCategory>
 #include <QOpenGLTexture>
 
-//typedef Triple<int, int, int> coord3D_t;
-typedef vector<Vector3<int>> layer_t;
-typedef layer_t path_t;
-typedef vector<layer_t*> image_t;
-
-typedef vector<Vector4<int>> layer_index;
-typedef layer_index path_index;
-typedef vector<layer_index*> image_index;
-
 
 class dmdReconstruct {
   public:
@@ -33,26 +24,24 @@ class dmdReconstruct {
     //~dmdReconstruct();
 
     void openglSetup();
-    void renderLayer(int intensity);
-    void renderLayer(int intensity, int nodeID, int action);
+    void framebufferSetup();
+    void renderLayer(int intensity_index);
+    void renderLayer(int intensity, int nodeID);//for action = 1 situation.
+    void renderIndexingLayer(int intensity, int nodeID);
  
-    FIELD<float>* renderLayer_interp(int intensity);
+    FIELD<float>* renderLayer_interp(int i);
 
 
-    void readControlPoints();
-    void readIndexingControlPoints();
-    void loadSample();
-    void loadIndexingSample();
+    void readControlPoints(int width_, int height_, int clear_color, vector<int> gray_levels_);
+    void readIndexingControlPoints(int width, int height, int clear_color, multimap<int,int> Inty_Node);
+    
     void ReconstructImage(bool interpolate);
     void ReconstructIndexingImage(bool interpolate, int nodeID, int action);
 
 
-    void get_interp_layer(int intensity, int SuperResolution, bool last_layer);
+    void get_interp_layer(int i, int SuperResolution, bool last_layer);
     void get_interp_layer(int intensity, int nodeID, int SuperResolution, bool last_layer);
     FIELD<float>* get_dt_of_alpha(FIELD<float>* alpha);
- 
-    layer_t *readLayer(int l);
-    layer_index *readIndexLayer(int l);
  
     FIELD<float>* renderLayer_interp(int intensity, int nodeID);
     
@@ -65,9 +54,7 @@ class dmdReconstruct {
 
     int width, height, clearColor;
     vector<int> gray_levels;
-    image_t* r_image = nullptr;
-    image_index* indexing_image = nullptr;
-
+    
     FIELD<float>* output;
 
     QSurfaceFormat surfaceFormat;
@@ -77,5 +64,8 @@ class dmdReconstruct {
     QOpenGLFunctions *contextFunc;
     QOpenGLShaderProgram program;
     bool RunOnce;
+    vector<vector<Vector3<float>>> IndexingSample;
+    vector<vector<Vector3<float>>> IndexingSample_interactive;
+    multimap<int,int> Inty_node;
 };
 

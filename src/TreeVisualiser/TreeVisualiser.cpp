@@ -299,8 +299,8 @@ void TreeVisualiser::registerDMDSkeletons()
     delete fnode;
   });
 
-  
-  dmdrecon_.readIndexingControlPoints(); // pre-upload
+  dmdrecon_.readIndexingControlPoints(domain_.width(), domain_.height(), 
+    dmd_.clear_color, dmd_.getInty_Node()); // pre-upload
 }
 
 

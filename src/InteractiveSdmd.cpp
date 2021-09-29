@@ -68,7 +68,7 @@ QLayout *InteractiveSdmd::createSdmdControls()
   nleavesLayout->addWidget(new QLabel{"# layers:    ", this});
   numberLayersSlider_ = new QSlider{Qt::Horizontal, this};
   numberLayersSlider_->setRange(1, 50);
-  layerVal = 10;
+  layerVal = 4;
   numberLayersSlider_->setValue(layerVal);
   numberLayersValueLabel_ = new QLabel(QString::number(layerVal), this);
   numberLayersValueLabel_->setFixedWidth(35);
@@ -85,7 +85,7 @@ QLayout *InteractiveSdmd::createSdmdControls()
   areaLayout->addWidget(new QLabel{"Islands:      ", this});
   IslandsSlider_ = new QSlider{Qt::Horizontal, this};
   IslandsSlider_->setRange(1,100);//actually /1000, i.e.(0.001, 0.1);
-  IslandsVal = 0.01;
+  IslandsVal = 0.03;
   IslandsSlider_->setValue(IslandsVal*1000);
   IslandsValueLabel_ = new QLabel{QString::number(IslandsVal), this};
   IslandsValueLabel_->setFixedWidth(50);
@@ -102,7 +102,7 @@ QLayout *InteractiveSdmd::createSdmdControls()
   areaDiffLayout->addWidget(new QLabel{"Saliency:   ", this});
   SaliencySlider_ = new QSlider{Qt::Horizontal, this};
   SaliencySlider_->setRange(1, 200);
-  SaliencyVal = 0.2;
+  SaliencyVal = 0.4;
   SaliencySlider_->setValue(SaliencyVal*100);
   SaliencyValueLabel_ = new QLabel{QString::number(SaliencyVal), this};
   SaliencyValueLabel_->setFixedWidth(50);
@@ -123,11 +123,12 @@ void InteractiveSdmd::RunBtn_press()
   bar->showMessage(tr("Removing Islands..."));
   dmdProcess_.removeIslands(IslandsVal);
   bar->showMessage(tr("Selecting layers..."));
-  dmdProcess_.LayerSelection(false, layerVal);
+  dmdProcess_.LayerSelection(true, layerVal);
   bar->showMessage(tr("Computing Skeletons..."));
   dmdProcess_.computeSkeletons(SaliencyVal);
+
   bar->showMessage(tr("Reading Control points..."));
-  dmdRecon_.readControlPoints();
+  dmdRecon_.readControlPoints(imageViewer_->image().width(), imageViewer_->image().height(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
   bar->showMessage(tr("Reconstruction..."));
   dmdRecon_.ReconstructImage(false);
   bar->showMessage(tr("Reconstruction finished!"));

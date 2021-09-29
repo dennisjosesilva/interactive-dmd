@@ -12,8 +12,6 @@ NormalisedAttributeMeta AttributeComputer::computeArea(Box domain, const MTree &
   using AttributeComputer = morphotree::AttributeComputer<Quads, ImageType>;
   using QuadCountComputer = morphotree::CTreeQuadCountsComputer<ImageType>;
   
-
-
   std::vector<ImageType> f = tree.reconstructImage();
 
   std::vector<Quads> quads = 

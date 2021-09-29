@@ -4,6 +4,7 @@
 #include "MainWidget.hpp"
 #include "TreeVisualiser/TreeVisualiser.hpp"
 
+
 #include <morphotree/tree/mtree.hpp>
 
 #include <QHBoxLayout>
@@ -44,7 +45,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     binRecDock_{nullptr},
     greyRecDock_{nullptr},
     skelRecDock_{nullptr},
-    removeSkelDock_{nullptr}
+    removeSkelDock_{nullptr},
+    curColorBar_{nullptr}
 {
   namespace mw = MorphotreeWidget;
 
@@ -303,6 +305,33 @@ void TreeVisualiser::registerDMDSkeletons()
   dmdrecon_.readIndexingControlPoints(); // pre-upload
 }
 
+void TreeVisualiser::showArea()
+{
+  NormalisedAttributeMeta areaInfo = attrCompueter_.computeArea(domain_, treeWidget_->tree());
+
+  treeWidget_->loadAttributes(std::move(areaInfo.nattr_));
+  
+  if (curColorBar_ == nullptr) {
+    ColorBar *colorBar = treeWidget_->createHColorBar(this);
+    curColorBar_ = new TitleColorBar{colorBar, this};
+  }
+  
+  curColorBar_->setMaxValue(areaInfo.maxValue);
+  curColorBar_->setMinValue(areaInfo.minValue);
+  curColorBar_->setShowNumbers(true);
+  curColorBar_->setTitle("Area");
+  curColorBar_->update();
+  layout()->addWidget(curColorBar_);
+}
+
+void TreeVisualiser::clearAttributes()
+{
+  layout()->removeWidget(curColorBar_);
+  curColorBar_->deleteLater();
+  curColorBar_ = nullptr;
+  treeWidget_->clearAttributes();
+  update();
+}
 
 void TreeVisualiser::binRecBtn_press()
 {  

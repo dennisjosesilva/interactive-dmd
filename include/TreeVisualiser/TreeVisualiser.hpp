@@ -6,7 +6,10 @@
 
 #include <MorphotreeWidget/Graphics/GNode.hpp>
 #include <MorphotreeWidget/MorphotreeWidget.hpp>
+#include <MorphotreeWidget/Graphics/ColorBar.hpp>
 #include "TreeVisualiser/SimpleImageViewer.hpp"
+#include "TreeVisualiser/AttributeComputer.hpp"
+#include "CustomWidgets/TitleColorBar.hpp"
 
 #include <morphotree/tree/mtree.hpp>
 #include <morphotree/core/box.hpp>
@@ -22,6 +25,8 @@ class RecNodeButton;
 class QGraphicsSceneMouseEvent;
 class MainWidget;
 class QSlider;
+
+
 
 class MyDockWidget : public QDockWidget
 {
@@ -59,6 +64,7 @@ public:
   using Box = morphotree::Box;
   using NodePtr = typename MTree::NodePtr;
   using TreeSimplification = MorphotreeWidget::TreeSimplification;
+  using ColorBar = MorphotreeWidget::ColorBar;
   using GNode = MorphotreeWidget::GNode;  
   using uint8 = morphotree::uint8;
   using uint32 = morphotree::uint32;
@@ -73,6 +79,9 @@ public:
   inline uint32 numberOfNodesOfSimplifiedTree() { return treeWidget_->stree().numberOfNodes(); }
 
   void registerDMDSkeletons();
+  
+  void showArea();
+  void clearAttributes();
 
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
@@ -94,7 +103,7 @@ protected:
   inline uint32 numberOfNodesMtree() const { return treeWidget_->mtree().numberOfNodes(); }
   inline uint32 numberOfNodesSTree() const { return treeWidget_->stree().numberOfNodes(); }
 
-  std::shared_ptr<TreeSimplification> duplicateTreeSimplification();  
+  std::shared_ptr<TreeSimplification> duplicateTreeSimplification();    
 
 public: 
 signals: 
@@ -147,4 +156,7 @@ private:
 
   dmdProcess dmd_;
   dmdReconstruct dmdrecon_;
+
+  AttributeComputer attrCompueter_;
+  TitleColorBar *curColorBar_;
 };

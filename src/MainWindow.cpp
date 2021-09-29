@@ -288,6 +288,11 @@ void MainWindow::areaAct_onTriggered(bool checked)
 {
   uncheckAttrVisActs();
   areaAct_->setChecked(checked);
+
+  if (checked)
+    mainWidget_->treeVisualiser()->showArea();
+  else
+    mainWidget_->treeVisualiser()->clearAttributes();
 }
 
 void MainWindow::perimeterAct_onTriggered(bool checked)

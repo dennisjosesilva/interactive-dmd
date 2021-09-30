@@ -81,6 +81,11 @@ public:
   void registerDMDSkeletons();
   
   void showArea();
+  void showPerimeter();
+  void showVolume();
+  void showCircularity();
+  void showComplexity();
+
   void clearAttributes();
 
 protected:  

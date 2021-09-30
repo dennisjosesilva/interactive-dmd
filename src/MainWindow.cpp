@@ -205,6 +205,7 @@ void MainWindow::open()
         .arg(image.width()).arg(image.height()), 3000); 
       
       shouldUpdateProgressBar_ = true;
+      uncheckAttrVisActs();
       if (showTreeVisAct_->isChecked()) {
         showProgressBar();
         mainWidget_->updateTreeVisualiser();
@@ -299,22 +300,42 @@ void MainWindow::perimeterAct_onTriggered(bool checked)
 {
   uncheckAttrVisActs();
   perimeterAct_->setChecked(checked);
+
+  if (checked)
+    mainWidget_->treeVisualiser()->showPerimeter();
+  else 
+    mainWidget_->treeVisualiser()->clearAttributes();
 }
 
 void MainWindow::volumeAct_onTriggered(bool checked)
 {
   uncheckAttrVisActs();
   volumeAct_->setChecked(checked);
+
+  if (checked)
+    mainWidget_->treeVisualiser()->showVolume();
+  else
+    mainWidget_->treeVisualiser()->clearAttributes();
 }
 
 void MainWindow::circularityAct_onTriggered(bool checked)
 {
   uncheckAttrVisActs();
   circularityAct_->setChecked(checked);
+
+  if (checked)
+    mainWidget_->treeVisualiser()->showCircularity();
+  else
+    mainWidget_->treeVisualiser()->clearAttributes();
 }
 
 void MainWindow::complexityAct_onTriggered(bool checked)
 {
   uncheckAttrVisActs();
   complexityAct_->setChecked(checked);
+
+  if (checked)
+    mainWidget_->treeVisualiser()->showComplexity();
+  else
+    mainWidget_->treeVisualiser()->clearAttributes();
 }

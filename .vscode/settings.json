@@ -50,6 +50,14 @@
     "typeinfo": "cpp",
     "variant": "cpp",
     "bit": "cpp",
-    "qvboxlayout": "cpp"
+    "qvboxlayout": "cpp",
+    "bitset": "cpp",
+    "cfenv": "cpp",
+    "condition_variable": "cpp",
+    "cstring": "cpp",
+    "set": "cpp",
+    "iostream": "cpp",
+    "mutex": "cpp",
+    "thread": "cpp"
   }
 }

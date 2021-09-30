@@ -4,6 +4,7 @@
 #include "MainWidget.hpp"
 #include "TreeVisualiser/TreeVisualiser.hpp"
 
+
 #include <morphotree/tree/mtree.hpp>
 
 #include <QHBoxLayout>
@@ -44,7 +45,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     binRecDock_{nullptr},
     greyRecDock_{nullptr},
     skelRecDock_{nullptr},
-    removeSkelDock_{nullptr}
+    removeSkelDock_{nullptr},
+    curColorBar_{nullptr}
 {
   namespace mw = MorphotreeWidget;
 
@@ -183,13 +185,17 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 {  
   namespace mw = MorphotreeWidget;
 
+  if (treeWidget_->hasAttributes()) 
+    clearAttributes();
+
   curNodeSelection_ = nullptr;
   if (treeWidget_->treeSimplification() == nullptr) 
     treeWidget_->loadImage(domain, f, 
       std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
   else 
     treeWidget_->loadImage(domain, f, treeWidget_->treeSimplification());
-    
+  
+  
   domain_ = domain;
   dmd_.setProcessedImage(greyImageToField(f));  
 }
@@ -303,6 +309,113 @@ void TreeVisualiser::registerDMDSkeletons()
     dmd_.clear_color, dmd_.getInty_Node()); // pre-upload
 }
 
+void TreeVisualiser::showArea()
+{
+  NormalisedAttributeMeta areaInfo = attrCompueter_.computeArea(domain_, treeWidget_->tree());
+
+  treeWidget_->loadAttributes(std::move(areaInfo.nattr_));
+  
+  if (curColorBar_ == nullptr) {
+    ColorBar *colorBar = treeWidget_->createHColorBar(this);
+    curColorBar_ = new TitleColorBar{colorBar, this};
+  }
+  
+  curColorBar_->setMaxValue(areaInfo.maxValue);
+  curColorBar_->setMinValue(areaInfo.minValue);
+  curColorBar_->setShowNumbers(true);
+  curColorBar_->setTitle("Area");
+  curColorBar_->update();
+  layout()->addWidget(curColorBar_);
+}
+
+void TreeVisualiser::showPerimeter()
+{
+  NormalisedAttributeMeta perimeterInfo = attrCompueter_.computePerimeter(
+    domain_, treeWidget_->tree());
+
+  treeWidget_->loadAttributes(std::move(perimeterInfo.nattr_));
+
+  if (curColorBar_ == nullptr) {
+    ColorBar *colorBar = treeWidget_->createHColorBar(this);
+    curColorBar_ = new TitleColorBar{colorBar, this};
+  }
+
+  curColorBar_->setMaxValue(perimeterInfo.maxValue);
+  curColorBar_->setMinValue(perimeterInfo.minValue);
+  curColorBar_->setShowNumbers(true);
+  curColorBar_->setTitle("Perimeter");
+  curColorBar_->update();
+  layout()->addWidget(curColorBar_);
+}
+
+void TreeVisualiser::showVolume()
+{
+  NormalisedAttributeMeta volumeInfo = attrCompueter_.computeVolume(
+    domain_, treeWidget_->tree());
+
+  treeWidget_->loadAttributes(std::move(volumeInfo.nattr_));
+
+  if (curColorBar_ == nullptr) {
+    ColorBar *colorBar = treeWidget_->createHColorBar(this);
+    curColorBar_ = new TitleColorBar{colorBar, this};
+  }
+
+  curColorBar_->setMaxValue(volumeInfo.maxValue);
+  curColorBar_->setMinValue(volumeInfo.minValue);
+  curColorBar_->setShowNumbers(true);
+  curColorBar_->setTitle("Volume");
+  curColorBar_->update();
+  layout()->addWidget(curColorBar_);
+}
+
+void TreeVisualiser::showCircularity()
+{
+  NormalisedAttributeMeta circularityInfo = attrCompueter_.computeComplexity(
+    domain_, treeWidget_->tree());
+
+  treeWidget_->loadAttributes(std::move(circularityInfo.nattr_));
+
+  if (curColorBar_ == nullptr) {
+    ColorBar *colorBar = treeWidget_->createHColorBar(this);
+    curColorBar_ = new TitleColorBar{colorBar, this};
+  }
+
+  curColorBar_->setMaxValue(circularityInfo.maxValue);
+  curColorBar_->setMinValue(circularityInfo.minValue);
+  curColorBar_->setShowNumbers(true);
+  curColorBar_->setTitle("Circularity");
+  curColorBar_->update();
+  layout()->addWidget(curColorBar_);
+}
+
+void TreeVisualiser::showComplexity()
+{
+  NormalisedAttributeMeta complexityInfo = attrCompueter_.computeComplexity(
+    domain_, treeWidget_->tree());
+
+  treeWidget_->loadAttributes(std::move(complexityInfo.nattr_));
+
+  if (curColorBar_ == nullptr) {
+    ColorBar *colorBar = treeWidget_->createHColorBar(this);
+    curColorBar_ = new TitleColorBar{colorBar, this};
+  }
+
+  curColorBar_->setMaxValue(complexityInfo.maxValue);
+  curColorBar_->setMinValue(complexityInfo.minValue);
+  curColorBar_->setShowNumbers(true);
+  curColorBar_->setTitle("Complexity");
+  curColorBar_->update();
+  layout()->addWidget(curColorBar_);
+}
+
+void TreeVisualiser::clearAttributes()
+{
+  layout()->removeWidget(curColorBar_);
+  curColorBar_->deleteLater();
+  curColorBar_ = nullptr;
+  treeWidget_->clearAttributes();
+  update();
+}
 
 void TreeVisualiser::binRecBtn_press()
 {  

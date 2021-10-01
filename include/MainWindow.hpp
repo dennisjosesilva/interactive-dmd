@@ -63,6 +63,7 @@ private:
   LabelWithProgressBar *progressBar_;
   bool shouldUpdateProgressBar_;
 
+  QMenu *attrVisMenu_;
   QAction *areaAct_;
   QAction *perimeterAct_;
   QAction *volumeAct_;

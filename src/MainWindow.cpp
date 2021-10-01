@@ -82,32 +82,34 @@ void MainWindow::createMenus()
 
 void MainWindow::createTreeAttributeVisualitionMenus()
 {
-  QMenu *attrVisMenu = menuBar()->addMenu(tr("&Attribute Visualisation"));
+  attrVisMenu_ = menuBar()->addMenu(tr("&Attribute Visualisation"));
 
-  areaAct_ = attrVisMenu->addAction(tr("area"), this, &MainWindow::areaAct_onTriggered);
+  areaAct_ = attrVisMenu_->addAction(tr("area"), this, &MainWindow::areaAct_onTriggered);
   areaAct_->setCheckable(true);
   areaAct_->setToolTip("Show colormap for attribute area.");
   
-  perimeterAct_ = attrVisMenu->addAction(tr("perimeter"), this, &MainWindow::perimeterAct_onTriggered);
+  perimeterAct_ = attrVisMenu_->addAction(tr("perimeter"), this, &MainWindow::perimeterAct_onTriggered);
   perimeterAct_->setCheckable(true);
   perimeterAct_->setToolTip("Show colormap for attribute perimeter.");
   
-  volumeAct_ = attrVisMenu->addAction(tr("volume"), this, &MainWindow::volumeAct_onTriggered);
+  volumeAct_ = attrVisMenu_->addAction(tr("volume"), this, &MainWindow::volumeAct_onTriggered);
   volumeAct_->setCheckable(true);
   volumeAct_->setToolTip("Show colormap for attribute volume.");
   
-  circularityAct_ = attrVisMenu->addAction(tr("circularity"), this, &MainWindow::circularityAct_onTriggered);
+  circularityAct_ = attrVisMenu_->addAction(tr("circularity"), this, &MainWindow::circularityAct_onTriggered);
   circularityAct_->setCheckable(true);
   circularityAct_->setToolTip("Show colormap for attribute circularity");
   
-  complexityAct_ = attrVisMenu->addAction(tr("complexity"), this, &MainWindow::complexityAct_onTriggered);
+  complexityAct_ = attrVisMenu_->addAction(tr("complexity"), this, &MainWindow::complexityAct_onTriggered);
   complexityAct_->setCheckable(true);
   complexityAct_->setToolTip("Show colormap for attribute complexity.");  
 
-  nskelptAct_ = attrVisMenu->addAction(tr("number of skeleton points"), this, 
+  nskelptAct_ = attrVisMenu_->addAction(tr("number of skeleton points"), this, 
     &MainWindow::nskelptAct_onTriggered);
   nskelptAct_->setCheckable(true);
   nskelptAct_->setToolTip("Show colormap for attribute number of skeleton points.");
+
+  attrVisMenu_->setEnabled(false);
 }
 
 void MainWindow::uncheckAttrVisActs()
@@ -210,9 +212,11 @@ void MainWindow::open()
         .arg(image.width()).arg(image.height()), 3000); 
       
       shouldUpdateProgressBar_ = true;
+      attrVisMenu_->setEnabled(false);
       uncheckAttrVisActs();
       if (showTreeVisAct_->isChecked()) {
         showProgressBar();
+        attrVisMenu_->setEnabled(true);
         mainWidget_->updateTreeVisualiser();
       }
     }
@@ -243,16 +247,16 @@ void MainWindow::saveAs()
 
 void MainWindow::dmdProcessAct_onTrigged()
 {
- 
   QDockWidget *dockWidget_sdmd = mainWidget_->SdmdDockWidget();
   dockWidget_sdmd->setVisible(true); 
-
 }
 
 void MainWindow::treeVisAct_onToggled(bool checked)
 {  
-  if (shouldUpdateProgressBar_)
+  if (shouldUpdateProgressBar_) {
     showProgressBar();
+    attrVisMenu_->setEnabled(true);
+  }
 
   QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
   

@@ -38,6 +38,7 @@ private slots:
   void volumeAct_onTriggered(bool checked);
   void circularityAct_onTriggered(bool checked);
   void complexityAct_onTriggered(bool checked);
+  void nskelptAct_onTriggered(bool checked);
 
 private:
   void createMenus();  
@@ -67,4 +68,5 @@ private:
   QAction *volumeAct_;
   QAction *circularityAct_;
   QAction *complexityAct_;
+  QAction *nskelptAct_;
 };

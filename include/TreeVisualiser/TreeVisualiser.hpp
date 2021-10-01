@@ -26,8 +26,6 @@ class QGraphicsSceneMouseEvent;
 class MainWidget;
 class QSlider;
 
-
-
 class MyDockWidget : public QDockWidget
 {
 Q_OBJECT
@@ -85,6 +83,7 @@ public:
   void showVolume();
   void showCircularity();
   void showComplexity();
+  void showNumberOfSkeletonPoints();
 
   void clearAttributes();
 

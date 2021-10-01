@@ -7,6 +7,33 @@
 #include <algorithm>
 #include <math.h>
 
+void NumberOfSkeletonPointCache::openFile(const std::string 
+  &cachePath)
+{
+  file_.open(cachePath, std::ios::out);  
+
+  maxVal_ = std::numeric_limits<int>::min();
+  minVal_ = std::numeric_limits<int>::max();
+}
+
+void NumberOfSkeletonPointCache::store(unsigned int nodeId,
+  int numberOfSkeletonPoints)
+{  
+  if (maxVal_ < numberOfSkeletonPoints) 
+    maxVal_ = numberOfSkeletonPoints;
+  
+  if (minVal_ > numberOfSkeletonPoints) 
+    minVal_ = numberOfSkeletonPoints;
+
+  file_ << nodeId << " " << numberOfSkeletonPoints << "\n";
+}
+
+void NumberOfSkeletonPointCache::closeFile()
+{
+  file_ << maxVal_ << " " << minVal_;
+  file_.close();
+}
+
 NormalisedAttributeMeta AttributeComputer::computeArea(Box domain, const MTree &tree) const
 {
   using Quads = morphotree::Quads;
@@ -164,6 +191,39 @@ NormalisedAttributeMeta AttributeComputer::computeComplexity(Box domain,
   }
 
   return NormalisedAttributeMeta{ std::move(ncomplexity), maxValue, minValue };
+}
+
+NormalisedAttributeMeta AttributeComputer::compueteNumberOfSkeletonPoints(
+  const MTree &tree) const
+{
+  std::ifstream skelCache;
+  skelCache.open("./NumberOfSkeletonPoints.txt", std::ios::in);  
+
+  std::vector<int> nskelptList(tree.numberOfNodes());
+
+  for (unsigned int i = 0; i < tree.numberOfNodes(); i++) {
+    unsigned int nodeId;
+    int nskelpt;
+    skelCache >> nodeId >> nskelpt;
+    nskelptList[nodeId] = nskelpt;
+  }
+
+  int minValTemp, maxValTemp;
+  skelCache >> maxValTemp >> minValTemp;
+
+  float maxVal = static_cast<float>(maxValTemp);
+  float minVal = static_cast<float>(minValTemp);
+
+  NormalisedAttributePtr nskelptListPtr = 
+    std::make_unique<std::vector<float>>(tree.numberOfNodes());
+  
+  for (unsigned int i = 0; i < tree.numberOfNodes(); i++) {
+    (*nskelptListPtr)[i] = normalise(static_cast<float>(nskelptList[i]),
+      maxVal, minVal);
+  }
+
+  return NormalisedAttributeMeta{std::move(nskelptListPtr), 
+    maxVal, minVal };
 }
 
 float AttributeComputer::normalise(float val, float max, float min) const

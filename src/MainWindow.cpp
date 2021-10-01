@@ -103,6 +103,11 @@ void MainWindow::createTreeAttributeVisualitionMenus()
   complexityAct_ = attrVisMenu->addAction(tr("complexity"), this, &MainWindow::complexityAct_onTriggered);
   complexityAct_->setCheckable(true);
   complexityAct_->setToolTip("Show colormap for attribute complexity.");  
+
+  nskelptAct_ = attrVisMenu->addAction(tr("number of skeleton points"), this, 
+    &MainWindow::nskelptAct_onTriggered);
+  nskelptAct_->setCheckable(true);
+  nskelptAct_->setToolTip("Show colormap for attribute number of skeleton points.");
 }
 
 void MainWindow::uncheckAttrVisActs()
@@ -112,6 +117,7 @@ void MainWindow::uncheckAttrVisActs()
   volumeAct_->setChecked(false);
   circularityAct_->setChecked(false);
   complexityAct_->setChecked(false);
+  nskelptAct_->setChecked(false);
 }
 
 void MainWindow::createToolBar()
@@ -335,6 +341,17 @@ void MainWindow::complexityAct_onTriggered(bool checked)
 
   if (checked)
     mainWidget_->treeVisualiser()->showComplexity();
+  else
+    mainWidget_->treeVisualiser()->clearAttributes();
+}
+
+void MainWindow::nskelptAct_onTriggered(bool checked)
+{
+  uncheckAttrVisActs();
+  nskelptAct_->setChecked(checked);
+
+  if (checked)
+    mainWidget_->treeVisualiser()->showNumberOfSkeletonPoints();
   else
     mainWidget_->treeVisualiser()->clearAttributes();
 }

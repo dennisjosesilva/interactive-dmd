@@ -291,19 +291,23 @@ void TreeVisualiser::registerDMDSkeletons()
   const MTree &tree = treeWidget_->tree();
   
   dmd_.Init_indexingSkeletons();
-  
+  NumberOfSkeletonPointCache nskelCache;
+
   FIELD<float> *fnode = nullptr;
   uint32 nodeSequence = 0;
   
-  tree.tranverse([&fnode, &nodeSequence, this](NodePtr node) {
+  nskelCache.openFile();
+  tree.tranverse([&fnode, &nodeSequence, &nskelCache, this](NodePtr node) {
     fnode = binImageToField(node->reconstruct(domain_));    
-    dmd_.indexingSkeletons(fnode, node->level(), node->id());
+    int nskelPt = dmd_.indexingSkeletons(fnode, node->level(), node->id());
+    nskelCache.store(node->id(), nskelPt);
 
     emit associateNodeToSkeleton(nodeSequence);
     nodeSequence++;
         
     delete fnode;
   });
+  nskelCache.closeFile();
 
   dmdrecon_.readIndexingControlPoints(domain_.width(), domain_.height(), 
     dmd_.clear_color, dmd_.getInty_Node()); // pre-upload
@@ -404,6 +408,26 @@ void TreeVisualiser::showComplexity()
   curColorBar_->setMinValue(complexityInfo.minValue);
   curColorBar_->setShowNumbers(true);
   curColorBar_->setTitle("Complexity");
+  curColorBar_->update();
+  layout()->addWidget(curColorBar_);
+}
+
+void TreeVisualiser::showNumberOfSkeletonPoints()
+{
+  NormalisedAttributeMeta nskelPtInfo = 
+    attrCompueter_.compueteNumberOfSkeletonPoints(treeWidget_->tree());
+  
+  treeWidget_->loadAttributes(std::move(nskelPtInfo.nattr_));
+
+  if (curColorBar_ == nullptr) {
+    ColorBar *colorBar = treeWidget_->createHColorBar(this);
+    curColorBar_ = new TitleColorBar{colorBar, this};
+  }
+
+  curColorBar_->setMaxValue(nskelPtInfo.maxValue);
+  curColorBar_->setMinValue(nskelPtInfo.minValue);
+  curColorBar_->setShowNumbers(true);
+  curColorBar_->setTitle("Number of skeleton points");
   curColorBar_->update();
   layout()->addWidget(curColorBar_);
 }

@@ -94,6 +94,8 @@ QVariant Node_::itemChange(GraphicsItemChange change, const QVariant &value)
 void Node_::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   //std::cout<<"mousePressEvent"<<std::endl;
+  graph->Press_node(radius_);
+  graph->setCurrentNodeIndex(index_m, index_n);
   update();
   QGraphicsItem::mousePressEvent(event);
 }
@@ -103,7 +105,7 @@ void Node_::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
   //std::cout<<"mouseReleaseEvent"<<std::endl;
   newPos = pos();
   //cout<<"index_m "<<newPos.rx()<<" index_m "<<newPos.ry()<<endl;
-  graph->itemMoved(index_m, index_n, newPos); 
+  graph->itemMoved(newPos); 
    
   update();
   QGraphicsItem::mouseReleaseEvent(event);

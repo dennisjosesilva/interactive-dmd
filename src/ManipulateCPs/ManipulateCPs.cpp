@@ -38,6 +38,7 @@ void ManipulateCPs::ShowingCPs(vector<vector<Vector3<float>>> CPs){
           scene->addItem(node1);
           node1->setPos(ReadingEachCP[0] - w/2, ReadingEachCP[1] - h/2);
           node1->setIndex(i, j);
+          node1->setRadius(ReadingEachCP[2]);
 
           if(j > 1) scene->addItem(new Edge(prevNode, node1));
            
@@ -49,20 +50,24 @@ void ManipulateCPs::ShowingCPs(vector<vector<Vector3<float>>> CPs){
 
 }
 
+void ManipulateCPs::Press_node(int radius){
+  emit PressNode(radius); 
+}
 void ManipulateCPs::Update(){
   scene->clear();
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
 }
 
-void ManipulateCPs::itemMoved(int m, int n, QPointF Pos)
+void ManipulateCPs::itemMoved(QPointF Pos)
 {
-  //cout<<"index_m "<<m<<" index_m "<<n<<endl;
-  //cout<<"index_m "<<Pos.rx()<<" index_m "<<Pos.ry()<<endl;
-
-    CPlist[m][n][0] = Pos.rx() + w/2;
-    CPlist[m][n][1] = Pos.ry() + h/2;
-   
+    CPlist[CurrNodeIndex_m][CurrNodeIndex_n][0] = Pos.rx() + w/2;
+    CPlist[CurrNodeIndex_m][CurrNodeIndex_n][1] = Pos.ry() + h/2;
 }
+void ManipulateCPs::changeCurrNodeR(int r)
+{
+  CPlist[CurrNodeIndex_m][CurrNodeIndex_n][2] = r;
+}
+
 void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, int intensity)
 {
   //dmdReconstruct recon;

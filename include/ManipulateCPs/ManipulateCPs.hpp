@@ -25,8 +25,15 @@ public:
   void Update();
   void ShowingCPs(vector<vector<Vector3<float>>> CPs);
   
-  void itemMoved(int m, int n, QPointF Pos);
+  void itemMoved(QPointF Pos);
+  void changeCurrNodeR(int r);
   void ReconFromMovedCPs(dmdReconstruct *recon, int intensity);
+  void Press_node(int radius);
+  inline void setCurrentNodeIndex(int m, int n) {CurrNodeIndex_m = m; CurrNodeIndex_n = n;}
+
+public: 
+signals: 
+  void PressNode(int radius); 
 
 public slots:
   void zoomIn();
@@ -42,6 +49,7 @@ protected:
 private:
   QImage backgroundImg;
   int w, h;
+  int CurrNodeIndex_m, CurrNodeIndex_n;
   //QPixmap pixmap;
   QGraphicsScene *scene;
   vector<vector<Vector3<float>>> CPlist;

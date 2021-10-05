@@ -25,8 +25,8 @@ public:
   QPainterPath shape() const override;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
   inline void setIndex(int i, int j){ index_m = i; index_n = j;}
-  inline int getIndex_m() {return index_m;}
-  inline int getIndex_n() {return index_n;}
+  inline void setRadius(int radius) {radius_ = radius;}
+
 
 protected:
   QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
@@ -40,5 +40,5 @@ private:
   ManipulateCPs *graph;
   int NodeRadius = 3;
   int index_m = 1000, index_n = 1000;
-
+  int radius_;
 };

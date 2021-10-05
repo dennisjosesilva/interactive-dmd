@@ -41,7 +41,7 @@ void Edge::adjust()
     destPoint = line.p2() - edgeOffset;
   } 
   else {
-    sourcePoint = destPoint - line.p1();
+    //sourcePoint = destPoint - line.p1();
   }
 }
 
@@ -70,7 +70,7 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     return;
 
   // Draw the line itself
-  painter->setPen(QPen(Qt::black, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+  painter->setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   painter->drawLine(line);
 /*
   // Draw the arrows

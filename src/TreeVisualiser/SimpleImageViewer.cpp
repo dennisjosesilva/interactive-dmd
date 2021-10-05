@@ -1,5 +1,4 @@
 #include "TreeVisualiser/SimpleImageViewer.hpp"
-
 #include <QPushButton>
 #include <QScrollArea>
 
@@ -16,7 +15,8 @@ SimpleImageViewer::SimpleImageViewer(QWidget *parent)
 {
   QLayout *mainLayout = new QVBoxLayout;
 
-  QLayout *btnLayout = new QHBoxLayout;  
+  QLayout *btnLayout = new QHBoxLayout; 
+
   QPushButton *zoomInBtn = new QPushButton{QIcon{":/images/image_zoom_in_icon.png"}, 
     tr(""), this};
   zoomInBtn->setIconSize(QSize{32, 32});
@@ -38,6 +38,7 @@ SimpleImageViewer::SimpleImageViewer(QWidget *parent)
 
   setLayout(mainLayout);
 }
+
 
 void SimpleImageViewer::zoomIn_onClick()
 {

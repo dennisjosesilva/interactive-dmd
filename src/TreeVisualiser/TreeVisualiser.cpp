@@ -4,7 +4,6 @@
 #include "MainWidget.hpp"
 #include "TreeVisualiser/TreeVisualiser.hpp"
 
-
 #include <morphotree/tree/mtree.hpp>
 
 #include <QHBoxLayout>
@@ -19,7 +18,7 @@
 #include <QSizePolicy>
 
 #include <QDebug>
-
+#include <QMessageBox>
 #include <QPushButton>
 
 MyDockWidget::MyDockWidget(const QString &title, QWidget *mainwindow)
@@ -49,7 +48,7 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     curColorBar_{nullptr}
 {
   namespace mw = MorphotreeWidget;
-
+   
   QLayout *mainLayout = new QVBoxLayout;
   QLayout *btnLayout = createButtons();
   QLayout *treeSimplificationLayout = createTreeSimplificationControls();
@@ -111,6 +110,7 @@ QLayout *TreeVisualiser::createButtons()
   removeSkelBtn->setIconSize(QSize{32, 32});
   connect(removeSkelBtn, &QPushButton::clicked, this, &TreeVisualiser::removeSkelBtn_press);
 
+
   btnLayout->addWidget(binRecBtn);
   btnLayout->addWidget(binRecPlusBtn);
   btnLayout->addWidget(greyRecBtn);
@@ -119,6 +119,7 @@ QLayout *TreeVisualiser::createButtons()
   btnLayout->addWidget(inspectNodeMinusBtn);
   btnLayout->addWidget(skelRecBtn);
   btnLayout->addWidget(removeSkelBtn);
+  
 
   return btnLayout;
 }
@@ -198,6 +199,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
   
   domain_ = domain;
   dmd_.setProcessedImage(greyImageToField(f));  
+  dmdrecon_ = new dmdReconstruct();
 }
 
 std::vector<morphotree::uint8> TreeVisualiser::bool2UInt8(
@@ -292,7 +294,7 @@ void TreeVisualiser::registerDMDSkeletons()
   
   dmd_.Init_indexingSkeletons();
   NumberOfSkeletonPointCache nskelCache;
-
+  
   FIELD<float> *fnode = nullptr;
   uint32 nodeSequence = 0;
   
@@ -308,8 +310,7 @@ void TreeVisualiser::registerDMDSkeletons()
     delete fnode;
   });
   nskelCache.closeFile();
-
-  dmdrecon_.readIndexingControlPoints(domain_.width(), domain_.height(), 
+  dmdrecon_->readIndexingControlPoints(domain_.width(), domain_.height(), 
     dmd_.clear_color, dmd_.getInty_Node()); // pre-upload
 }
 
@@ -506,22 +507,39 @@ void TreeVisualiser::greyRecPlusBtn_press()
 void TreeVisualiser::skelRecBtn_press()
 {
   if (curNodeSelection_ != nullptr) {
-    SimpleImageViewer *iv = nullptr;
+    //CpViewer *cv = nullptr;
     if (skelRecDock_ == nullptr) {
-      iv = new SimpleImageViewer;
-      skelRecDock_ = mainWidget_->createDockWidget(tr("DMD reconstruction"), iv);
-      skelRecDock_->setGNode(curNodeSelection_);
+      
+      cv = new CpViewer(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
+      
+      skelRecDock_ = mainWidget_->createDockWidget(tr("Reconstruction of the selected node"), cv);
+      
+      //skelRecDock_->setGNode(curNodeSelection_);
       connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
       skelRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
     }
     else {
-      iv = qobject_cast<SimpleImageViewer *>(skelRecDock_->widget());
+      cv = qobject_cast<CpViewer *>(skelRecDock_->widget());
+      cv->Update();
     }
-
+ 
     NodePtr mnode = curNodeSelection_->mtreeNode();
-    dmdrecon_.ReconstructIndexingImage(false, mnode->id(), 1);
-    QImage img = fieldToQImage(dmdrecon_.getOutput());    
-    iv->setImage(img);
+    dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 1);
+  
+   if(mnode->id() == 0){
+     QMessageBox::information(0, "For your information",
+        "Node_0 corresponds to the background layer, if you \n"
+        "want to manipulate CPs, please select other nodes.");
+   }
+   else{
+     vector<vector<Vector3<float>>> storeCPs = dmdrecon_->GetCPs(mnode->id());
+     cv->transData(mnode->level(), storeCPs, dmdrecon_);
+   }
+    
+  }
+  else{
+    QMessageBox::information(0, "For your information",
+        "Please select a node.");
   }
 }
 
@@ -541,8 +559,8 @@ void TreeVisualiser::removeSkelBtn_press()
     }
 
     NodePtr mnode = curNodeSelection_->mtreeNode();
-    dmdrecon_.ReconstructIndexingImage(false, mnode->id(), 0);
-    QImage img = fieldToQImage(dmdrecon_.getOutput());    
+    dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 0);
+    QImage img = fieldToQImage(dmdrecon_->getOutput());    
     iv->setImage(img);
   }
 }

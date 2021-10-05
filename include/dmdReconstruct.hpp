@@ -26,6 +26,7 @@ class dmdReconstruct {
     void openglSetup();
     void framebufferSetup();
     void renderLayer(int intensity_index);
+    void renderMovedLayer(int intensity, vector<Vector3<float>> SampleForEachCC);
     void renderLayer(int intensity, int nodeID);//for action = 1 situation.
     void renderIndexingLayer(int intensity, int nodeID);
  
@@ -45,10 +46,12 @@ class dmdReconstruct {
  
     FIELD<float>* renderLayer_interp(int intensity, int nodeID);
     
-    void initOutput();
+    void initOutput(int clear_color);
 
 
     inline FIELD<float>* getOutput() { return output; }
+    vector<vector<Vector3<float>>> GetCPs(int nodeID);
+    void reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> CPlist);
     
   private:
 
@@ -63,8 +66,9 @@ class dmdReconstruct {
     GLuint buffer, tex, depthbuffer;
     QOpenGLFunctions *contextFunc;
     QOpenGLShaderProgram program;
-    bool RunOnce;
+    bool RunOnce = true;
     vector<vector<Vector3<float>>> IndexingSample;
+    vector<vector<vector<Vector3<float>>>> IndexingCP;
     vector<vector<Vector3<float>>> IndexingSample_interactive;
     multimap<int,int> Inty_node;
 };

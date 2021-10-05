@@ -14,6 +14,7 @@
 #include <morphotree/tree/mtree.hpp>
 #include <morphotree/core/box.hpp>
 #include <morphotree/core/alias.hpp>
+#include "ManipulateCPs/CpViewer.hpp"
 
 #include <QDockWidget>
 #include <QString>
@@ -25,6 +26,8 @@ class RecNodeButton;
 class QGraphicsSceneMouseEvent;
 class MainWidget;
 class QSlider;
+
+
 
 class MyDockWidget : public QDockWidget
 {
@@ -135,6 +138,7 @@ protected slots:
   void areaSlider_onValueChange(int val);
   void areaDiffSlider_onValueChange(int val);
 
+
 private:
   MorphotreeWidget::MorphotreeWidget *treeWidget_;
   morphotree::Box domain_;
@@ -159,8 +163,9 @@ private:
   std::shared_ptr<TreeSimplification> treeSimplification_;
 
   dmdProcess dmd_;
-  dmdReconstruct dmdrecon_;
+  dmdReconstruct* dmdrecon_;
 
   AttributeComputer attrCompueter_;
   TitleColorBar *curColorBar_;
+  CpViewer *cv = nullptr;
 };

@@ -688,7 +688,7 @@ void dmdProcess::computeSkeletons(float saliency_threshold){
 
 void dmdProcess::Init_indexingSkeletons(){
     
-    SKELETON_SALIENCY_THRESHOLD = 0.4;//need to be improved, set by users.
+    SKELETON_SALIENCY_THRESHOLD = 1.0;//need to be improved, set by users.
     
     float *c = OriginalImage->data();
     float *end = OriginalImage->data() + nPix;

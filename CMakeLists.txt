@@ -22,6 +22,7 @@ if (NOT DEFINED CMAKE_CUDA_STANDARD)
   set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 endif()
 
+
 # QT CONFIG
 find_package(Qt5 COMPONENTS Widgets Core Gui REQUIRED)
 
@@ -42,7 +43,11 @@ qt5_wrap_cpp(PROJECT_SOURCE
   include/InteractiveSdmd.hpp
   include/CustomWidgets/LabelWithProgressBar.hpp
   include/CustomWidgets/ClosableDockWidget.hpp
-  include/CustomWidgets/TitleColorBar.hpp)
+  include/CustomWidgets/TitleColorBar.hpp
+  include/ManipulateCPs/ManipulateCPs.hpp
+  include/ManipulateCPs/CpViewer.hpp
+  include/ManipulateCPs/node.hpp
+  include/ManipulateCPs/edge.hpp)
 
 # SET RESOURCE FILES
 qt5_add_resources(PROJECT_SOURCE resources.qrc)

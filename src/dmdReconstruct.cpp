@@ -1,4 +1,5 @@
 #include <sstream>
+//#include "ManipulateCPs/ManipulateCPs.hpp"
 #include "dmdReconstruct.hpp"
 
 FIELD<float>* prev_layer;
@@ -7,13 +8,107 @@ bool firstTime;
 
 dmdReconstruct::dmdReconstruct() {
     printf("dmdReconstruct....\n");
-    RunOnce = 1;
+    //RunOnce = 1;
 }
 /*
 dmdReconstruct::~dmdReconstruct() {
     deallocateCudaMem_recon();
 }*/
 
+vector<vector<Vector3<float>>> dmdReconstruct::GetCPs(int nodeID){
+    auto Cps = IndexingCP.at(IndexingCP.size() - nodeID);
+    return Cps;
+}
+void dmdReconstruct::reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> CPlist)
+{
+    vector<Vector3<float>> movedSample;
+    BSplineCurveFitterWindow3 movedSpline;
+    movedSample = movedSpline.ReadIndexingSpline(CPlist);//loadSample();
+    
+    initOutput(0);
+    renderMovedLayer(inty, movedSample);
+}
+
+void dmdReconstruct::renderMovedLayer(int intensity, vector<Vector3<float>> SampleForEachCC){
+    
+    program.link();
+    program.bind();
+//    ==============DRAWING TO THE FBO============
+
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+
+    contextFunc->glEnable(GL_DEPTH_TEST);
+    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
+    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
+
+
+    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
+    vertexPositionBuffer.create();
+    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vertexPositionBuffer.bind();
+
+    GLfloat width_2 = (GLfloat)width/2.0;
+    GLfloat height_2 = (GLfloat)height/2.0;
+
+    //read each skeleton point
+    float x, y, r;
+    Vector3<float> EachSample;
+    
+    for(auto it = SampleForEachCC.begin();it!=SampleForEachCC.end();it++){
+        EachSample = *it;
+        x = EachSample[0];
+        y = height - EachSample[1] - 1;
+        r = EachSample[2]; 
+
+        float vertexPositions[] = {
+        (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
+        (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
+        (x+r+1)/width_2 - 1, (y+r+1)/height_2 - 1,
+        (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
+        };
+
+            
+        vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
+        
+        program.enableAttributeArray("position");
+        program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
+        
+        program.setUniformValue("r", (GLfloat)r);
+        
+        program.setUniformValue("x0", (GLfloat)x);
+        
+        program.setUniformValue("y0", (GLfloat)y);
+
+        contextFunc->glDrawArrays(GL_QUADS, 0, 4);
+
+    }
+       
+    //========SAVE IMAGE===========
+        float *data = (float *) malloc(width * height * sizeof (float));
+        
+        contextFunc->glEnable(GL_TEXTURE_2D);
+        contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+
+        // Altering range [0..1] -> [0 .. 255] 
+        contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
+
+
+        for (unsigned int x = 0; x < width; ++x) 
+            for (unsigned int y = 0; y < height; ++y)
+            {
+                unsigned int y_ = height - 1 -y;
+
+                if(*(data + y * width + x))
+                    output->set(x, y_, intensity);
+            }
+        
+        free(data);
+    output->NewwritePGM("output.pgm");  
+    program.release();
+    vertexPositionBuffer.release();
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+}
 
 void dmdReconstruct::openglSetup(){
 
@@ -26,33 +121,7 @@ void dmdReconstruct::openglSetup(){
     if(!surface.isValid()) qDebug("Unable to create the Offscreen surface");
 
     openGLContext.makeCurrent(&surface);
-    /*
-    contextFunc =  openGLContext.functions();
-    //generate Framebuffer;
-    contextFunc->glGenFramebuffers(1, &buffer);
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
-
-    //generate tex and bind to Framebuffer;
-    contextFunc->glGenTextures(1, &tex);
-    contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
-    contextFunc->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
-                    GL_RGBA, GL_UNSIGNED_BYTE, NULL); 
-    contextFunc->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    contextFunc->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
-    contextFunc->glBindTexture(GL_TEXTURE_2D, 0);
-        
-    contextFunc->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                    GL_TEXTURE_2D, tex, 0);
-/// Attach depth buffer 
-    contextFunc->glGenRenderbuffers(1, &depthbuffer);
-    contextFunc->glBindRenderbuffer(GL_RENDERBUFFER, depthbuffer);
-    contextFunc->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-    contextFunc->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthbuffer);
-       
-    contextFunc->glViewport(0,0, width, height);
-
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
-    */                               
+                 
 //    ========GEOMEETRY SETUP========
 
     program.addShaderFromSourceCode(QOpenGLShader::Vertex,
@@ -68,8 +137,6 @@ void dmdReconstruct::openglSetup(){
                                    "uniform float x0;\n"
                                    "uniform float y0;\n"
                                    "void main() {\n"
-                                   //"float trans_x = gl_FragCoord.x/width_2-1.0;\n"
-                                   //"float trans_y = gl_FragCoord.y/height_2-1.0;\n"
                                    "float trans_x = gl_FragCoord.x;\n"
                                    "float trans_y = gl_FragCoord.y;\n"
                                    "    float alpha = ((trans_x-x0) * (trans_x-x0) + (trans_y-y0) * (trans_y-y0)) <= r*r ? 1.0 : 0.0;\n"
@@ -297,6 +364,7 @@ void dmdReconstruct::readControlPoints(int width_, int height_, int clear_color,
     //cout<<"gray_levels_ size: "<<gray_levels_.size()<<endl;
     BSplineCurveFitterWindow3 readCPs;
     IndexingSample_interactive = readCPs.SplineGenerate();//loadSample();
+    
     width = width_;
     height = height_;
     clearColor = clear_color;
@@ -310,6 +378,7 @@ void dmdReconstruct::readControlPoints(int width_, int height_, int clear_color,
 void dmdReconstruct::readIndexingControlPoints(int width_, int height_, int clear_color, multimap<int,int> Inty_Node){
    /**/ BSplineCurveFitterWindow3 readCPs;
     IndexingSample = readCPs.ReadIndexingSpline();//loadIndexingSample();
+    IndexingCP = readCPs.get_indexingCP();
     width = width_;
     height = height_;
     clearColor = clear_color;
@@ -320,15 +389,15 @@ void dmdReconstruct::readIndexingControlPoints(int width_, int height_, int clea
     
 }
 
-void dmdReconstruct::initOutput() {
+void dmdReconstruct::initOutput(int clear_color) {
     output = new FIELD<float>(width, height);
     prev_layer = new FIELD<float>(width, height);
     prev_layer_dt = new FIELD<float>(width, height);
-    //cout<<"clear_color: "<<clearColor<<endl;
+   
     
     for (unsigned int x = 0; x < width; x++) 
         for (unsigned int y = 0; y < height; y++)
-            output->set(x, y, clearColor);
+            output->set(x, y, clear_color);
 
 }
 
@@ -451,7 +520,7 @@ void dmdReconstruct::get_interp_layer(int i, int SuperResolution, bool last_laye
 
 void dmdReconstruct::ReconstructImage(bool interpolate){
     firstTime = true;
-    initOutput();
+    initOutput(clearColor);
     if(!gray_levels.empty())
     {
         for (int i = 0; i < gray_levels.size(); i++) {
@@ -870,7 +939,8 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID){
 
 void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int action){
     firstTime = true;
-    initOutput();
+    if(action) initOutput(0);
+    else initOutput(clearColor);
     if(!IndexingSample.empty()){
         
         int LastInty = 256;

@@ -14,5 +14,6 @@
   <file>images/node_selection_pixel_icon.png</file>
   <file>images/image_zoom_in_icon.png</file>
   <file>images/image_zoom_out_icon.png</file>
+  <file>images/highlight_node_icon.png</file>
 </qresource>
 </RCC>

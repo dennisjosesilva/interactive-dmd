@@ -40,6 +40,8 @@ private slots:
   void complexityAct_onTriggered(bool checked);
   void nskelptAct_onTriggered(bool checked);
 
+  void nodeHighlightAct_onTriggered(bool checked);
+
 private:
   void createMenus();  
   void createTreeAttributeVisualitionMenus();
@@ -57,6 +59,7 @@ private:
   QAction *nodeSelectionClickAct_;
   QAction *imageZoomInAct_;
   QAction *imageZoomOutAct_;
+  QAction *nodeHighlightAct_;
 
   QAction *dmdProcessAct_;
 

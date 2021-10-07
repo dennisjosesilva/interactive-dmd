@@ -90,6 +90,13 @@ public:
 
   void clearAttributes();
 
+  Box domain() const { return domain_; }
+
+  inline bool hasNodeSelected() const { return curNodeSelection_ != nullptr; }
+  inline GNode* curSelectedNode() { return curNodeSelection_; }
+  std::vector<bool> recSimpleNode() const;
+  std::vector<bool> recFullNode() const;
+
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   
@@ -115,6 +122,7 @@ protected:
 public: 
 signals: 
   void associateNodeToSkeleton(int numberOfNodes);
+  void nodeSelected(GNode *node);
 
 protected slots:
   void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);

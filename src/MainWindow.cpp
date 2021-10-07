@@ -127,6 +127,7 @@ void MainWindow::createToolBar()
   QToolBar *toolbar = addToolBar(tr("Main"));
   toolbar->setIconSize(QSize{32, 32});
 
+  // ============ MORPHOTREE NODE ========
   const QIcon showTreeIcon = QIcon(":/images/morphotree_icon.png");  
   showTreeVisAct_ = new QAction(showTreeIcon, tr("Show morphotree"), this);
   showTreeVisAct_->setStatusTip(tr("Show Morphotree Widget for the current image"));
@@ -141,6 +142,13 @@ void MainWindow::createToolBar()
   nodeSelectionClickAct_->setCheckable(true);
   connect(nodeSelectionClickAct_, &QAction::toggled, this, &MainWindow::nodeSelectionClickAct_onToggled);
   toolbar->addAction(nodeSelectionClickAct_);
+
+  const QIcon nodeHighlightIcon = QIcon{":/images/highlight_node_icon.png"};
+  nodeHighlightAct_ = new QAction{nodeHighlightIcon, tr("Highlight node"), this};
+  nodeHighlightAct_->setStatusTip(tr("Highlight morphotree node in the input image"));
+  nodeHighlightAct_->setCheckable(true);
+  connect(nodeHighlightAct_, &QAction::triggered, this, &MainWindow::nodeHighlightAct_onTriggered);
+  toolbar->addAction(nodeHighlightAct_);
 
   // ===== Image Tool bar ========
   QToolBar *imageToolBar = addToolBar("Image Toolbar");
@@ -358,4 +366,9 @@ void MainWindow::nskelptAct_onTriggered(bool checked)
     mainWidget_->treeVisualiser()->showNumberOfSkeletonPoints();
   else
     mainWidget_->treeVisualiser()->clearAttributes();
+}
+
+void MainWindow::nodeHighlightAct_onTriggered(bool checked)
+{
+  mainWidget_->setHighlightNodeActivated(checked);
 }

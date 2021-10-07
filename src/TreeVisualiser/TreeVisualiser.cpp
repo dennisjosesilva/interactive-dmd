@@ -442,6 +442,22 @@ void TreeVisualiser::clearAttributes()
   update();
 }
 
+std::vector<bool> TreeVisualiser::recSimpleNode() const 
+{
+  if (curNodeSelection_ != nullptr)
+    return curNodeSelection_->simplifiedMTreeNode()->reconstruct(domain_);
+  else
+    return std::vector<bool>();
+}
+
+std::vector<bool> TreeVisualiser::recFullNode() const 
+{
+  if (curNodeSelection_ != nullptr)
+    return curNodeSelection_->mtreeNode()->reconstruct(domain_);
+  else
+    return std::vector<bool>();
+}
+
 void TreeVisualiser::binRecBtn_press()
 {  
   if (curNodeSelection_ != nullptr) {
@@ -578,6 +594,7 @@ void TreeVisualiser::nodeMousePress(GNode *node,
     curNodeSelection_ = nullptr;
   }
   else {
+    emit nodeSelected(node);
     node->setSelected(true);
     curNodeSelection_ = node;
   }
@@ -687,8 +704,9 @@ void TreeVisualiser::selectNodeByPixel(int x, int y)
       curNodeSelection_->setSelected(false);
       curNodeSelection_->update();
     }
-
+    
     node->setSelected(true);
+    emit nodeSelected(node);
     node->update();
     curNodeSelection_ = node;
     treeWidget_->centerOn(node);

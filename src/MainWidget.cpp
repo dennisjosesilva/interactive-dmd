@@ -49,6 +49,8 @@ MainWidget::MainWidget(QWidget *parent)
   connect(imageViewer_, &iv::ImageViewerWidget::imageMousePress, 
     this, &MainWidget::imageMousePress);
 
+  connect(treeVis_, &TreeVisualiser::nodeSelected, this, &MainWidget::treeVis_NodeSelected);
+
   imageViewer_->scrollAreaWidget()->viewport()->installEventFilter(this);
 
   setLayout(mainLayout);
@@ -125,6 +127,19 @@ void MainWidget::zoomIn()
   imageViewer_->zoomIn();
 }
 
+void MainWidget::setHighlightNodeActivated(bool checked)
+{
+  using Box = morphotree::Box;
+  highlightNode_ = checked;
+
+  if (highlightNode_ && treeVis_->hasNodeSelected()) {
+    highlightNode(treeVis_->curSelectedNode());
+  }
+  else {    
+    imageViewer_->removeOverlay();
+  }
+}
+
 void MainWidget::createDockTreeVisualiser()
 {
   MainWindow *mainWindow = qobject_cast<MainWindow*>(parent());
@@ -148,6 +163,28 @@ void MainWidget::createDockWidgetSdmd()
   dockWidgetSdmd_->setFloating(true);  
   dockWidgetSdmd_->setWidget(Interactive_sdmd);
  
+}
+
+void MainWidget::highlightNode(GNode *node)
+{
+  using morphotree::Box;
+
+  Box domain = treeVis_->domain();
+  std::vector<bool> nodeImg = node->simplifiedMTreeNode()->reconstruct(domain);
+  QImage bimg{ static_cast<int>(domain.width()), static_cast<int>(domain.height()), 
+    QImage::Format_ARGB32 };
+  
+  for (int l = 0; l < domain.height(); l++) {
+    QRgb *line = reinterpret_cast<QRgb*>(bimg.scanLine(l));
+    for (int c = 0; c < domain.width(); c++) {
+      if (nodeImg[domain.pointToIndex(c, l)])
+        line[c] = qRgba(255, 0, 0, 200);
+      else 
+        line[c] = qRgba(0, 0, 0, 0);
+    }
+  }
+
+  imageViewer_->setOverlayImage(bimg);
 }
 
 QDockWidget *MainWidget::morphotreeDockWidget()
@@ -208,4 +245,10 @@ bool MainWidget::eventFilter(QObject *obj, QEvent *evt)
   else {
     return QWidget::eventFilter(obj, evt);
   }
+}
+
+void MainWidget::treeVis_NodeSelected(GNode *node)
+{
+  if (highlightNode_)
+    highlightNode(node);
 }

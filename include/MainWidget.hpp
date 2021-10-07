@@ -14,6 +14,8 @@ class MainWidget : public QWidget
 {  
   Q_OBJECT
 public:
+  using GNode = MorphotreeWidget::GNode;
+
   MainWidget(QWidget *parent=nullptr);
 
   bool loadImage(const QString& filename);
@@ -36,6 +38,9 @@ public:
   inline bool isNodeSelectionByClickActivated() const { return nodeSelectionByClickActivated_; }
   inline void setNodeSelectionByClickActivated(bool activated) { nodeSelectionByClickActivated_ = activated; }
 
+  inline bool isHighlightNodeActivated() const { return highlightNode_; }
+  void setHighlightNodeActivated(bool checked);
+  
 protected slots:
   void imageMousePress(const QPointF &p);
 
@@ -46,18 +51,21 @@ protected:
   void keyReleaseEvent(QKeyEvent *e);
 
   bool eventFilter(QObject *obj, QEvent *evt);
+  void treeVis_NodeSelected(GNode *node);
 
 private:
   void createDockTreeVisualiser();
   void createDockWidgetSdmd();
-
+  
+  void highlightNode(GNode *node);
 
 private:
   bool ctrlDown_;
 
   bool needTreeVisualiserUpdate_;
-
   bool nodeSelectionByClickActivated_;
+
+  bool highlightNode_;
 
   ClosableDockWidget *dockTreeVisualiser_;
   QDockWidget *dockWidgetSdmd_;

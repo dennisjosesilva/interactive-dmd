@@ -123,6 +123,7 @@ public:
 signals: 
   void associateNodeToSkeleton(int numberOfNodes);
   void nodeSelected(GNode *node);
+  void nodeUnselected(GNode *node);
 
 protected slots:
   void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);

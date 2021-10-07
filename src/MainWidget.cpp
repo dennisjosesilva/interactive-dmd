@@ -50,6 +50,7 @@ MainWidget::MainWidget(QWidget *parent)
     this, &MainWidget::imageMousePress);
 
   connect(treeVis_, &TreeVisualiser::nodeSelected, this, &MainWidget::treeVis_NodeSelected);
+  connect(treeVis_, &TreeVisualiser::nodeUnselected, this, &MainWidget::treeVis_NodeUnselected);
 
   imageViewer_->scrollAreaWidget()->viewport()->installEventFilter(this);
 
@@ -251,4 +252,9 @@ void MainWidget::treeVis_NodeSelected(GNode *node)
 {
   if (highlightNode_)
     highlightNode(node);
+}
+
+void MainWidget::treeVis_NodeUnselected(GNode *node) 
+{
+  imageViewer_->removeOverlay();
 }

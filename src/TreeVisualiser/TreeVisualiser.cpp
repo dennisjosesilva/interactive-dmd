@@ -592,6 +592,7 @@ void TreeVisualiser::nodeMousePress(GNode *node,
   if (node->isSelected()) {
     node->setSelected(false);
     curNodeSelection_ = nullptr;
+    emit nodeUnselected(node);
   }
   else {
     emit nodeSelected(node);
@@ -607,7 +608,10 @@ void TreeVisualiser::inspectNodePlusBtn_press()
   if (curNodeSelection_ != nullptr) {
     NodePtr node = curNodeSelection_->simplifiedMTreeNode();
     treeWidget_->inspectNode(node->id(), duplicateTreeSimplification());
-    curNodeSelection_ = nullptr;
+    
+   
+    emit nodeUnselected(curNodeSelection_);
+    curNodeSelection_ = nullptr; 
   }
 }
 
@@ -619,7 +623,12 @@ void TreeVisualiser::inspectNodeMinusBtn_press()
 
   if (treeWidget_->numberOfUndoNodeInspection() > 0) {
     treeWidget_->undoNodeInspection();
+    
+    if (curNodeSelection_ != nullptr)
+      emit nodeUnselected(curNodeSelection_);
+    
     curNodeSelection_ = nullptr;
+    
 
     TSTypePtr ts = std::dynamic_pointer_cast<TSType>(treeWidget_->treeSimplification());
 
@@ -643,6 +652,9 @@ void TreeVisualiser::numberLeavesSlider_onValueChange(int val)
   std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
     ->numberOfLeavesToKeep(val);
 
+  if (curNodeSelection_ != nullptr)
+    emit nodeUnselected(curNodeSelection_);
+
   curNodeSelection_ = nullptr;
   treeWidget_->redrawTree();
 }
@@ -657,6 +669,9 @@ void TreeVisualiser::areaSlider_onValueChange(int val)
   std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
     ->areaThresholdToKeep(val);
 
+  if (curNodeSelection_ != nullptr)
+    emit nodeUnselected(curNodeSelection_);
+
   curNodeSelection_ = nullptr;
   treeWidget_->redrawTree();
 }
@@ -670,6 +685,9 @@ void TreeVisualiser::areaDiffSlider_onValueChange(int val)
 
   std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
     ->progDifferenceThreholdToKeep(val);
+
+  if (curNodeSelection_ != nullptr)
+    emit nodeUnselected(curNodeSelection_);
 
   curNodeSelection_ = nullptr;
   treeWidget_->redrawTree();

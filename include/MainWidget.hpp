@@ -52,6 +52,7 @@ protected:
 
   bool eventFilter(QObject *obj, QEvent *evt);
   void treeVis_NodeSelected(GNode *node);
+  void treeVis_NodeUnselected(GNode *node);
 
 private:
   void createDockTreeVisualiser();

@@ -5,6 +5,7 @@
 FIELD<float>* prev_layer;
 FIELD<float>* prev_layer_dt;
 bool firstTime;
+int CurrNode;
 
 dmdReconstruct::dmdReconstruct() {
     printf("dmdReconstruct....\n");
@@ -27,6 +28,11 @@ void dmdReconstruct::reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> 
     
     initOutput(0);
     renderMovedLayer(inty, movedSample);
+
+    //update IndexingCP.
+    IndexingCP[IndexingCP.size() - CurrNode] = CPlist;
+    //update IndexingSample
+    IndexingSample[IndexingSample.size() - CurrNode] = movedSample;
 }
 
 void dmdReconstruct::renderMovedLayer(int intensity, vector<Vector3<float>> SampleForEachCC){
@@ -938,6 +944,7 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID){
 
 
 void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int action){
+    if(nodeID > 0) CurrNode = nodeID;
     firstTime = true;
     if(action) initOutput(0);
     else initOutput(clearColor);

@@ -1,7 +1,5 @@
 #include "ManipulateCPs/ManipulateCPs.hpp"
 #include "ManipulateCPs/node.hpp"
-#include "ManipulateCPs/edge.hpp"
-//#include "TreeVisualiser/TreeVisualiser.hpp"
 
 #include <cmath>
 #include <QKeyEvent>
@@ -21,26 +19,38 @@ ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
   
 }
 
-void ManipulateCPs::ShowingCPs(vector<vector<Vector3<float>>> CPs){
-  CPlist = CPs;
+void ManipulateCPs::ShowingCPs(){
+  if(!WholeEdgeList.empty()) WholeEdgeList.clear();
   vector<Vector3<float>> ReadingCPforEachBranch;
   Vector3<float> ReadingEachCP;
   
-  for(auto i = 0; i < CPs.size(); ++i){
-    ReadingCPforEachBranch = CPs[i];
+  for(auto i = 0; i < CPlist.size(); ++i){
+    ReadingCPforEachBranch = CPlist[i];
     
     Node_ *prevNode;
+    int degree, maxDegree;
     for(auto j = 0; j < ReadingCPforEachBranch.size(); ++j){
         
         ReadingEachCP = ReadingCPforEachBranch[j];
-        if(j > 0){ //read 
+        if(j == 0) 
+        {
+          maxDegree = ReadingEachCP[0] - 1;
+          degree = ReadingEachCP[1];
+        }
+        else{ //read 
           Node_ *node1 = new Node_(this);
           scene->addItem(node1);
           node1->setPos(ReadingEachCP[0] - w/2, ReadingEachCP[1] - h/2);
           node1->setIndex(i, j);
           node1->setRadius(ReadingEachCP[2]);
+          node1->setDegree(maxDegree, degree);
 
-          if(j > 1) scene->addItem(new Edge(prevNode, node1));
+          
+          if(j > 1){
+            Edge *edge = new Edge(prevNode, node1, i);
+            scene->addItem(edge);
+            WholeEdgeList << edge;
+          } 
            
           prevNode = node1;
         }
@@ -50,8 +60,18 @@ void ManipulateCPs::ShowingCPs(vector<vector<Vector3<float>>> CPs){
 
 }
 
-void ManipulateCPs::Press_node(int radius){
-  emit PressNode(radius); 
+
+void ManipulateCPs::Press_node(int radius, int maxDegree, int degree){
+  emit PressNode(radius, maxDegree, degree); 
+  
+//std::cout<<"index_m "<<index_m<<std::endl;
+  //make edge thicker.
+  for (Edge *edge : qAsConst(WholeEdgeList)){
+    edge->setThickerSignal(false);
+    //std::cout<<"edge->getIndex() "<<edge->getIndex()<<std::endl;
+    if(edge->getIndex() == CurrNodeIndex_m) edge->setThickerSignal(true);
+    edge->adjust();
+  }
 }
 void ManipulateCPs::Update(){
   scene->clear();
@@ -67,11 +87,19 @@ void ManipulateCPs::changeCurrNodeR(int r)
 {
   CPlist[CurrNodeIndex_m][CurrNodeIndex_n][2] = r;
 }
-
+void ManipulateCPs::changeCurrbranchDegree(int d)
+{
+  CPlist[CurrNodeIndex_m][0][1] = d;
+}
 void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, int intensity)
 {
   //dmdReconstruct recon;
   recon->reconFromMovedCPs(intensity, CPlist);
+  scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
+}
+void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
+{
+  recon->ReconstructIndexingImage(false, -1, 0);
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
 }
 

@@ -26,6 +26,7 @@ public:
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
   inline void setIndex(int i, int j){ index_m = i; index_n = j;}
   inline void setRadius(int radius) {radius_ = radius;}
+  inline void setDegree(int max_d, int d) {maxDegree = max_d; degree = d;}
 
 
 protected:
@@ -40,5 +41,6 @@ private:
   ManipulateCPs *graph;
   int NodeRadius = 3;
   int index_m = 1000, index_n = 1000;
-  int radius_;
+  int radius_; 
+  int maxDegree, degree;
 };

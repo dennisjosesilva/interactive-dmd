@@ -51,11 +51,6 @@ QPainterPath Node_::shape() const
 
 void Node_::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)//setting style for each node
 {
-  //std::cout<<"Node_ paint ..."<<std::endl;
-  painter->setPen(Qt::NoPen);
-  painter->setBrush(Qt::darkGray);
-  painter->drawEllipse(1-NodeRadius, 1-NodeRadius, 2*NodeRadius, 2*NodeRadius);
-
   QRadialGradient gradient(-3, -3, 10);
   if (option->state & QStyle::State_Sunken) {
    
@@ -94,9 +89,11 @@ QVariant Node_::itemChange(GraphicsItemChange change, const QVariant &value)
 void Node_::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   //std::cout<<"mousePressEvent"<<std::endl;
-  graph->Press_node(radius_);
   graph->setCurrentNodeIndex(index_m, index_n);
+  graph->Press_node(radius_, maxDegree, degree);
+  
   update();
+  
   QGraphicsItem::mousePressEvent(event);
 }
 

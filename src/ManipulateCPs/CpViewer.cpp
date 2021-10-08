@@ -15,25 +15,43 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
 {
   QLayout *mainLayout = new QVBoxLayout;
 
+// -------------------- First Row - buttons  ------------------------
   QLayout *btnLayout = new QHBoxLayout; 
 
   QPushButton *showCPsBtn = new QPushButton { QIcon{":/images/Spline_CPs_icon.png"}, tr(""), this};
   showCPsBtn->setIconSize(QSize{32, 32});
   connect(showCPsBtn, &QPushButton::clicked, this, &CpViewer::showCPsBtn_press);
 
+  QPushButton *removeCPsBtn = new QPushButton { QIcon{":/images/Remove_SplineCPs_icon.png"}, tr(""), this};
+  removeCPsBtn->setIconSize(QSize{32, 32});
+  connect(removeCPsBtn, &QPushButton::clicked, this, &CpViewer::removeCPsBtn_press);
+
   QPushButton *skelRecBtn = new QPushButton();
-  skelRecBtn->setText("Reconstruct");
+  skelRecBtn->setText("Reconstruct\n CC");
   //QPushButton *skelRecBtn = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
-  skelRecBtn->setFixedSize(QSize{182, 38});//?
+  skelRecBtn->setFixedSize(QSize{160, 38});//?
   connect(skelRecBtn, &QPushButton::clicked, this, &CpViewer::ReconBtn_press);
   
-  btnLayout->addWidget(showCPsBtn);
-  btnLayout->addWidget(skelRecBtn);
 
-  
-  QHBoxLayout *CPrLayout = new QHBoxLayout;  
-  
-  // -------------------- number of leaves (extinction filter) ------------------------
+  QPushButton *skelRecBtn_ = new QPushButton();
+  skelRecBtn_->setText("Reconstruct\n Image");
+  //QPushButton *skelRecBtn_ = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
+  skelRecBtn_->setFixedSize(QSize{160, 38});//?
+  connect(skelRecBtn_, &QPushButton::clicked, this, &CpViewer::ReconImageBtn_press);
+
+  btnLayout->addWidget(showCPsBtn);
+  btnLayout->addWidget(removeCPsBtn);
+  btnLayout->addWidget(skelRecBtn);
+  btnLayout->addWidget(skelRecBtn_);
+  mainLayout->addItem(btnLayout);
+
+// -------------------- Second Row - BranchManipulate  ------------------------
+  QLayout *BranchManipulate = new QHBoxLayout; 
+
+  QLayout *Sliders = new QVBoxLayout;
+
+  // ------------ CPradiusSlider_  ---------------
+  QHBoxLayout *CPrLayout = new QHBoxLayout;
   CPrLayout->addWidget(new QLabel{"CP radius:    ", this});
   CPradiusSlider_ = new QSlider{Qt::Horizontal, this};
   CPradiusSlider_->setRange(1, w/2);
@@ -47,9 +65,44 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   
   CPrLayout->addWidget(CPradiusSlider_);  
   CPrLayout->addWidget(CPradiusLabel_);
+  Sliders->addItem(CPrLayout);
+  
+  
+  // ------------ degreeSlider_  ---------------
+  QHBoxLayout *degreeLayout = new QHBoxLayout;
+  degreeLayout->addWidget(new QLabel{"Degree:      ", this});
+  degreeSlider_ = new QSlider{Qt::Horizontal, this};
+  degreeSlider_->setRange(1, 1);
+  degree =  1;
+  degreeSlider_->setValue(degree);
+  degreeLabel_ = new QLabel(QString::number(degree), this);
+  degreeLabel_->setFixedWidth(35);
+  degreeLabel_->setAlignment(Qt::AlignHCenter);
+  connect(degreeSlider_, &QSlider::sliderMoved, this,
+    &CpViewer::degreeSlider_onValueChange);
+  
+  degreeLayout->addWidget(degreeSlider_);  
+  degreeLayout->addWidget(degreeLabel_);
+  Sliders->addItem(degreeLayout);
 
-  mainLayout->addItem(btnLayout);
-  mainLayout->addItem(CPrLayout);
+
+  QLayout *CPbuttons = new QVBoxLayout;
+
+  QPushButton *AddCPsBtn = new QPushButton { QIcon{":/images/AddCP_icon.png"}, tr(""), this};
+  AddCPsBtn->setIconSize(QSize{32, 32});
+  connect(AddCPsBtn, &QPushButton::clicked, this, &CpViewer::AddCPsBtn_press);
+
+  QPushButton *DeleteCPsBtn = new QPushButton { QIcon{":/images/DeleteCP_icon.png"}, tr(""), this};
+  DeleteCPsBtn->setIconSize(QSize{32, 32});
+  connect(DeleteCPsBtn, &QPushButton::clicked, this, &CpViewer::DeleteCPsBtn_press);
+
+  CPbuttons->addWidget(AddCPsBtn);
+  CPbuttons->addWidget(DeleteCPsBtn);
+
+  BranchManipulate->addItem(Sliders);
+  BranchManipulate->addItem(CPbuttons);
+
+  mainLayout->addItem(BranchManipulate);
 
   manipulate_CPs = new ManipulateCPs(w, h);
   mainLayout->addWidget(manipulate_CPs);
@@ -63,7 +116,12 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
 
 void CpViewer::showCPsBtn_press()
 {
-  manipulate_CPs->ShowingCPs(CPs);
+  manipulate_CPs->ShowingCPs();
+}
+
+void CpViewer::removeCPsBtn_press()
+{
+  manipulate_CPs->Update();
 }
 
 void CpViewer::ReconBtn_press()
@@ -71,6 +129,10 @@ void CpViewer::ReconBtn_press()
   manipulate_CPs->ReconFromMovedCPs(recon_, inty);
 }
 
+void CpViewer::ReconImageBtn_press()
+{
+  manipulate_CPs->ReconImageFromMovedCPs(recon_);
+}
 
 void CpViewer::CPradiusSlider_onValueChange(int val)
 {  
@@ -78,10 +140,28 @@ void CpViewer::CPradiusSlider_onValueChange(int val)
   //cout<<"CPradius "<<CPradius<<endl;
   CPradiusLabel_->setText(QString::number(val));
 }
+void CpViewer::degreeSlider_onValueChange(int val)
+{
+  manipulate_CPs->changeCurrbranchDegree(val);
+  degreeLabel_->setText(QString::number(val));
+}
 
-void CpViewer::ChangeSliderValue(int radius)
+void CpViewer::ChangeSliderValue(int radius, int maxDegree, int degree)
 {
   CPradius = radius;
   CPradiusSlider_->setValue(radius);
   CPradiusLabel_->setText(QString::number(radius));
+
+  degreeSlider_->setRange(1, maxDegree);
+  degreeSlider_->setValue(degree);
+  degreeLabel_->setText(QString::number(degree));
+
+}
+void CpViewer::AddCPsBtn_press()
+{
+  
+}
+void CpViewer::DeleteCPsBtn_press()
+{
+  
 }

@@ -15,5 +15,9 @@
   <file>images/image_zoom_in_icon.png</file>
   <file>images/image_zoom_out_icon.png</file>
   <file>images/highlight_node_icon.png</file>
+  <file>images/Spline_CPs_icon.png</file>  
+  <file>images/Remove_SplineCPs_icon.png</file>  
+  <file>images/AddCP_icon.png</file>
+  <file>images/DeleteCP_icon.png</file>
 </qresource>
 </RCC>

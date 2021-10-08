@@ -532,7 +532,7 @@ void TreeVisualiser::skelRecBtn_press()
       
       //skelRecDock_->setGNode(curNodeSelection_);
       connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
-      skelRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
+      skelRecDock_->resize(domain_.width() + 32, domain_.height() + 170);
     }
     else {
       cv = qobject_cast<CpViewer *>(skelRecDock_->widget());

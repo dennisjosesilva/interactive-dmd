@@ -7,7 +7,9 @@ class Node_;
 class Edge : public QGraphicsItem
 {
 public:
-  Edge(Node_ *sourceNode, Node_ *destNode);
+  Edge(Node_ *sourceNode, Node_ *destNode, int color_i);
+  inline void setThickerSignal(bool thicker) {thickerEdge = thicker;}
+  inline int getIndex() {return colorI;}
 
   Node_* sourceNode() const;
   Node_ *destNode() const;
@@ -27,4 +29,6 @@ private:
   QPointF sourcePoint;
   QPointF destPoint;
   qreal arrowSize = 10; 
+  int colorI;
+  bool thickerEdge = false;
 };

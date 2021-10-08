@@ -1,11 +1,12 @@
 #pragma once 
 
+#include "ManipulateCPs/edge.hpp"
 #include <QPixmap>
 #include <QGraphicsView>
 #include <dmdReconstruct.hpp>
 #include <iostream>
 
-class Node_;
+//class Edge;
 
 class ManipulateCPs : public QGraphicsView
 {
@@ -23,17 +24,20 @@ public:
 
   inline void UpdateWH(int width, int height) { w = width; h = height; }
   void Update();
-  void ShowingCPs(vector<vector<Vector3<float>>> CPs);
+  void ShowingCPs();
   
   void itemMoved(QPointF Pos);
   void changeCurrNodeR(int r);
+  void changeCurrbranchDegree(int d);
   void ReconFromMovedCPs(dmdReconstruct *recon, int intensity);
-  void Press_node(int radius);
+  void ReconImageFromMovedCPs(dmdReconstruct *recon);
+  void Press_node(int radius, int maxDegree, int degree);
   inline void setCurrentNodeIndex(int m, int n) {CurrNodeIndex_m = m; CurrNodeIndex_n = n;}
+  inline void setCPs(vector<vector<Vector3<float>>> CPs) {CPlist = CPs;}
 
 public: 
 signals: 
-  void PressNode(int radius); 
+  void PressNode(int radius, int maxDegree, int degree); 
 
 public slots:
   void zoomIn();
@@ -53,5 +57,5 @@ private:
   //QPixmap pixmap;
   QGraphicsScene *scene;
   vector<vector<Vector3<float>>> CPlist;
-  
+  QVector<Edge*> WholeEdgeList;
 };

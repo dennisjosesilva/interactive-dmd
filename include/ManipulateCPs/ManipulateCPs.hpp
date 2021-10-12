@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "ManipulateCPs/edge.hpp"
+#include "ManipulateCPs/node.hpp"
 #include <QPixmap>
 #include <QGraphicsView>
 #include <dmdReconstruct.hpp>
@@ -31,9 +32,11 @@ public:
   void changeCurrbranchDegree(int d);
   void ReconFromMovedCPs(dmdReconstruct *recon, int intensity);
   void ReconImageFromMovedCPs(dmdReconstruct *recon);
-  void Press_node(int radius, int maxDegree, int degree);
+  void Press_node(Node_ *node, int radius, int maxDegree, int degree);
   inline void setCurrentNodeIndex(int m, int n) {CurrNodeIndex_m = m; CurrNodeIndex_n = n;}
   inline void setCPs(vector<vector<Vector3<float>>> CPs) {CPlist = CPs;}
+  void deleteCurrCp();
+  void AddOneCp();
 
 public: 
 signals: 
@@ -46,11 +49,14 @@ public slots:
 protected:
   void keyPressEvent(QKeyEvent *event) override;
   void wheelEvent(QWheelEvent *event) override;
+  void mousePressEvent(QMouseEvent *event) override;
 
   void drawBackground(QPainter *painter, const QRectF &rect) override;
   void scaleView(qreal scaleFactor);
 
 private:
+  int DetermineLocation(QPointF pressedPoint);
+  void updateAddingCP(int index_n, QPointF point);
   QImage backgroundImg;
   int w, h;
   int CurrNodeIndex_m, CurrNodeIndex_n;
@@ -58,4 +64,8 @@ private:
   QGraphicsScene *scene;
   vector<vector<Vector3<float>>> CPlist;
   QVector<Edge*> WholeEdgeList;
+  Node_ *CurrPressedNode;
+  Node_ *CurrPrevNode, *CurrNextNode;
+  bool isBranchSelected = false;
+  bool AddCPbuttonPressed = false;
 };

@@ -27,6 +27,13 @@ public:
   inline void setIndex(int i, int j){ index_m = i; index_n = j;}
   inline void setRadius(int radius) {radius_ = radius;}
   inline void setDegree(int max_d, int d) {maxDegree = max_d; degree = d;}
+  inline QVector<Edge*> getEdgeList() {return edgeList;}
+  inline void setPrevNode(Node_ *pn) {prev_node = pn;}
+  inline void setNextNode(Node_ *nn) {next_node = nn;}
+  inline Node_ * getPrevNode() {return prev_node;}
+  inline Node_ * getNextNode() {return next_node;}
+  inline int getIndexM() {return index_m;}
+  inline int getIndexN() {return index_n;}
 
 
 protected:
@@ -43,4 +50,5 @@ private:
   int index_m = 1000, index_n = 1000;
   int radius_; 
   int maxDegree, degree;
+  Node_ *prev_node, *next_node;
 };

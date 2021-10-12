@@ -26,20 +26,11 @@ QVector<Edge *> Node_::edges() const
 {
   return edgeList;
 }
-/*
-bool Node_::advancePosition()
-{
-  if (newPos == pos())
-    return false;
-  
-  setPos(newPos);
-  return true;
-}
-*/
+
 QRectF Node_::boundingRect() const 
 {
   qreal adjust = 2; //2
-  return QRectF( -NodeRadius - adjust, -NodeRadius - adjust, 2*NodeRadius +1 + adjust, 2*NodeRadius+1 + adjust);
+  return QRectF( -NodeRadius - adjust, -NodeRadius - adjust, 2*(NodeRadius + adjust), 2*(NodeRadius + adjust));
 }
 
 QPainterPath Node_::shape() const 
@@ -90,7 +81,7 @@ void Node_::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   //std::cout<<"mousePressEvent"<<std::endl;
   graph->setCurrentNodeIndex(index_m, index_n);
-  graph->Press_node(radius_, maxDegree, degree);
+  graph->Press_node(this, radius_, maxDegree, degree);
   
   update();
   

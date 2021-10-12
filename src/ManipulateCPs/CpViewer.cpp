@@ -159,9 +159,9 @@ void CpViewer::ChangeSliderValue(int radius, int maxDegree, int degree)
 }
 void CpViewer::AddCPsBtn_press()
 {
-  
+  manipulate_CPs->AddOneCp();
 }
 void CpViewer::DeleteCPsBtn_press()
 {
-  
+  manipulate_CPs->deleteCurrCp();
 }

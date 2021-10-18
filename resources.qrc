@@ -19,5 +19,11 @@
   <file>images/Remove_SplineCPs_icon.png</file>  
   <file>images/AddCP_icon.png</file>
   <file>images/DeleteCP_icon.png</file>
+  <file>images/saliency_icon.png</file>
+  <file>images/color_icon.png</file>  
+  <file>images/width_icon.png</file>
+  <file>images/clear_screen_icon.png</file>
+  <file>images/clear_image_icon.png</file>
+  <file>images/ellipse_icon.png</file>
 </qresource>
 </RCC>

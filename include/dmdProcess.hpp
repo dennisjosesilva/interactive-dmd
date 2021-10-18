@@ -27,9 +27,9 @@ class dmdProcess {
     //inline FIELD<float> *curImage() { return processedImage; }
 
     //
-    void removeIslands(float islandThreshold);
+    void removeIslands(float islandThreshold, FIELD<float> *sm);
     void LayerSelection(bool cumulative, int num_layers);
-    void computeSkeletons(float saliency_threshold);
+    int computeSkeletons(float saliency_threshold, float hausdorff, FIELD<float> *sm);
     void Init_indexingSkeletons();
     int indexingSkeletons(FIELD<float> * CC, int intensity, int index);
     //vector<int> getIntensityOfNode(){return IntensityOfNode;}
@@ -40,7 +40,7 @@ class dmdProcess {
     void find_layers(int clear_color, double* importance_upper, double width);
     void calculateImportance(bool cumulative, int num_layers);
     void removeLayers();
-    void CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFile);
+    int CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFile, float hausdorff, FIELD<float> *sm);
 
     int clear_color;
 

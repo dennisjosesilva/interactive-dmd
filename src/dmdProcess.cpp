@@ -10,7 +10,8 @@
 
 typedef std::pair<int, int> coord2D_t;
 typedef vector<coord2D_t> coord2D_list_t;
-extern float SKELETON_SALIENCY_THRESHOLD;
+//extern float SKELETON_SALIENCY_THRESHOLD;
+float SKELETON_SALIENCY_THRESHOLD;
 
 int EPSILON=0.00001;
 int max_elem = 0;
@@ -31,7 +32,7 @@ dmdProcess::~dmdProcess() {
     //deallocateCudaMem();
 }
 
-void dmdProcess::removeIslands(float islandThreshold) {
+void dmdProcess::removeIslands(float islandThreshold, FIELD<float> *sm) {
     int i, j, k;                    /* Iterators */
     FIELD<float> *inDuplicate = 0;  /* Duplicate, because of inplace modifications */
     FIELD<float> *newImg = new FIELD<float>(OriginalImage->dimX(), OriginalImage->dimY());
@@ -41,7 +42,19 @@ void dmdProcess::removeIslands(float islandThreshold) {
     ConnectedComponents *CC;        /* CCA-object */
     float *fdata;
     unsigned int *hist;
+    float* smd = nullptr;
+
+    if(sm != nullptr){
+       smd = sm -> data();
+       float* origData = OriginalImage -> data();
+       for (j = 0; j < nPix; j++) 
+       {
+           smd[j] = (smd[j] == origData[j]) ? 128 : smd[j];
+       }
+       sm->NewwritePGM("sm.pgm");
+    } 
     
+
     printf("Removing small islands...\n");
     /* Some basic initialization */
     memset(newImg->data(), 0, nPix * sizeof(float));
@@ -62,13 +75,20 @@ void dmdProcess::removeIslands(float islandThreshold) {
  
         /* CCA -- store highest label in 'max' -- Calculate histogram */
         highestLabel = CC->connected(fdata, ccaOut, OriginalImage->dimX(), OriginalImage->dimY(), std::equal_to<float>(), true);//true is 8-connect.
-        hist = static_cast<unsigned int*>(calloc(highestLabel + 1, sizeof(unsigned int)));
+        //hist = static_cast<unsigned int*>(calloc(highestLabel + 1, sizeof(unsigned int)));
+        hist = static_cast<unsigned int*>(calloc(highestLabel + 1, sizeof(float)));
         if (!hist) {
             printf("Error: Could not allocate histogram for connected components\n");
             exit(-1);
         }
-        for (j = 0; j < nPix; j++) { hist[ccaOut[j]]++; }
-
+        for (j = 0; j < nPix; j++) 
+        {
+            if(sm == nullptr) hist[ccaOut[j]]++;
+            else {
+                float weight = pow(10, smd[j]/128.0 - 1.0); //from 0.1 to 10
+                hist[ccaOut[j]] += weight;
+            }
+        }
 
         /* Remove small islands */
         for (j = 0; j < nPix; j++) {
@@ -560,25 +580,41 @@ void tracePath(int x, int y, FIELD<float> *skel, FIELD<float> *dt, vector<Vector
  1: Write - lower thresholding
  2: Write - upper thresholding
 */
-void dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFile)
+int dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFile, float hausdorff, FIELD<float> *sm)
 {
     FIELD<float> *skelCurr = 0;
     int seq = 0, x, y; 
     int CPnum = 0;
     int SkelPoints = 0;
     
-    skelImp = computeSkeleton(i, imDupeCurr);
-    
-    //NewRemoveDoubleSkel();
-    //skel importance map or saliency map transforms to skel.
-    skelCurr = new FIELD<float>(skelImp->dimX(), skelImp->dimY());
-    for (int i = 0; i < skelImp->dimX(); ++i) {
-        for (int j = 0; j < skelImp->dimY(); ++j) {
-            bool is_skel_point = skelImp->value(i,j);
-            skelCurr->set(i, j, is_skel_point ? 255 : 0);
+    if(sm == nullptr){
+        skelImp = computeSkeleton(i, imDupeCurr, SKELETON_SALIENCY_THRESHOLD);
+        //NewRemoveDoubleSkel();
+        //skel importance map or saliency map transforms to skel.
+        skelCurr = new FIELD<float>(skelImp->dimX(), skelImp->dimY());
+        for (int i = 0; i < skelImp->dimX(); ++i) {
+            for (int j = 0; j < skelImp->dimY(); ++j) {
+                bool is_skel_point = skelImp->value(i,j);
+                skelCurr->set(i, j, is_skel_point ? 255 : 0);
+            }
+        } 
+    }
+    else{
+        skelImp = computeSkeleton(i, imDupeCurr, 0.1);//use a small threshold
+        //skelImp->NewwritePGM("skelImp.pgm");
+        //NewRemoveDoubleSkel();
+        //skel importance map or saliency map transforms to skel.
+        float weight, weightedSkelval;
+        skelCurr = new FIELD<float>(skelImp->dimX(), skelImp->dimY());
+        for (int i = 0; i < skelImp->dimX(); ++i) {
+            for (int j = 0; j < skelImp->dimY(); ++j) {
+                weight = pow(1, (sm->value(i,j))/128.0 -1.0);//from 0.25 to 4
+                weightedSkelval = skelImp->value(i,j) * weight;
+                skelCurr->set(i, j, (weightedSkelval > SKELETON_SALIENCY_THRESHOLD) ? 255 : 0);
+            }
         }
-    } 
-    
+    }
+
     
     analyze_cca(i, skelCurr);
     removeDoubleSkel(skelCurr);
@@ -595,11 +631,11 @@ void dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFil
       //cout<<"enterORnot: "<<enterORnot<<" "<<i<<endl;
     if(WriteToFile>0 && SkelPoints == 0)  
         printf(" Attention: There are no skeletons produced for this layer. \n");
-    /*
+   /*
     std::stringstream ske;
-    ske<<"output/s"<<i<<".pgm";
+    ske<<"out/s"<<i<<".pgm";
     skelCurr->writePGM(ske.str().c_str());
-*/
+ */
     ///////new method-----segment and store into the BranchSets;
      for (y = 0; y < skelCurr->dimY(); ++y) {
         for (x = 0; x < skelCurr->dimX(); ++x) {
@@ -615,10 +651,13 @@ void dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFil
             ////fit with spline///
     //cout<<"BranchSet.size()--"<<BranchSet.size()<<endl;
      //begin = std::chrono::steady_clock::now();
-    float hausdorff = 0.002; //spline fitting error threshold
+    //cout<<"hausdorff--"<<hausdorff<<endl;
     if(BranchSet.size() > 0){
         BSplineCurveFitterWindow3 spline;
-        if (WriteToFile>0) spline.SplineFit2(BranchSet, hausdorff, diagonal, i, connection, WriteToFile);
+        float *smd = nullptr;
+        if(sm!=nullptr) smd = sm -> data();
+        
+        if (WriteToFile>0) CPnum = spline.SplineFit2(BranchSet, hausdorff, diagonal, OriginalImage->dimX(), connection, false, smd);
         else CPnum = spline.SplineFit(BranchSet, hausdorff, diagonal, i, connection);
         BranchSet.clear();//important.
         connection.clear();
@@ -629,10 +668,12 @@ void dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFil
     
  /* */
     delete skelCurr;
+    return CPnum;
 }
 
-void dmdProcess::computeSkeletons(float saliency_threshold){
+int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, FIELD<float> *sm){
     SKELETON_SALIENCY_THRESHOLD = saliency_threshold;
+    int cpNum;
     spline.clear_IndexingCP_Interactive();
     if(!gray_levels.empty()) gray_levels.clear();
     
@@ -660,13 +701,13 @@ void dmdProcess::computeSkeletons(float saliency_threshold){
                 imDupeBack->threshold(i);
 
                  //debug--print layer
-                 /* stringstream ss;
+                 /*stringstream ss;
                 ss<<"out/l"<<i<<".pgm";
                 imDupeBack->writePGM(ss.str().c_str());
-                */  
+                 */  
                 bool ADAPTIVE = false;
                 if(!ADAPTIVE)
-                    CalculateCPnum(i,imDupeBack,2);
+                    cpNum = CalculateCPnum(i,imDupeBack,2, hausdorff, sm);
                 else
                 {
                     printf("Adaptive Layer Encoding method will be added later...\n");
@@ -683,12 +724,11 @@ void dmdProcess::computeSkeletons(float saliency_threshold){
     printf("Skeletonization Done!\n");
 
     //delete skelImp;
+    return cpNum;
 }
 
 
 void dmdProcess::Init_indexingSkeletons(){
-    
-    SKELETON_SALIENCY_THRESHOLD = 1.0;//need to be improved, set by users.
     
     float *c = OriginalImage->data();
     float *end = OriginalImage->data() + nPix;
@@ -722,10 +762,9 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
     {
         FIELD<float> *skelCurr = 0;
         int seq = 0, x, y; 
-        int CPnum = 0;
         int SkelPoints = 0;
         
-        skelImp = computeSkeleton(intensity, CC);
+        skelImp = computeSkeleton(intensity, CC, 1.0);//salThres needs to be improved, set by users.
         
         //skel importance map or saliency map transforms to skel.
         skelCurr = new FIELD<float>(skelImp->dimX(), skelImp->dimY());

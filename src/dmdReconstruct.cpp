@@ -413,8 +413,8 @@ FIELD<float>* dmdReconstruct::get_dt_of_alpha(FIELD<float>* alpha) {
     auto dt = computeCUDADT(alpha_dupe);
     return dt;
 }
-
-
+   
+  
 void dmdReconstruct::get_interp_layer(int i, int SuperResolution, bool last_layer)
 {
     bool interp_firstLayer = 1;

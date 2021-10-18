@@ -608,7 +608,7 @@ int dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFile
         skelCurr = new FIELD<float>(skelImp->dimX(), skelImp->dimY());
         for (int i = 0; i < skelImp->dimX(); ++i) {
             for (int j = 0; j < skelImp->dimY(); ++j) {
-                weight = pow(1, (sm->value(i,j))/128.0 -1.0);//from 0.25 to 4
+                weight = pow(2, (sm->value(i,j))/128.0 -1.0);//from 0.25 to 4
                 weightedSkelval = skelImp->value(i,j) * weight;
                 skelCurr->set(i, j, (weightedSkelval > SKELETON_SALIENCY_THRESHOLD) ? 255 : 0);
             }
@@ -673,7 +673,7 @@ int dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFile
 
 int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, FIELD<float> *sm){
     SKELETON_SALIENCY_THRESHOLD = saliency_threshold;
-    int cpNum;
+    int TotalcpNum = 0, cpNum;
     spline.clear_IndexingCP_Interactive();
     if(!gray_levels.empty()) gray_levels.clear();
     
@@ -712,7 +712,7 @@ int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, FIEL
                 {
                     printf("Adaptive Layer Encoding method will be added later...\n");
                 }
-                    
+                TotalcpNum += cpNum;    
             }
         }
     }
@@ -724,7 +724,7 @@ int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, FIEL
     printf("Skeletonization Done!\n");
 
     //delete skelImp;
-    return cpNum;
+    return TotalcpNum;
 }
 
 

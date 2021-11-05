@@ -1,4 +1,5 @@
-#include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
+// #include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
+#include <IcicleMorphotreeWidget/Graphics/GNodeEventHandler.hpp>
 #include <MainWidget.hpp>
 
 #include "MainWidget.hpp"
@@ -46,9 +47,10 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     skelRecDock_{nullptr},
     removeSkelDock_{nullptr},
     curColorBar_{nullptr}
-{
-  namespace mw = MorphotreeWidget;
-   
+{  
+  using GNodeEventHandler = IcicleMorphotreeWidget::GNodeEventHandler;
+  using IcicleMorphotreeWidget = IcicleMorphotreeWidget::IcicleMorphotreeWidget;
+
   QLayout *mainLayout = new QVBoxLayout;
   QLayout *btnLayout = createButtons();
   QLayout *treeSimplificationLayout = createTreeSimplificationControls();
@@ -56,14 +58,17 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   mainLayout->addItem(btnLayout);
   mainLayout->addItem(treeSimplificationLayout);
   
-  treeWidget_ = new mw::MorphotreeWidget{mw::TreeLayout::TreeLayoutType::GraphvizWithLevel};
+  // treeWidget_ = new mw::MorphotreeWidget{mw::TreeLayout::TreeLayoutType::GraphvizWithLevel};
+  treeWidget_ = new IcicleMorphotreeWidget;
   mainLayout->addWidget(treeWidget_);
 
-  connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress,
+  // connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress,
+  //   this, &TreeVisualiser::nodeMousePress);
+  connect(GNodeEventHandler::Singleton(), &GNodeEventHandler::mousePress, 
     this, &TreeVisualiser::nodeMousePress);
 
-  treeSimplification_ = 
-    std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180);
+  // treeSimplification_ = 
+  //   std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180);
 
   setLayout(mainLayout);
 }
@@ -184,18 +189,18 @@ QLayout *TreeVisualiser::createTreeSimplificationControls()
 
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 {  
-  namespace mw = MorphotreeWidget;
+  // namespace mw = MorphotreeWidget;
 
   if (treeWidget_->hasAttributes()) 
     clearAttributes();
 
   curNodeSelection_ = nullptr;
-  if (treeWidget_->treeSimplification() == nullptr) 
-    treeWidget_->loadImage(domain, f, 
-      std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
-  else 
-    treeWidget_->loadImage(domain, f, treeWidget_->treeSimplification());
-  
+  // if (treeWidget_->treeSimplification() == nullptr) 
+  //   treeWidget_->loadImage(domain, f, 
+  //     std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
+  // else 
+  //   treeWidget_->loadImage(domain, f, treeWidget_->treeSimplification());
+  treeWidget_->loadImage(domain, f);
   
   domain_ = domain;
   dmd_.setProcessedImage(greyImageToField(f));  
@@ -232,17 +237,17 @@ void TreeVisualiser::reconstructGreyImage(SimpleImageViewer *iv, NodePtr node)
   iv->setImage(img);
 }
 
-std::shared_ptr<MorphotreeWidget::TreeSimplification> TreeVisualiser::duplicateTreeSimplification()
-{
-  namespace mw = MorphotreeWidget;
-  using TSType = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
+// std::shared_ptr<MorphotreeWidget::TreeSimplification> TreeVisualiser::duplicateTreeSimplification()
+// {
+//   namespace mw = MorphotreeWidget;
+//   using TSType = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
 
-  std::shared_ptr<TSType> ts = std::dynamic_pointer_cast<TSType>(
-    treeWidget_->treeSimplification());
+//   std::shared_ptr<TSType> ts = std::dynamic_pointer_cast<TSType>(
+//     treeWidget_->treeSimplification());
 
-  return std::make_shared<TSType>(ts->numberOfLeavesToKeep(), 
-    ts->areaThresholdToKeep(), ts->progDiffThresholdToKeep());
-}
+//   return std::make_shared<TSType>(ts->numberOfLeavesToKeep(), 
+//     ts->areaThresholdToKeep(), ts->progDiffThresholdToKeep());
+// }
 
 FIELD<float> *TreeVisualiser::binImageToField(const std::vector<bool> &bimg) const
 {
@@ -290,7 +295,8 @@ QImage TreeVisualiser::fieldToQImage(FIELD<float> *fimg) const
 
 void TreeVisualiser::registerDMDSkeletons()
 {
-  const MTree &tree = treeWidget_->tree();
+  // const MTree &tree = treeWidget_->tree();
+  const MTree &tree = treeWidget_->mtree();
   
   dmd_.Init_indexingSkeletons();
   NumberOfSkeletonPointCache nskelCache;
@@ -316,7 +322,9 @@ void TreeVisualiser::registerDMDSkeletons()
 
 void TreeVisualiser::showArea()
 {
-  NormalisedAttributeMeta areaInfo = attrCompueter_.computeArea(domain_, treeWidget_->tree());
+  // NormalisedAttributeMeta areaInfo = attrCompueter_.computeArea(domain_, treeWidget_->tree());
+  NormalisedAttributeMeta areaInfo = attrCompueter_.computeArea(domain_,
+    treeWidget_->mtree());
 
   treeWidget_->loadAttributes(std::move(areaInfo.nattr_));
   
@@ -335,8 +343,10 @@ void TreeVisualiser::showArea()
 
 void TreeVisualiser::showPerimeter()
 {
+  // NormalisedAttributeMeta perimeterInfo = attrCompueter_.computePerimeter(
+  //   domain_, treeWidget_->tree());
   NormalisedAttributeMeta perimeterInfo = attrCompueter_.computePerimeter(
-    domain_, treeWidget_->tree());
+    domain_, treeWidget_->mtree());
 
   treeWidget_->loadAttributes(std::move(perimeterInfo.nattr_));
 
@@ -355,8 +365,10 @@ void TreeVisualiser::showPerimeter()
 
 void TreeVisualiser::showVolume()
 {
+  // NormalisedAttributeMeta volumeInfo = attrCompueter_.computeVolume(
+  //   domain_, treeWidget_->tree());
   NormalisedAttributeMeta volumeInfo = attrCompueter_.computeVolume(
-    domain_, treeWidget_->tree());
+    domain_, treeWidget_->mtree());
 
   treeWidget_->loadAttributes(std::move(volumeInfo.nattr_));
 
@@ -375,8 +387,10 @@ void TreeVisualiser::showVolume()
 
 void TreeVisualiser::showCircularity()
 {
+  // NormalisedAttributeMeta circularityInfo = attrCompueter_.computeComplexity(
+  //   domain_, treeWidget_->tree());
   NormalisedAttributeMeta circularityInfo = attrCompueter_.computeComplexity(
-    domain_, treeWidget_->tree());
+    domain_, treeWidget_->mtree());
 
   treeWidget_->loadAttributes(std::move(circularityInfo.nattr_));
 
@@ -395,8 +409,10 @@ void TreeVisualiser::showCircularity()
 
 void TreeVisualiser::showComplexity()
 {
-  NormalisedAttributeMeta complexityInfo = attrCompueter_.computeComplexity(
-    domain_, treeWidget_->tree());
+  // NormalisedAttributeMeta complexityInfo = attrCompueter_.computeComplexity(
+  //   domain_, treeWidget_->tree());
+  NormalisedAttributeMeta complexityInfo = attrCompueter_.computeCircularity(
+      domain_, treeWidget_->mtree());
 
   treeWidget_->loadAttributes(std::move(complexityInfo.nattr_));
 
@@ -415,8 +431,10 @@ void TreeVisualiser::showComplexity()
 
 void TreeVisualiser::showNumberOfSkeletonPoints()
 {
-  NormalisedAttributeMeta nskelPtInfo = 
-    attrCompueter_.compueteNumberOfSkeletonPoints(treeWidget_->tree());
+  // NormalisedAttributeMeta nskelPtInfo = 
+  //   attrCompueter_.compueteNumberOfSkeletonPoints(treeWidget_->tree());
+  NormalisedAttributeMeta nskelPtInfo =
+    attrCompueter_.compueteNumberOfSkeletonPoints(treeWidget_->mtree());
   
   treeWidget_->loadAttributes(std::move(nskelPtInfo.nattr_));
 
@@ -445,7 +463,8 @@ void TreeVisualiser::clearAttributes()
 std::vector<bool> TreeVisualiser::recSimpleNode() const 
 {
   if (curNodeSelection_ != nullptr)
-    return curNodeSelection_->simplifiedMTreeNode()->reconstruct(domain_);
+    // return curNodeSelection_->simplifiedMTreeNode()->reconstruct(domain_);
+    return curNodeSelection_->mnode()->reconstruct(domain_);
   else
     return std::vector<bool>();
 }
@@ -453,7 +472,8 @@ std::vector<bool> TreeVisualiser::recSimpleNode() const
 std::vector<bool> TreeVisualiser::recFullNode() const 
 {
   if (curNodeSelection_ != nullptr)
-    return curNodeSelection_->mtreeNode()->reconstruct(domain_);
+    //return curNodeSelection_->mtreeNode()->reconstruct(domain_);
+    return curNodeSelection_->mnode()->reconstruct(domain_);
   else
     return std::vector<bool>();
 }
@@ -474,7 +494,8 @@ void TreeVisualiser::binRecBtn_press()
       iv = qobject_cast<SimpleImageViewer *>(binRecDock_->widget());
     }
     
-    reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());    
+    // reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());    
+    reconstructBinaryImage(iv, curNodeSelection_->mnode());
   }
 }
 
@@ -486,7 +507,8 @@ void TreeVisualiser::binRecPlusBtn_press()
   dock->setGNode(curNodeSelection_);
 
   dock->resize(domain_.width() + 22, domain_.height() + 84);
-  reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());  
+  // reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());  
+  reconstructBinaryImage(iv, curNodeSelection_->mnode());
 }
 
 void TreeVisualiser::greyRecBtn_press()
@@ -505,7 +527,8 @@ void TreeVisualiser::greyRecBtn_press()
       iv = qobject_cast<SimpleImageViewer *>(greyRecDock_->widget());
     }
     
-    reconstructGreyImage(iv, curNodeSelection_->mtreeNode());    
+    // reconstructGreyImage(iv, curNodeSelection_->mtreeNode());    
+    reconstructGreyImage(iv, curNodeSelection_->mnode());
   }
 }
 
@@ -517,7 +540,8 @@ void TreeVisualiser::greyRecPlusBtn_press()
   dock->setGNode(curNodeSelection_);
 
   dock->resize(domain_.width() + 22, domain_.height() + 84);
-  reconstructGreyImage(iv, curNodeSelection_->mtreeNode());  
+  // reconstructGreyImage(iv, curNodeSelection_->mtreeNode());  
+  reconstructGreyImage(iv, curNodeSelection_->mnode());
 }
 
 void TreeVisualiser::skelRecBtn_press()
@@ -539,7 +563,8 @@ void TreeVisualiser::skelRecBtn_press()
       cv->Update();
     }
  
-    NodePtr mnode = curNodeSelection_->mtreeNode();
+    // NodePtr mnode = curNodeSelection_->mtreeNode();
+    NodePtr mnode = curNodeSelection_->mnode();
     dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 1);
   
    if(mnode->id() == 0){
@@ -574,7 +599,8 @@ void TreeVisualiser::removeSkelBtn_press()
       iv = qobject_cast<SimpleImageViewer *>(removeSkelDock_->widget());
     }
 
-    NodePtr mnode = curNodeSelection_->mtreeNode();
+    // NodePtr mnode = curNodeSelection_->mtreeNode();
+    NodePtr mnode = curNodeSelection_->mnode();
     dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 0);
     QImage img = fieldToQImage(dmdrecon_->getOutput());    
     iv->setImage(img);
@@ -605,92 +631,92 @@ void TreeVisualiser::nodeMousePress(GNode *node,
 
 void TreeVisualiser::inspectNodePlusBtn_press()
 {
-  if (curNodeSelection_ != nullptr) {
-    NodePtr node = curNodeSelection_->simplifiedMTreeNode();
-    treeWidget_->inspectNode(node->id(), duplicateTreeSimplification());
+  // if (curNodeSelection_ != nullptr) {
+  //   NodePtr node = curNodeSelection_->simplifiedMTreeNode();
+  //   treeWidget_->inspectNode(node->id(), duplicateTreeSimplification());
     
    
-    emit nodeUnselected(curNodeSelection_);
-    curNodeSelection_ = nullptr; 
-  }
+  //   emit nodeUnselected(curNodeSelection_);
+  //   curNodeSelection_ = nullptr; 
+  // }
 }
 
 void TreeVisualiser::inspectNodeMinusBtn_press()
 {
-  namespace mw = MorphotreeWidget;
-  using TSType = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
-  using TSTypePtr = std::shared_ptr<TSType>;
+  // namespace mw = MorphotreeWidget;
+  // using TSType = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
+  // using TSTypePtr = std::shared_ptr<TSType>;
 
-  if (treeWidget_->numberOfUndoNodeInspection() > 0) {
-    treeWidget_->undoNodeInspection();
+  // if (treeWidget_->numberOfUndoNodeInspection() > 0) {
+  //   treeWidget_->undoNodeInspection();
     
-    if (curNodeSelection_ != nullptr)
-      emit nodeUnselected(curNodeSelection_);
+  //   if (curNodeSelection_ != nullptr)
+  //     emit nodeUnselected(curNodeSelection_);
     
-    curNodeSelection_ = nullptr;
+  //   curNodeSelection_ = nullptr;
     
 
-    TSTypePtr ts = std::dynamic_pointer_cast<TSType>(treeWidget_->treeSimplification());
+  //   TSTypePtr ts = std::dynamic_pointer_cast<TSType>(treeWidget_->treeSimplification());
 
-    numberLeavesSlider_->setValue(ts->numberOfLeavesToKeep());
-    areaSlider_->setValue(ts->areaThresholdToKeep());
-    areaDiffSlider_->setValue(ts->progDiffThresholdToKeep());
+  //   numberLeavesSlider_->setValue(ts->numberOfLeavesToKeep());
+  //   areaSlider_->setValue(ts->areaThresholdToKeep());
+  //   areaDiffSlider_->setValue(ts->progDiffThresholdToKeep());
 
-    numberLeavesValueLabel_->setText(QString::number(numberLeavesSlider_->value()));
-    areaValueLabel_->setText(QString::number(areaSlider_->value()));
-    areaDiffValueLabel_->setText(QString::number(areaDiffSlider_->value()));
-  }
+  //   numberLeavesValueLabel_->setText(QString::number(numberLeavesSlider_->value()));
+  //   areaValueLabel_->setText(QString::number(areaSlider_->value()));
+  //   areaDiffValueLabel_->setText(QString::number(areaDiffSlider_->value()));
+  // }
 }
 
 void TreeVisualiser::numberLeavesSlider_onValueChange(int val)
 {  
-  namespace mw = MorphotreeWidget;
-  using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
+  // namespace mw = MorphotreeWidget;
+  // using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
 
-  numberLeavesValueLabel_->setText(QString::number(val));
+  // numberLeavesValueLabel_->setText(QString::number(val));
 
-  std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
-    ->numberOfLeavesToKeep(val);
+  // std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
+  //   ->numberOfLeavesToKeep(val);
 
-  if (curNodeSelection_ != nullptr)
-    emit nodeUnselected(curNodeSelection_);
+  // if (curNodeSelection_ != nullptr)
+  //   emit nodeUnselected(curNodeSelection_);
 
-  curNodeSelection_ = nullptr;
-  treeWidget_->redrawTree();
+  // curNodeSelection_ = nullptr;
+  // treeWidget_->redrawTree();
 }
 
 void TreeVisualiser::areaSlider_onValueChange(int val)
 {
-  namespace mw = MorphotreeWidget;
-  using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
+  // namespace mw = MorphotreeWidget;
+  // using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
 
-  areaValueLabel_->setText(QString::number(val));
+  // areaValueLabel_->setText(QString::number(val));
   
-  std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
-    ->areaThresholdToKeep(val);
+  // std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
+  //   ->areaThresholdToKeep(val);
 
-  if (curNodeSelection_ != nullptr)
-    emit nodeUnselected(curNodeSelection_);
+  // if (curNodeSelection_ != nullptr)
+  //   emit nodeUnselected(curNodeSelection_);
 
-  curNodeSelection_ = nullptr;
-  treeWidget_->redrawTree();
+  // curNodeSelection_ = nullptr;
+  // treeWidget_->redrawTree();
 }
 
 void TreeVisualiser::areaDiffSlider_onValueChange(int val)
 {
-  namespace mw = MorphotreeWidget;
-  using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
+  // namespace mw = MorphotreeWidget;
+  // using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
 
-  areaDiffValueLabel_->setText(QString::number(val));
+  // areaDiffValueLabel_->setText(QString::number(val));
 
-  std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
-    ->progDifferenceThreholdToKeep(val);
+  // std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
+  //   ->progDifferenceThreholdToKeep(val);
 
-  if (curNodeSelection_ != nullptr)
-    emit nodeUnselected(curNodeSelection_);
+  // if (curNodeSelection_ != nullptr)
+  //   emit nodeUnselected(curNodeSelection_);
 
-  curNodeSelection_ = nullptr;
-  treeWidget_->redrawTree();
+  // curNodeSelection_ = nullptr;
+  // treeWidget_->redrawTree();
 }
 
 void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)

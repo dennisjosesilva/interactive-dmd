@@ -4,9 +4,9 @@
 #include <QImage>
 #include <QMap>
 
-#include <MorphotreeWidget/Graphics/GNode.hpp>
-#include <MorphotreeWidget/MorphotreeWidget.hpp>
-#include <MorphotreeWidget/Graphics/ColorBar.hpp>
+#include <IcicleMorphotreeWidget/Graphics/GNode.hpp>
+#include <IcicleMorphotreeWidget/IcicleMorphotreeWidget.hpp>
+#include <IcicleMorphotreeWidget/Graphics/ColorBar.hpp>
 #include "TreeVisualiser/SimpleImageViewer.hpp"
 #include "TreeVisualiser/AttributeComputer.hpp"
 #include "CustomWidgets/TitleColorBar.hpp"
@@ -35,7 +35,7 @@ Q_OBJECT
 
 public:
   using uint32 = morphotree::uint32;
-  using GNode = MorphotreeWidget::GNode;
+  using GNode = IcicleMorphotreeWidget::GNode;
 
   MyDockWidget(const QString &title, QWidget *mainwindow);
 
@@ -64,9 +64,9 @@ public:
   using MTree = morphotree::MorphologicalTree<morphotree::uint8>;
   using Box = morphotree::Box;
   using NodePtr = typename MTree::NodePtr;
-  using TreeSimplification = MorphotreeWidget::TreeSimplification;
-  using ColorBar = MorphotreeWidget::ColorBar;
-  using GNode = MorphotreeWidget::GNode;  
+  // using TreeSimplification = MorphotreeWidget::TreeSimplification;
+  using ColorBar = IcicleMorphotreeWidget::ColorBar;
+  using GNode = IcicleMorphotreeWidget::GNode;  
   using uint8 = morphotree::uint8;
   using uint32 = morphotree::uint32;
 
@@ -77,7 +77,7 @@ public:
   void selectNodeByPixel(int x, int y);  
 
   inline uint32 numberOfNodesOfTree() { return treeWidget_->mtree().numberOfNodes(); }
-  inline uint32 numberOfNodesOfSimplifiedTree() { return treeWidget_->stree().numberOfNodes(); }
+  // inline uint32 numberOfNodesOfSimplifiedTree() { return treeWidget_->stree().numberOfNodes(); }
 
   void registerDMDSkeletons();
   
@@ -112,12 +112,12 @@ protected:
   QLayout* createTreeSimplificationControls();
 
   inline const MTree& mtree() const { return treeWidget_->mtree(); }
-  inline const MTree& stree() const { return treeWidget_->stree(); }
+  // inline const MTree& stree() const { return treeWidget_->stree(); }
 
   inline uint32 numberOfNodesMtree() const { return treeWidget_->mtree().numberOfNodes(); }
-  inline uint32 numberOfNodesSTree() const { return treeWidget_->stree().numberOfNodes(); }
+  // inline uint32 numberOfNodesSTree() const { return treeWidget_->stree().numberOfNodes(); }
 
-  std::shared_ptr<TreeSimplification> duplicateTreeSimplification();    
+  // std::shared_ptr<TreeSimplification> duplicateTreeSimplification();    
 
 public: 
 signals: 
@@ -149,7 +149,7 @@ protected slots:
 
 
 private:
-  MorphotreeWidget::MorphotreeWidget *treeWidget_;
+  IcicleMorphotreeWidget::IcicleMorphotreeWidget *treeWidget_;
   morphotree::Box domain_;
 
   QSlider *numberLeavesSlider_;
@@ -169,7 +169,7 @@ private:
   MyDockWidget *removeSkelDock_;
 
   MainWidget *mainWidget_;
-  std::shared_ptr<TreeSimplification> treeSimplification_;
+  // std::shared_ptr<TreeSimplification> treeSimplification_;
 
   dmdProcess dmd_;
   dmdReconstruct* dmdrecon_;

@@ -33,7 +33,7 @@ MainWidget::MainWidget(QWidget *parent)
    ctrlDown_{false}
 { 
   namespace iv = ImageViewerWidget;  
-  namespace mw = MorphotreeWidget;
+  namespace mw = IcicleMorphotreeWidget;
 
   QLayout *mainLayout = new QVBoxLayout;
 
@@ -97,7 +97,7 @@ bool MainWidget::saveImage(const QString &filename)
 void MainWidget::updateTreeVisualiser()
 {
   namespace mt = morphotree;
-  namespace mw = MorphotreeWidget;
+  namespace mw = IcicleMorphotreeWidget;
 
   const QImage &image = imageViewer_->image();
   mt::Box domain = mt::Box::fromSize(mt::UI32Point{ 
@@ -171,7 +171,8 @@ void MainWidget::highlightNode(GNode *node)
   using morphotree::Box;
 
   Box domain = treeVis_->domain();
-  std::vector<bool> nodeImg = node->simplifiedMTreeNode()->reconstruct(domain);
+  //std::vector<bool> nodeImg = node->simplifiedMTreeNode()->reconstruct(domain);
+  std::vector<bool> nodeImg = node->mnode()->reconstruct(domain);
   QImage bimg{ static_cast<int>(domain.width()), static_cast<int>(domain.height()), 
     QImage::Format_ARGB32 };
   

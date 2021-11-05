@@ -3,7 +3,7 @@
 #include <QWidget>
 #include <QString>
 #include <ImageViewerWidget/ImageViewerWidget.hpp>
-#include <MorphotreeWidget/Graphics/GNode.hpp>
+#include <IcicleMorphotreeWidget/Graphics/GNode.hpp>
 
 #include "TreeVisualiser/TreeVisualiser.hpp"
 #include "InteractiveSdmd.hpp"
@@ -14,7 +14,7 @@ class MainWidget : public QWidget
 {  
   Q_OBJECT
 public:
-  using GNode = MorphotreeWidget::GNode;
+  using GNode = IcicleMorphotreeWidget::GNode;
 
   MainWidget(QWidget *parent=nullptr);
 

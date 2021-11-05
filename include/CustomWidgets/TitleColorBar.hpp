@@ -1,6 +1,6 @@
 #pragma once 
 
-#include <MorphotreeWidget/Graphics/ColorBar.hpp>
+#include <IcicleMorphotreeWidget/Graphics/ColorBar.hpp>
 
 #include <QWidget>
 #include <QLabel>
@@ -9,7 +9,7 @@ class TitleColorBar : public QWidget
 {
   Q_OBJECT
 public:
-  using ColorBar = MorphotreeWidget::ColorBar; 
+  using ColorBar = IcicleMorphotreeWidget::ColorBar; 
 
   TitleColorBar(ColorBar *colorBar, QWidget *parent=nullptr);
 

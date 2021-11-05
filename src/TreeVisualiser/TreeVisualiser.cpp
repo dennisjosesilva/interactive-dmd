@@ -49,6 +49,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     curColorBar_{nullptr}
 {  
   using GNodeEventHandler = IcicleMorphotreeWidget::GNodeEventHandler;
+  using FixedHeightTreeLayout = IcicleMorphotreeWidget::FixedHeightTreeLayout;    
+  using GrayscaleBasedHeightTreeLayout = IcicleMorphotreeWidget::GrayscaleBasedHeightTreeLayout;
   using IcicleMorphotreeWidget = IcicleMorphotreeWidget::IcicleMorphotreeWidget;
 
   QLayout *mainLayout = new QVBoxLayout;
@@ -59,7 +61,11 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   mainLayout->addItem(treeSimplificationLayout);
   
   // treeWidget_ = new mw::MorphotreeWidget{mw::TreeLayout::TreeLayoutType::GraphvizWithLevel};
-  treeWidget_ = new IcicleMorphotreeWidget;
+  // treeWidget_ = new IcicleMorphotreeWidget{this, 
+  //   std::make_unique<FixedHeightTreeLayout>(20.f, 20.f, 15.f)};
+  treeWidget_ = new IcicleMorphotreeWidget{this, 
+    std::make_unique<GrayscaleBasedHeightTreeLayout>(20.f, 20.f, 10.f)};
+
   mainLayout->addWidget(treeWidget_);
 
   // connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress,
@@ -201,7 +207,12 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
   // else 
   //   treeWidget_->loadImage(domain, f, treeWidget_->treeSimplification());
   treeWidget_->loadImage(domain, f);
-  
+
+  treeWidget_->removeGrayScaleBar();
+    // TODO: Make it dynamic  
+  treeWidget_->addGrayScaleBar(256, 10.f, 10.f);
+
+
   domain_ = domain;
   dmd_.setProcessedImage(greyImageToField(f));  
   dmdrecon_ = new dmdReconstruct();

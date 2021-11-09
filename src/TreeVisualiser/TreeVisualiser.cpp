@@ -539,23 +539,25 @@ void TreeVisualiser::removeSkelBtn_press()
 void TreeVisualiser::nodeMousePress(GNode *node, 
   QGraphicsSceneMouseEvent *e)
 {
-  if (curNodeSelection_ != nullptr) {
-    curNodeSelection_ ->setSelected(false);
-    curNodeSelection_->update();
-  }
-    
-  if (node->isSelected()) {
-    node->setSelected(false);
-    curNodeSelection_ = nullptr;
-    emit nodeUnselected(node);
-  }
-  else {
-    emit nodeSelected(node);
-    node->setSelected(true);
-    curNodeSelection_ = node;
-  }
+  if (treeWidget_->dragMode() == QGraphicsView::NoDrag) {
+    if (curNodeSelection_ != nullptr) {
+      curNodeSelection_ ->setSelected(false);
+      curNodeSelection_->update();
+    }
+      
+    if (node->isSelected()) {
+      node->setSelected(false);
+      curNodeSelection_ = nullptr;
+      emit nodeUnselected(node);
+    }
+    else {
+      emit nodeSelected(node);
+      node->setSelected(true);
+      curNodeSelection_ = node;
+    }
 
-  node->update();
+    node->update();
+  }
 }
 
 void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)

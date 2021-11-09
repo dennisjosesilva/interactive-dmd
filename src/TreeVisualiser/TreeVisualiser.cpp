@@ -55,27 +55,17 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
 
   QLayout *mainLayout = new QVBoxLayout;
   QLayout *btnLayout = createButtons();
-  QLayout *treeSimplificationLayout = createTreeSimplificationControls();
 
-  mainLayout->addItem(btnLayout);
-  mainLayout->addItem(treeSimplificationLayout);
+  mainLayout->addItem(btnLayout);  
   
-  // treeWidget_ = new mw::MorphotreeWidget{mw::TreeLayout::TreeLayoutType::GraphvizWithLevel};
-  // treeWidget_ = new IcicleMorphotreeWidget{this, 
-  //   std::make_unique<FixedHeightTreeLayout>(20.f, 20.f, 15.f)};
   treeWidget_ = new IcicleMorphotreeWidget{this, 
     std::make_unique<GrayscaleBasedHeightTreeLayout>(20.f, 20.f, 10.f)};
 
   mainLayout->addWidget(treeWidget_);
 
-  // connect(mw::GNodeEventHandler::Singleton(), &mw::GNodeEventHandler::mousePress,
-  //   this, &TreeVisualiser::nodeMousePress);
   connect(GNodeEventHandler::Singleton(), &GNodeEventHandler::mousePress, 
     this, &TreeVisualiser::nodeMousePress);
-
-  // treeSimplification_ = 
-  //   std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180);
-
+  
   setLayout(mainLayout);
 }
 
@@ -102,17 +92,7 @@ QLayout *TreeVisualiser::createButtons()
     "", this};
   greyRecPlusBtn->setIconSize(QSize{32, 32});
   connect(greyRecPlusBtn, &QPushButton::clicked, this, &TreeVisualiser::greyRecPlusBtn_press);
-  
-  QPushButton *inspectNodePlusBtn = new QPushButton{ QIcon{":/images/inspect_node_plus.png"},
-    "", this};
-  inspectNodePlusBtn->setIconSize(QSize{32, 32});
-  connect(inspectNodePlusBtn, &QPushButton::clicked, this, &TreeVisualiser::inspectNodePlusBtn_press);
-
-  QPushButton *inspectNodeMinusBtn = new QPushButton{ QIcon{":/images/inspect_node_minus.png"},
-    "", this};
-  inspectNodeMinusBtn->setIconSize(QSize{32, 32});
-  connect(inspectNodeMinusBtn, &QPushButton::clicked, this, &TreeVisualiser::inspectNodeMinusBtn_press);
-
+    
   QPushButton *skelRecBtn = new QPushButton{ QIcon{":/images/Skel_icon.png"}, "", this};
   skelRecBtn->setIconSize(QSize{32, 32});
   connect(skelRecBtn, &QPushButton::clicked, this, &TreeVisualiser::skelRecBtn_press);
@@ -121,76 +101,14 @@ QLayout *TreeVisualiser::createButtons()
   removeSkelBtn->setIconSize(QSize{32, 32});
   connect(removeSkelBtn, &QPushButton::clicked, this, &TreeVisualiser::removeSkelBtn_press);
 
-
   btnLayout->addWidget(binRecBtn);
   btnLayout->addWidget(binRecPlusBtn);
   btnLayout->addWidget(greyRecBtn);
-  btnLayout->addWidget(greyRecPlusBtn);
-  btnLayout->addWidget(inspectNodePlusBtn);
-  btnLayout->addWidget(inspectNodeMinusBtn);
+  btnLayout->addWidget(greyRecPlusBtn);  
   btnLayout->addWidget(skelRecBtn);
   btnLayout->addWidget(removeSkelBtn);
   
-
   return btnLayout;
-}
-
-QLayout *TreeVisualiser::createTreeSimplificationControls()
-{  
-  QLayout *controlsLayout = new QVBoxLayout;
-  QHBoxLayout *nleavesLayout = new QHBoxLayout;  
-  QHBoxLayout *areaLayout = new QHBoxLayout;
-  QHBoxLayout *areaDiffLayout = new QHBoxLayout;
-
-  // -------------------- number of leaves (extinction filter) ------------------------
-  nleavesLayout->addWidget(new QLabel{"# leaves: ", this});
-  numberLeavesSlider_ = new QSlider{Qt::Horizontal, this};
-  numberLeavesSlider_->setRange(1, 50);
-  numberLeavesSlider_->setValue(6);
-  numberLeavesValueLabel_ = new QLabel("6", this);
-  numberLeavesValueLabel_->setFixedWidth(25);
-  numberLeavesValueLabel_->setAlignment(Qt::AlignRight);
-  connect(numberLeavesSlider_, &QSlider::sliderMoved, this,
-    &TreeVisualiser::numberLeavesSlider_onValueChange);
-  
-  nleavesLayout->addWidget(numberLeavesSlider_);  
-  nleavesLayout->addWidget(numberLeavesValueLabel_);
-
-  controlsLayout->addItem(nleavesLayout);
-
-  // ------------------------- area filter ------------------------------------------------
-  areaLayout->addWidget(new QLabel{"area:         ", this});
-  areaSlider_ = new QSlider{Qt::Horizontal, this};
-  areaSlider_->setRange(0, 1000);
-  areaSlider_->setValue(50);
-  areaValueLabel_ = new QLabel{"50", this};
-  areaValueLabel_->setFixedWidth(35);
-  areaValueLabel_->setAlignment(Qt::AlignRight);
-  connect(areaSlider_, &QSlider::sliderMoved, this, 
-    &TreeVisualiser::areaSlider_onValueChange);
-
-  areaLayout->addWidget(areaSlider_);
-  areaLayout->addWidget(areaValueLabel_);
-
-  controlsLayout->addItem(areaLayout);
-
-  // --------------- progressive area diff filter -----------------------------------------
-  areaDiffLayout->addWidget(new QLabel{"area diff: ", this});
-  areaDiffSlider_ = new QSlider{Qt::Horizontal, this};
-  areaDiffSlider_->setRange(0, 1000);
-  areaDiffSlider_->setValue(180);
-  areaDiffValueLabel_ = new QLabel{"180", this};
-  areaDiffValueLabel_->setFixedWidth(35);
-  areaDiffValueLabel_->setAlignment(Qt::AlignRight);
-  connect(areaDiffSlider_, &QSlider::sliderMoved, this,
-    &TreeVisualiser::areaDiffSlider_onValueChange);
-
-  areaDiffLayout->addWidget(areaDiffSlider_);
-  areaDiffLayout->addWidget(areaDiffValueLabel_);
-
-  controlsLayout->addItem(areaDiffLayout);
-
-  return controlsLayout;
 }
 
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
@@ -638,96 +556,6 @@ void TreeVisualiser::nodeMousePress(GNode *node,
   }
 
   node->update();
-}
-
-void TreeVisualiser::inspectNodePlusBtn_press()
-{
-  // if (curNodeSelection_ != nullptr) {
-  //   NodePtr node = curNodeSelection_->simplifiedMTreeNode();
-  //   treeWidget_->inspectNode(node->id(), duplicateTreeSimplification());
-    
-   
-  //   emit nodeUnselected(curNodeSelection_);
-  //   curNodeSelection_ = nullptr; 
-  // }
-}
-
-void TreeVisualiser::inspectNodeMinusBtn_press()
-{
-  // namespace mw = MorphotreeWidget;
-  // using TSType = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
-  // using TSTypePtr = std::shared_ptr<TSType>;
-
-  // if (treeWidget_->numberOfUndoNodeInspection() > 0) {
-  //   treeWidget_->undoNodeInspection();
-    
-  //   if (curNodeSelection_ != nullptr)
-  //     emit nodeUnselected(curNodeSelection_);
-    
-  //   curNodeSelection_ = nullptr;
-    
-
-  //   TSTypePtr ts = std::dynamic_pointer_cast<TSType>(treeWidget_->treeSimplification());
-
-  //   numberLeavesSlider_->setValue(ts->numberOfLeavesToKeep());
-  //   areaSlider_->setValue(ts->areaThresholdToKeep());
-  //   areaDiffSlider_->setValue(ts->progDiffThresholdToKeep());
-
-  //   numberLeavesValueLabel_->setText(QString::number(numberLeavesSlider_->value()));
-  //   areaValueLabel_->setText(QString::number(areaSlider_->value()));
-  //   areaDiffValueLabel_->setText(QString::number(areaDiffSlider_->value()));
-  // }
-}
-
-void TreeVisualiser::numberLeavesSlider_onValueChange(int val)
-{  
-  // namespace mw = MorphotreeWidget;
-  // using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
-
-  // numberLeavesValueLabel_->setText(QString::number(val));
-
-  // std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
-  //   ->numberOfLeavesToKeep(val);
-
-  // if (curNodeSelection_ != nullptr)
-  //   emit nodeUnselected(curNodeSelection_);
-
-  // curNodeSelection_ = nullptr;
-  // treeWidget_->redrawTree();
-}
-
-void TreeVisualiser::areaSlider_onValueChange(int val)
-{
-  // namespace mw = MorphotreeWidget;
-  // using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
-
-  // areaValueLabel_->setText(QString::number(val));
-  
-  // std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
-  //   ->areaThresholdToKeep(val);
-
-  // if (curNodeSelection_ != nullptr)
-  //   emit nodeUnselected(curNodeSelection_);
-
-  // curNodeSelection_ = nullptr;
-  // treeWidget_->redrawTree();
-}
-
-void TreeVisualiser::areaDiffSlider_onValueChange(int val)
-{
-  // namespace mw = MorphotreeWidget;
-  // using AreaProgSimplification = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
-
-  // areaDiffValueLabel_->setText(QString::number(val));
-
-  // std::dynamic_pointer_cast<AreaProgSimplification>(treeWidget_->treeSimplification())
-  //   ->progDifferenceThreholdToKeep(val);
-
-  // if (curNodeSelection_ != nullptr)
-  //   emit nodeUnselected(curNodeSelection_);
-
-  // curNodeSelection_ = nullptr;
-  // treeWidget_->redrawTree();
 }
 
 void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)

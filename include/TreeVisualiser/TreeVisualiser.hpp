@@ -63,8 +63,7 @@ Q_OBJECT
 public:
   using MTree = morphotree::MorphologicalTree<morphotree::uint8>;
   using Box = morphotree::Box;
-  using NodePtr = typename MTree::NodePtr;
-  // using TreeSimplification = MorphotreeWidget::TreeSimplification;
+  using NodePtr = typename MTree::NodePtr;  
   using ColorBar = IcicleMorphotreeWidget::ColorBar;
   using GNode = IcicleMorphotreeWidget::GNode;  
   using uint8 = morphotree::uint8;
@@ -73,12 +72,8 @@ public:
   TreeVisualiser(MainWidget *mainWidget);
 
   void loadImage(Box domain, const std::vector<morphotree::uint8> &f);
-
   void selectNodeByPixel(int x, int y);  
-
-  inline uint32 numberOfNodesOfTree() { return treeWidget_->mtree().numberOfNodes(); }
-  // inline uint32 numberOfNodesOfSimplifiedTree() { return treeWidget_->stree().numberOfNodes(); }
-
+  inline uint32 numberOfNodesOfTree() { return treeWidget_->mtree().numberOfNodes(); }  
   void registerDMDSkeletons();
   
   void showArea();
@@ -108,16 +103,10 @@ protected:
   void reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node);
   void reconstructGreyImage(SimpleImageViewer *iv, NodePtr node);
 
-  QLayout* createButtons();
-  QLayout* createTreeSimplificationControls();
+  QLayout* createButtons();  
 
   inline const MTree& mtree() const { return treeWidget_->mtree(); }
-  // inline const MTree& stree() const { return treeWidget_->stree(); }
-
   inline uint32 numberOfNodesMtree() const { return treeWidget_->mtree().numberOfNodes(); }
-  // inline uint32 numberOfNodesSTree() const { return treeWidget_->stree().numberOfNodes(); }
-
-  // std::shared_ptr<TreeSimplification> duplicateTreeSimplification();    
 
 public: 
 signals: 
@@ -139,28 +128,11 @@ protected slots:
   void greyRecPlusBtn_press(); 
   void skelRecBtn_press(); 
   void removeSkelBtn_press();
-
-  void inspectNodePlusBtn_press();
-  void inspectNodeMinusBtn_press();
-
-  void numberLeavesSlider_onValueChange(int val);
-  void areaSlider_onValueChange(int val);
-  void areaDiffSlider_onValueChange(int val);
-
-
+  
 private:
   IcicleMorphotreeWidget::IcicleMorphotreeWidget *treeWidget_;
   morphotree::Box domain_;
-
-  QSlider *numberLeavesSlider_;
-  QLabel *numberLeavesValueLabel_;
-
-  QSlider *areaSlider_;
-  QLabel *areaValueLabel_;
-
-  QSlider *areaDiffSlider_;
-  QLabel *areaDiffValueLabel_;
-
+  
   GNode* curNodeSelection_;
 
   MyDockWidget *binRecDock_;
@@ -169,8 +141,7 @@ private:
   MyDockWidget *removeSkelDock_;
 
   MainWidget *mainWidget_;
-  // std::shared_ptr<TreeSimplification> treeSimplification_;
-
+    
   dmdProcess dmd_;
   dmdReconstruct* dmdrecon_;
 

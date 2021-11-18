@@ -3,7 +3,7 @@
 #include <QWidget>
 #include <QString>
 #include <ImageViewerWidget/ImageViewerWidget.hpp>
-#include <IcicleMorphotreeWidget/Graphics/GNode.hpp>
+#include <IcicleMorphotreeWidget/Graphics/Node/GNode.hpp>
 
 #include "TreeVisualiser/TreeVisualiser.hpp"
 #include "InteractiveSdmd.hpp"

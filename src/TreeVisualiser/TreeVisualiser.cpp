@@ -1,11 +1,13 @@
 // #include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
-#include <IcicleMorphotreeWidget/Graphics/GNodeEventHandler.hpp>
+#include <IcicleMorphotreeWidget/Graphics/Node/GNodeEventHandler.hpp>
+#include <IcicleMorphotreeWidget/Graphics/Node/GNodeFactory.hpp>
 #include <MainWidget.hpp>
 
 #include "MainWidget.hpp"
 #include "TreeVisualiser/TreeVisualiser.hpp"
 
 #include <morphotree/tree/mtree.hpp>
+#include <algorithm>
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -46,11 +48,13 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     greyRecDock_{nullptr},
     skelRecDock_{nullptr},
     removeSkelDock_{nullptr},
-    curColorBar_{nullptr}
+    curColorBar_{nullptr},
+    maxValue_{0}
 {  
   using GNodeEventHandler = IcicleMorphotreeWidget::GNodeEventHandler;
   using FixedHeightTreeLayout = IcicleMorphotreeWidget::FixedHeightTreeLayout;    
   using GrayscaleBasedHeightTreeLayout = IcicleMorphotreeWidget::GrayscaleBasedHeightTreeLayout;
+  using GradientGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory;                                                       
   using IcicleMorphotreeWidget = IcicleMorphotreeWidget::IcicleMorphotreeWidget;
 
   QLayout *mainLayout = new QVBoxLayout;
@@ -58,8 +62,11 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
 
   mainLayout->addItem(btnLayout);  
   
+
   treeWidget_ = new IcicleMorphotreeWidget{this, 
-    std::make_unique<GrayscaleBasedHeightTreeLayout>(20.f, 20.f, 10.f)};
+    std::make_unique<GrayscaleBasedHeightTreeLayout>(
+      std::make_unique<GradientGNodeFactory>(),
+      20.f, 20.f, 10.f)};
 
   mainLayout->addWidget(treeWidget_);
 
@@ -111,6 +118,23 @@ QLayout *TreeVisualiser::createButtons()
   return btnLayout;
 }
 
+void TreeVisualiser::useGradientGNodeStyle()
+{  
+  using GradientNodeGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory; 
+  treeWidget_->removeGrayScaleBar();
+  treeWidget_->setGNodeFactory(std::make_unique<GradientNodeGNodeFactory>());
+  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, 10.f);
+}
+
+void TreeVisualiser::useFixedColorGNodeStyle()
+{
+  using FixedColorGNodeFactory = IcicleMorphotreeWidget::FixedColorGNodeFactory;
+  treeWidget_->removeGrayScaleBar();
+  treeWidget_->setGNodeFactory(std::make_unique<FixedColorGNodeFactory>());
+  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, 10.f);
+  
+}
+
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 {  
   // namespace mw = MorphotreeWidget;
@@ -118,6 +142,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
   if (treeWidget_->hasAttributes()) 
     clearAttributes();
 
+  maxValue_ = static_cast<uint32>(*std::max_element(f.begin(), f.end()));
   curNodeSelection_ = nullptr;
   // if (treeWidget_->treeSimplification() == nullptr) 
   //   treeWidget_->loadImage(domain, f, 
@@ -128,7 +153,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 
   treeWidget_->removeGrayScaleBar();
     // TODO: Make it dynamic  
-  treeWidget_->addGrayScaleBar(256, 10.f, 10.f);
+  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, 10.f);
 
 
   domain_ = domain;

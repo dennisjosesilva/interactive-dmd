@@ -4,7 +4,7 @@
 #include <QImage>
 #include <QMap>
 
-#include <IcicleMorphotreeWidget/Graphics/GNode.hpp>
+#include <IcicleMorphotreeWidget/Graphics/Node/GNode.hpp>
 #include <IcicleMorphotreeWidget/IcicleMorphotreeWidget.hpp>
 #include <IcicleMorphotreeWidget/Graphics/ColorBar.hpp>
 #include "TreeVisualiser/SimpleImageViewer.hpp"
@@ -26,8 +26,6 @@ class RecNodeButton;
 class QGraphicsSceneMouseEvent;
 class MainWidget;
 class QSlider;
-
-
 
 class MyDockWidget : public QDockWidget
 {
@@ -92,6 +90,9 @@ public:
   std::vector<bool> recSimpleNode() const;
   std::vector<bool> recFullNode() const;
 
+  void useGradientGNodeStyle();
+  void useFixedColorGNodeStyle();
+
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   
@@ -107,6 +108,8 @@ protected:
 
   inline const MTree& mtree() const { return treeWidget_->mtree(); }
   inline uint32 numberOfNodesMtree() const { return treeWidget_->mtree().numberOfNodes(); }
+
+  
 
 public: 
 signals: 
@@ -130,6 +133,7 @@ protected slots:
   void removeSkelBtn_press();
   
 private:
+  uint32 maxValue_;
   IcicleMorphotreeWidget::IcicleMorphotreeWidget *treeWidget_;
   morphotree::Box domain_;
   

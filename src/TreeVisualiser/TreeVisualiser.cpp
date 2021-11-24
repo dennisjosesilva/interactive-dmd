@@ -121,6 +121,7 @@ QLayout *TreeVisualiser::createButtons()
 void TreeVisualiser::useGradientGNodeStyle()
 {  
   using GradientNodeGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory; 
+  curNodeSelection_ = nullptr;
   treeWidget_->removeGrayScaleBar();
   treeWidget_->setGNodeFactory(std::make_unique<GradientNodeGNodeFactory>());
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, 10.f);
@@ -129,10 +130,10 @@ void TreeVisualiser::useGradientGNodeStyle()
 void TreeVisualiser::useFixedColorGNodeStyle()
 {
   using FixedColorGNodeFactory = IcicleMorphotreeWidget::FixedColorGNodeFactory;
+  curNodeSelection_ = nullptr;
   treeWidget_->removeGrayScaleBar();
   treeWidget_->setGNodeFactory(std::make_unique<FixedColorGNodeFactory>());
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, 10.f);
-  
 }
 
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)

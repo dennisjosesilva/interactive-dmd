@@ -123,12 +123,13 @@ void MainWindow::createTreeVisualiserMenus()
     &MainWindow::gradientGNodeStyleAct_onTriggered);
   gradientGNodeStyleAct_->setToolTip(tr("Node rendered with a gradient from left to right."));
   gradientGNodeStyleAct_->setCheckable(true);  
+  gradientGNodeStyleAct_->setChecked(true);
 
   fixedColorGNodeStyleAct_ = treeVisMenu_->addAction(tr("Flat color"), this, 
     &MainWindow::fixedColorGNodeStyleAct_onTriggered);
   fixedColorGNodeStyleAct_->setToolTip("Node rendered with a fixed color");
   fixedColorGNodeStyleAct_->setCheckable(true);  
-
+  
   treeVisMenu_->setEnabled(false);
 }
 

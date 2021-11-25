@@ -81,5 +81,6 @@ private:
   QMenu *treeVisMenu_;
   QAction *gradientGNodeStyleAct_;
   QAction *fixedColorGNodeStyleAct_;
+  
     
 };

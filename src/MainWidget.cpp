@@ -53,6 +53,7 @@ MainWidget::MainWidget(QWidget *parent)
   connect(treeVis_, &TreeVisualiser::nodeUnselected, this, &MainWidget::treeVis_NodeUnselected);
 
   imageViewer_->scrollAreaWidget()->viewport()->installEventFilter(this);
+  
 
   setLayout(mainLayout);
 }

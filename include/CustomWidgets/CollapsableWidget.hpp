@@ -2,10 +2,10 @@
 
 #include <QWidget>
 
-class QPushButton;
+class OrientablePushButton;
 class QLayout;
 
-class CollapsableWidget : QWidget
+class CollapsableWidget : public QWidget
 {
   Q_OBJECT
   
@@ -15,7 +15,7 @@ public:
   CollapsableWidget(const QString &title,
     QWidget *mainWidget, QWidget *parent=nullptr);
 
-  inline QWidget *mainWidget() { mainWidget_; }
+  inline QWidget *mainWidget() { return mainWidget_; }
   void setMainWidget(QWidget *mainWidget);
 
 
@@ -23,7 +23,7 @@ protected:
   void expandableBtn_onTrigged();
   
 private:
-  QPushButton *expandableBtn_;
+  OrientablePushButton *expandableBtn_;
   QWidget *mainWidget_;
   QLayout *layout_;
 };

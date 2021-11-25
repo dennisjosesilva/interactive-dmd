@@ -24,6 +24,8 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+#include "CustomWidgets/CollapsableWidget.hpp"
+
 MyDockWidget::MyDockWidget(const QString &title, QWidget *mainwindow)
   :QDockWidget{title, mainwindow}  
 {}
@@ -58,21 +60,26 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   using IcicleMorphotreeWidget = IcicleMorphotreeWidget::IcicleMorphotreeWidget;
 
   QLayout *mainLayout = new QVBoxLayout;
+  QLayout *controlsLayout = new QHBoxLayout;
   QLayout *btnLayout = createButtons();
 
   mainLayout->addItem(btnLayout);  
   
-
   treeWidget_ = new IcicleMorphotreeWidget{this, 
     std::make_unique<GrayscaleBasedHeightTreeLayout>(
       std::make_unique<GradientGNodeFactory>(),
       20.f, 20.f, 10.f)};
 
-  mainLayout->addWidget(treeWidget_);
+  controlsLayout->addWidget(treeWidget_);
+
+
+  CollapsableWidget *cw = new CollapsableWidget{"Style", new QWidget, this};
+  controlsLayout->addWidget(cw);  
 
   connect(GNodeEventHandler::Singleton(), &GNodeEventHandler::mousePress, 
     this, &TreeVisualiser::nodeMousePress);
   
+  mainLayout->addItem(controlsLayout);
   setLayout(mainLayout);
 }
 

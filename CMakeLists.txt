@@ -45,6 +45,8 @@ qt5_wrap_cpp(PROJECT_SOURCE
   include/CustomWidgets/LabelWithProgressBar.hpp
   include/CustomWidgets/ClosableDockWidget.hpp
   include/CustomWidgets/TitleColorBar.hpp
+  include/CustomWidgets/CollapsableWidget.hpp
+  include/CustomWidgets/OrientablePushButton.hpp
   include/ManipulateCPs/ManipulateCPs.hpp
   include/ManipulateCPs/CpViewer.hpp
   include/ManipulateCPs/node.hpp

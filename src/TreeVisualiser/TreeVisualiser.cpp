@@ -25,6 +25,7 @@
 #include <QPushButton>
 
 #include "CustomWidgets/CollapsableWidget.hpp"
+#include "TreeVisualiser/TreeVisualiserStylePanel.hpp"
 
 MyDockWidget::MyDockWidget(const QString &title, QWidget *mainwindow)
   :QDockWidget{title, mainwindow}  
@@ -73,7 +74,9 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   controlsLayout->addWidget(treeWidget_);
 
 
-  CollapsableWidget *cw = new CollapsableWidget{"Style", new QWidget, this};
+  TreeVisualiserStylePanel *tl = new TreeVisualiserStylePanel{this, this};
+
+  CollapsableWidget *cw = new CollapsableWidget{"Style", tl, this};
   controlsLayout->addWidget(cw);  
 
   connect(GNodeEventHandler::Singleton(), &GNodeEventHandler::mousePress, 

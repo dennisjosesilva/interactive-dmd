@@ -10,7 +10,7 @@ class CollapsableWidget : public QWidget
   Q_OBJECT
   
 public:
-  enum class ExpandableStatus { Expanded, Collapsed };
+  enum Status { Expanded, Collapsed };
 
   CollapsableWidget(const QString &title,
     QWidget *mainWidget, QWidget *parent=nullptr);
@@ -18,6 +18,7 @@ public:
   inline QWidget *mainWidget() { return mainWidget_; }
   void setMainWidget(QWidget *mainWidget);
 
+  inline Status status() const { return status_; }
 
 protected:
   void expandableBtn_onTrigged();
@@ -26,4 +27,6 @@ private:
   OrientablePushButton *expandableBtn_;
   QWidget *mainWidget_;
   QLayout *layout_;
+
+  Status status_;
 };

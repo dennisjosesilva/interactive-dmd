@@ -9,7 +9,8 @@
 CollapsableWidget::CollapsableWidget(const QString &title, QWidget *mainWidget, 
   QWidget *parent)
   :QWidget{parent},
-   mainWidget_{mainWidget}
+   mainWidget_{mainWidget},
+   status_{Expanded}
 {
   expandableBtn_ = new OrientablePushButton{title, this};
   expandableBtn_->setOrientation(OrientablePushButton::VerticalTopToBottom);
@@ -17,6 +18,7 @@ CollapsableWidget::CollapsableWidget(const QString &title, QWidget *mainWidget,
 
   layout_ = new QHBoxLayout;
   layout_->addWidget(expandableBtn_);
+  layout_->addWidget(mainWidget_);
 
   connect(expandableBtn_, &QPushButton::clicked, this, 
     &CollapsableWidget::expandableBtn_onTrigged);
@@ -24,8 +26,17 @@ CollapsableWidget::CollapsableWidget(const QString &title, QWidget *mainWidget,
   setLayout(layout_);
 }
 
-
 void CollapsableWidget::expandableBtn_onTrigged()
 {  
-  qDebug() << "Blah";
+  switch (status_)
+  {
+  case Collapsed:
+    layout_->addWidget(mainWidget_);
+    status_ = Expanded;
+    break;  
+  case Expanded:
+    layout_->removeWidget(mainWidget_);
+    status_ = Collapsed;
+    break;
+  }
 }

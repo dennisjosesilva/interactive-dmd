@@ -3,6 +3,7 @@
 #include <QFrame>
 
 class QLabel;
+class QGroupBox;
 class TreeVisualiser;
 class QLayout;
 
@@ -14,6 +15,10 @@ public:
 
 protected:
   QLayout* createTitle();
+  QGroupBox *createRenderStyleSection();
+  QLayout *createMeasuresSection();
+
+  QWidget *createHLine();
 
 private:
   QLabel *title_;

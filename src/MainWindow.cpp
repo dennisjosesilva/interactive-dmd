@@ -78,8 +78,7 @@ void MainWindow::createMenus()
   exitAct->setToolTip("Finalise the application");
   exitAct->setShortcut(tr("Ctrl+Q"));
 
-  createTreeAttributeVisualitionMenus();
-  createTreeVisualiserMenus();
+  createTreeAttributeVisualitionMenus();  
 }
 
 void MainWindow::createTreeAttributeVisualitionMenus()
@@ -112,26 +111,6 @@ void MainWindow::createTreeAttributeVisualitionMenus()
   nskelptAct_->setToolTip("Show colormap for attribute number of skeleton points.");
 
   attrVisMenu_->setEnabled(false);  
-}
-
-void MainWindow::createTreeVisualiserMenus()
-{
-  treeVisMenu_ = menuBar()->addMenu(tr("&Tree Visualiser"));
-
-  treeVisMenu_->addSection(tr("Node style"));  
-
-  gradientGNodeStyleAct_ = treeVisMenu_->addAction(tr("Gradient Node"), this, 
-    &MainWindow::gradientGNodeStyleAct_onTriggered);
-  gradientGNodeStyleAct_->setToolTip(tr("Node rendered with a gradient from left to right."));
-  gradientGNodeStyleAct_->setCheckable(true);  
-  gradientGNodeStyleAct_->setChecked(true);
-
-  fixedColorGNodeStyleAct_ = treeVisMenu_->addAction(tr("Flat color"), this, 
-    &MainWindow::fixedColorGNodeStyleAct_onTriggered);
-  fixedColorGNodeStyleAct_->setToolTip("Node rendered with a fixed color");
-  fixedColorGNodeStyleAct_->setCheckable(true);  
-  
-  treeVisMenu_->setEnabled(false);
 }
 
 void MainWindow::uncheckAttrVisActs()
@@ -243,13 +222,11 @@ void MainWindow::open()
         .arg(image.width()).arg(image.height()), 3000); 
       
       shouldUpdateProgressBar_ = true;
-      attrVisMenu_->setEnabled(false);
-      treeVisMenu_->setEnabled(false);
+      attrVisMenu_->setEnabled(false);      
       uncheckAttrVisActs();
       if (showTreeVisAct_->isChecked()) {
         showProgressBar();
         attrVisMenu_->setEnabled(true);
-        treeVisMenu_->setEnabled(true);
         mainWidget_->updateTreeVisualiser();
       }
     }
@@ -289,7 +266,6 @@ void MainWindow::treeVisAct_onToggled(bool checked)
   if (shouldUpdateProgressBar_) {
     showProgressBar();
     attrVisMenu_->setEnabled(true);
-    treeVisMenu_->setEnabled(true);
   }
 
   QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
@@ -392,32 +368,6 @@ void MainWindow::nskelptAct_onTriggered(bool checked)
     mainWidget_->treeVisualiser()->showNumberOfSkeletonPoints();
   else
     mainWidget_->treeVisualiser()->clearAttributes();
-}
-
-void MainWindow::gradientGNodeStyleAct_onTriggered(bool checked)
-{
-  if (checked) {    
-    mainWidget_->treeVisualiser()->useGradientGNodeStyle();
-    fixedColorGNodeStyleAct_->setChecked(false);
-  }
-  else {
-    mainWidget_->treeVisualiser()->useFixedColorGNodeStyle();
-    gradientGNodeStyleAct_->setChecked(false);
-    fixedColorGNodeStyleAct_->setChecked(true);
-  }
-}
-
-void MainWindow::fixedColorGNodeStyleAct_onTriggered(bool checked)
-{
-  if (checked) {    
-    mainWidget_->treeVisualiser()->useFixedColorGNodeStyle();
-    gradientGNodeStyleAct_->setChecked(false);
-  }
-  else {
-    mainWidget_->treeVisualiser()->useGradientGNodeStyle();
-    fixedColorGNodeStyleAct_->setChecked(false);
-    gradientGNodeStyleAct_->setChecked(true);
-  }
 }
 
 void MainWindow::nodeHighlightAct_onTriggered(bool checked)

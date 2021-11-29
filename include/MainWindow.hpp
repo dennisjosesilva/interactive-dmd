@@ -41,14 +41,10 @@ private slots:
   void nskelptAct_onTriggered(bool checked);
 
   void nodeHighlightAct_onTriggered(bool checked);
-
-  void gradientGNodeStyleAct_onTriggered(bool checked);
-  void fixedColorGNodeStyleAct_onTriggered(bool checked);
-
+  
 private:
   void createMenus();  
-  void createTreeAttributeVisualitionMenus();
-  void createTreeVisualiserMenus();
+  void createTreeAttributeVisualitionMenus();  
   void uncheckAttrVisActs();
 
   void createToolBar();
@@ -76,11 +72,5 @@ private:
   QAction *volumeAct_;
   QAction *circularityAct_;
   QAction *complexityAct_;
-  QAction *nskelptAct_;
-
-  QMenu *treeVisMenu_;
-  QAction *gradientGNodeStyleAct_;
-  QAction *fixedColorGNodeStyleAct_;
-  
-    
+  QAction *nskelptAct_;  
 };

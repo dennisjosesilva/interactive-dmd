@@ -93,6 +93,11 @@ public:
   void useGradientGNodeStyle();
   void useFixedColorGNodeStyle();
 
+  float unitHeightNode() const;
+  void setUnitHeightNode(float val);
+
+  inline void updateTreeRendering() { treeWidget_->updateTreeRendering(); }
+
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   
@@ -108,8 +113,6 @@ protected:
 
   inline const MTree& mtree() const { return treeWidget_->mtree(); }
   inline uint32 numberOfNodesMtree() const { return treeWidget_->mtree().numberOfNodes(); }
-
-  
 
 public: 
 signals: 

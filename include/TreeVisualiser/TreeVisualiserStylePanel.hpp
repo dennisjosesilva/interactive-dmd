@@ -4,7 +4,9 @@
 
 class QLabel;
 class QGroupBox;
+class QRadioButton;
 class TreeVisualiser;
+class QDoubleSpinBox;
 class QLayout;
 
 class TreeVisualiserStylePanel : public QFrame
@@ -20,7 +22,16 @@ protected:
 
   QWidget *createHLine();
 
+protected slots:
+  void unitHeightSpinBox_onValueChanged(double val);
+  void radioButtonRenderStyle_onToogle(bool checked);
+
 private:
   QLabel *title_;
+
+  QDoubleSpinBox *unitHeightSpinBox_;
+  QRadioButton *flatRadioButton_;
+  QRadioButton *gradientRadioButton_;
+
   TreeVisualiser *treeVis_;
 };

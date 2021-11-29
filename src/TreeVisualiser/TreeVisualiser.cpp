@@ -73,7 +73,6 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
 
   controlsLayout->addWidget(treeWidget_);
 
-
   TreeVisualiserStylePanel *tl = new TreeVisualiserStylePanel{this, this};
 
   CollapsableWidget *cw = new CollapsableWidget{"Style", tl, this};
@@ -132,18 +131,51 @@ void TreeVisualiser::useGradientGNodeStyle()
 {  
   using GradientNodeGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory; 
   curNodeSelection_ = nullptr;
+  float unitHeight = unitHeightNode();
   treeWidget_->removeGrayScaleBar();
   treeWidget_->setGNodeFactory(std::make_unique<GradientNodeGNodeFactory>());
-  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, 10.f);
+  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);
+  update();
 }
 
 void TreeVisualiser::useFixedColorGNodeStyle()
 {
   using FixedColorGNodeFactory = IcicleMorphotreeWidget::FixedColorGNodeFactory;
   curNodeSelection_ = nullptr;
+  float unitHeight = unitHeightNode();
   treeWidget_->removeGrayScaleBar();
   treeWidget_->setGNodeFactory(std::make_unique<FixedColorGNodeFactory>());
-  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, 10.f);
+  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);
+  treeWidget_->updateTreeRendering();
+  update();
+}
+
+float TreeVisualiser::unitHeightNode() const
+{
+  using GrayScaleBasedHeightTreeLayout = IcicleMorphotreeWidget::GrayscaleBasedHeightTreeLayout;
+  using GrayScaleBasedHeightTreeLayoutPtr = std::shared_ptr<GrayScaleBasedHeightTreeLayout>;
+
+  GrayScaleBasedHeightTreeLayoutPtr treeLayout = 
+    std::dynamic_pointer_cast<GrayScaleBasedHeightTreeLayout>(treeWidget_->treeLayout());
+  
+  return treeLayout->uniHeight();
+}
+
+void TreeVisualiser::setUnitHeightNode(float val)
+{
+  using GrayScaleBasedHeightTreeLayout = IcicleMorphotreeWidget::GrayscaleBasedHeightTreeLayout;
+  using GrayScaleBasedHeightTreeLayoutPtr = std::shared_ptr<GrayScaleBasedHeightTreeLayout>;
+
+  curNodeSelection_ = nullptr;
+  GrayScaleBasedHeightTreeLayoutPtr treeLayout = 
+    std::dynamic_pointer_cast<GrayScaleBasedHeightTreeLayout>(treeWidget_->treeLayout());
+
+  treeLayout->setUniHeight(val);
+
+  if (treeWidget_->grayscaleBar() != nullptr) 
+    treeWidget_->grayscaleBar()->setUnitHeight(val);
+
+  treeWidget_->updateTreeRendering();
 }
 
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)

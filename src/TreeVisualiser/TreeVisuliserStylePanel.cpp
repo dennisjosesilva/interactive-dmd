@@ -1,3 +1,4 @@
+#include "TreeVisualiser/TreeVisualiser.hpp"
 #include "TreeVisualiser/TreeVisualiserStylePanel.hpp"
 
 #include <QLabel>
@@ -6,15 +7,17 @@
 #include <QGroupBox>
 #include <QRadioButton>
 #include <QDoubleSpinBox>
+#include <QDebug>
 
 
 TreeVisualiserStylePanel::TreeVisualiserStylePanel(TreeVisualiser *treeVis, 
   QWidget *parent): QFrame{parent}, treeVis_{treeVis}
 {
-  QLayout *layout = new QVBoxLayout;
+  QVBoxLayout *layout = new QVBoxLayout;
   layout->addItem(createTitle());
   layout->addWidget(createRenderStyleSection());
   layout->addItem(createMeasuresSection());
+  layout->addStretch();
   setLayout(layout);
 }
 
@@ -46,12 +49,18 @@ QGroupBox *TreeVisualiserStylePanel::createRenderStyleSection()
   QLayout *layout = new QVBoxLayout;
 
   QGroupBox *groupBox = new QGroupBox{tr("Render Style")};
-  QRadioButton *flatRadioButton = new QRadioButton{tr("Flat")};
-  QRadioButton *gradientRadioButton = new QRadioButton{tr("Gradient")};
-  gradientRadioButton->setChecked(true);
+  
+  flatRadioButton_ = new QRadioButton{tr("Flat")};  
+  connect(flatRadioButton_, &QRadioButton::toggled, this, 
+    &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
+  
+  gradientRadioButton_ = new QRadioButton{tr("Gradient")};
+  gradientRadioButton_->setChecked(true);
+  connect(gradientRadioButton_, &QRadioButton::toggled, this,
+    &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
 
-  layout->addWidget(flatRadioButton);
-  layout->addWidget(gradientRadioButton);
+  layout->addWidget(flatRadioButton_);
+  layout->addWidget(gradientRadioButton_);
 
   groupBox->setLayout(layout);
   return groupBox;
@@ -68,13 +77,34 @@ QLayout *TreeVisualiserStylePanel::createMeasuresSection()
   QLayout *unitHeightLayout = new QHBoxLayout;
   QLabel *uniHeightLabel = new QLabel{tr("Unit Height: "), this};
   
-  QDoubleSpinBox *unitHeightSpinBox = new QDoubleSpinBox{this};
-  unitHeightSpinBox->setRange(0.1, 80);
-  unitHeightSpinBox->setSingleStep(0.5);
-  unitHeightSpinBox->setValue(5.0);
+  unitHeightSpinBox_ = new QDoubleSpinBox{this};
+  unitHeightSpinBox_->setRange(0.1, 80);
+  unitHeightSpinBox_->setSingleStep(0.5);
+  unitHeightSpinBox_->setValue(treeVis_->unitHeightNode());
   unitHeightLayout->addWidget(uniHeightLabel);
-  unitHeightLayout->addWidget(unitHeightSpinBox);
+  unitHeightLayout->addWidget(unitHeightSpinBox_);
+  connect(unitHeightSpinBox_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+    &TreeVisualiserStylePanel::unitHeightSpinBox_onValueChanged);
 
   layout->addItem(unitHeightLayout);
   return layout;
+}
+
+void TreeVisualiserStylePanel::unitHeightSpinBox_onValueChanged(double val)
+{
+  treeVis_->setUnitHeightNode(val);  
+}
+
+void TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle(bool checked)
+{
+  if (checked) {
+    QRadioButton *checkedBtn = static_cast<QRadioButton *>(sender());
+
+    if (checkedBtn == flatRadioButton_) {
+      treeVis_->useFixedColorGNodeStyle();      
+    }
+    else if (checkedBtn == gradientRadioButton_) {
+      treeVis_->useGradientGNodeStyle();      
+    }
+  }
 }

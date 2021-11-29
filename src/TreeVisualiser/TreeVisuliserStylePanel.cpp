@@ -101,10 +101,12 @@ void TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle(bool checked)
     QRadioButton *checkedBtn = static_cast<QRadioButton *>(sender());
 
     if (checkedBtn == flatRadioButton_) {
-      treeVis_->useFixedColorGNodeStyle();      
+      treeVis_->useFixedColorGNodeStyle();
+      treeVis_->updateGeometry(); 
     }
     else if (checkedBtn == gradientRadioButton_) {
       treeVis_->useGradientGNodeStyle();      
+      treeVis_->updateGeometry();
     }
   }
 }

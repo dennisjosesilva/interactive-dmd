@@ -135,7 +135,7 @@ void TreeVisualiser::useGradientGNodeStyle()
   treeWidget_->removeGrayScaleBar();
   treeWidget_->setGNodeFactory(std::make_unique<GradientNodeGNodeFactory>());
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);
-  update();
+  treeWidget_->adjustSize();
 }
 
 void TreeVisualiser::useFixedColorGNodeStyle()
@@ -147,7 +147,7 @@ void TreeVisualiser::useFixedColorGNodeStyle()
   treeWidget_->setGNodeFactory(std::make_unique<FixedColorGNodeFactory>());
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);
   treeWidget_->updateTreeRendering();
-  update();
+  treeWidget_->adjustSize();
 }
 
 float TreeVisualiser::unitHeightNode() const

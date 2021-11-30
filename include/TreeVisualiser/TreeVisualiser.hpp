@@ -96,6 +96,7 @@ public:
   float unitHeightNode() const;
   void setUnitHeightNode(float val);
 
+  inline void resetCache() { treeWidget_->resetCachedContent(); }
   inline void updateTreeRendering() { treeWidget_->updateTreeRendering(); }
 
 protected:  

@@ -25,17 +25,27 @@ CollapsableWidget::CollapsableWidget(const QString &title, QWidget *mainWidget,
   setLayout(layout_);
 }
 
+void CollapsableWidget::collapse()
+{
+  layout_->removeWidget(mainWidget_);
+  status_ = Collapsed;  
+}
+
+void CollapsableWidget::expand()
+{
+  layout_->addWidget(mainWidget_);
+  status_ = Expanded;
+}
+
 void CollapsableWidget::expandableBtn_onTrigged()
 {  
   switch (status_)
   {
   case Collapsed:
-    layout_->addWidget(mainWidget_);
-    status_ = Expanded;
+    expand();
     break;  
   case Expanded:
-    layout_->removeWidget(mainWidget_);
-    status_ = Collapsed;
+    collapse();  
     break;
   }
 }

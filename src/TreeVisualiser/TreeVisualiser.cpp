@@ -71,16 +71,15 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
       std::make_unique<GradientGNodeFactory>(),
       20.f, 20.f, 10.f)};
 
-  controlsLayout->addWidget(treeWidget_);
-
-  TreeVisualiserStylePanel *tl = new TreeVisualiserStylePanel{this, this};
-
-  CollapsableWidget *cw = new CollapsableWidget{"Style", tl, this};
-  controlsLayout->addWidget(cw);  
+  controlsLayout->addWidget(treeWidget_);  
 
   connect(GNodeEventHandler::Singleton(), &GNodeEventHandler::mousePress, 
     this, &TreeVisualiser::nodeMousePress);
   
+  TreeVisualiserStylePanel *tl = new TreeVisualiserStylePanel{this, nullptr};  
+  CollapsableWidget *cw = new CollapsableWidget{"Style", tl, this};  
+  controlsLayout->addWidget(cw);    
+
   mainLayout->addItem(controlsLayout);
   setLayout(mainLayout);
 }
@@ -134,8 +133,8 @@ void TreeVisualiser::useGradientGNodeStyle()
   float unitHeight = unitHeightNode();
   treeWidget_->removeGrayScaleBar();
   treeWidget_->setGNodeFactory(std::make_unique<GradientNodeGNodeFactory>());
-  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);
-  treeWidget_->adjustSize();
+  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);  
+  treeWidget_->updateTreeRendering();
 }
 
 void TreeVisualiser::useFixedColorGNodeStyle()
@@ -146,8 +145,7 @@ void TreeVisualiser::useFixedColorGNodeStyle()
   treeWidget_->removeGrayScaleBar();
   treeWidget_->setGNodeFactory(std::make_unique<FixedColorGNodeFactory>());
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);
-  treeWidget_->updateTreeRendering();
-  treeWidget_->adjustSize();
+  treeWidget_->updateTreeRendering();   
 }
 
 float TreeVisualiser::unitHeightNode() const

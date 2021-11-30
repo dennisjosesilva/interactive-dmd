@@ -18,6 +18,9 @@ public:
   inline QWidget *mainWidget() { return mainWidget_; }
   void setMainWidget(QWidget *mainWidget);
 
+  void collapse();
+  void expand();
+
   inline Status status() const { return status_; }
 
 protected:

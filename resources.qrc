@@ -25,5 +25,9 @@
   <file>images/clear_screen_icon.png</file>
   <file>images/clear_image_icon.png</file>
   <file>images/ellipse_icon.png</file>
+  <file>images/iciclemorphotree_icon.png</file>
+  <file>images/icicle_node_selection_pixel_icon.png</file>
+  <file>images/icicle_node_inclusion_icon.png</file>
+  <file>images/icicle_node_removal_icon.png</file>
 </qresource>
 </RCC>

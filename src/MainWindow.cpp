@@ -129,14 +129,14 @@ void MainWindow::createToolBar()
   toolbar->setIconSize(QSize{32, 32});
 
   // ============ MORPHOTREE NODE ========
-  const QIcon showTreeIcon = QIcon(":/images/morphotree_icon.png");  
+  const QIcon showTreeIcon = QIcon(":/images/iciclemorphotree_icon.png");  
   showTreeVisAct_ = new QAction(showTreeIcon, tr("Show morphotree"), this);
   showTreeVisAct_->setStatusTip(tr("Show Morphotree Widget for the current image"));
   showTreeVisAct_->setCheckable(true);
   connect(showTreeVisAct_, &QAction::toggled, this, &MainWindow::treeVisAct_onToggled);
   toolbar->addAction(showTreeVisAct_);
 
-  const QIcon nodeSelectionClickIcon = QIcon(":/images/node_selection_pixel_icon.png");
+  const QIcon nodeSelectionClickIcon = QIcon(":/images/icicle_node_selection_pixel_icon.png");
   nodeSelectionClickAct_ = new QAction(nodeSelectionClickIcon, 
     tr("Node selection by pixel click"), this);
   nodeSelectionClickAct_->setStatusTip(tr("Toogle node selection by pixel click."));

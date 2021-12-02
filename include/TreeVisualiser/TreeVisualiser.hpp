@@ -99,7 +99,7 @@ public:
 
   inline void resetCache() { treeWidget_->resetCachedContent(); }
   inline void updateTreeRendering() { treeWidget_->updateTreeRendering(); }
-
+  
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   
@@ -115,6 +115,8 @@ protected:
 
   inline const MTree& mtree() const { return treeWidget_->mtree(); }
   inline uint32 numberOfNodesMtree() const { return treeWidget_->mtree().numberOfNodes(); }
+
+  void updateTransparencyOfTheNodes();
 
 public: 
 signals: 
@@ -160,5 +162,5 @@ private:
   TitleColorBar *curColorBar_;
   CpViewer *cv = nullptr;
 
-  QVector<bool> includedNodes_;
+  QVector<bool> selectedNodesForRec_;
 };

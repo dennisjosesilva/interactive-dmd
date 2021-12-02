@@ -138,6 +138,14 @@ QLayout *TreeVisualiser::createButtons()
   return btnLayout;
 }
 
+void TreeVisualiser::updateTransparencyOfTheNodes()
+{
+  for (unsigned int i = 0; i < selectedNodesForRec_.size(); i++) {
+    if (!selectedNodesForRec_[i])
+      treeWidget_->gnodes()[i]->setOpacity(0.35f);
+  }
+}
+
 void TreeVisualiser::useGradientGNodeStyle()
 {  
   using GradientNodeGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory; 
@@ -147,6 +155,8 @@ void TreeVisualiser::useGradientGNodeStyle()
   treeWidget_->setGNodeFactory(std::make_unique<GradientNodeGNodeFactory>());
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);  
   treeWidget_->updateTreeRendering();
+
+  updateTransparencyOfTheNodes();
 }
 
 void TreeVisualiser::useFixedColorGNodeStyle()
@@ -158,6 +168,8 @@ void TreeVisualiser::useFixedColorGNodeStyle()
   treeWidget_->setGNodeFactory(std::make_unique<FixedColorGNodeFactory>());
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);
   treeWidget_->updateTreeRendering();   
+
+  updateTransparencyOfTheNodes();
 }
 
 float TreeVisualiser::unitHeightNode() const
@@ -186,6 +198,7 @@ void TreeVisualiser::setUnitHeightNode(float val)
     treeWidget_->grayscaleBar()->setUnitHeight(val);
 
   treeWidget_->updateTreeRendering();
+  updateTransparencyOfTheNodes();
 }
 
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
@@ -207,7 +220,9 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
   treeWidget_->removeGrayScaleBar();
     // TODO: Make it dynamic  
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, 10.f);
-
+  selectedNodesForRec_.clear();
+  selectedNodesForRec_.resize(treeWidget_->mtree().numberOfNodes());
+  selectedNodesForRec_.fill(true);
 
   domain_ = domain;
   dmd_.setProcessedImage(greyImageToField(f));  
@@ -616,12 +631,18 @@ void TreeVisualiser::removeSkelBtn_press()
 
 void TreeVisualiser::incNodeReconBtn_press()
 {
-
+  if (curNodeSelection_ != nullptr) {
+    selectedNodesForRec_[curNodeSelection_->mnode()->id()] = true;
+    curNodeSelection_->setOpacity(1.0f);
+  }
 }
 
 void TreeVisualiser::remNodeReconBtn_press()
 {
-
+  if (curNodeSelection_ != nullptr) {
+    selectedNodesForRec_[curNodeSelection_->mnode()->id()] = false;
+    curNodeSelection_->setOpacity(0.35f);
+  }
 }
 
 void TreeVisualiser::nodeMousePress(GNode *node, 

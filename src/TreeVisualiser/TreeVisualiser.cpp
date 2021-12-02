@@ -655,13 +655,13 @@ void TreeVisualiser::removeSkelBtn_press()
   //dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 0);
   
   // collect nodes that should be used in the reconstruction
-  vector<int> removedNodes;
+  vector<int> keptNodes;
   for (int i=0; i < selectedNodesForRec_.size(); ++i) {
-    if (!selectedNodesForRec_[i])
-      removedNodes.push_back(i);
+    if (selectedNodesForRec_[i])
+      keptNodes.push_back(i);
   }
       
-  dmdrecon_->ReconstructMultiNode(false, removedNodes, 0);
+  dmdrecon_->ReconstructMultiNode(false, keptNodes, 0);
   QImage img = fieldToQImage(dmdrecon_->getOutput());    
   iv->setImage(img);  
 }

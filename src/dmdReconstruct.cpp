@@ -383,7 +383,7 @@ void dmdReconstruct::readControlPoints(int width_, int height_, int clear_color,
 
 void dmdReconstruct::readIndexingControlPoints(int width_, int height_, int clear_color, multimap<int,int> Inty_Node){
    /**/ BSplineCurveFitterWindow3 readCPs;
-    IndexingSample = readCPs.ReadIndexingSpline();//loadIndexingSample();
+    IndexingSample = readCPs.ReadIndexingSpline();//get the reconstructed skeleton points
     IndexingCP = readCPs.get_indexingCP();
     width = width_;
     height = height_;
@@ -985,6 +985,78 @@ void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int 
                     /**/
                     }
                     else renderIndexingLayer(it.first, nodeID);
+                } 
+            }
+        }
+        
+        output->NewwritePGM("output.pgm");
+        printf("DMD finished!\n");
+    }
+
+    else printf("gray_levels is empty!");
+
+}
+
+void dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action){
+    //sort(nodesID.begin(),nodesID.end());//sort it from small num to large num, i,e., from root to leaves
+
+    firstTime = true;//for interpolation process.
+
+    //process the background color
+    if(action)
+    {
+        if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
+            initOutput(clearColor);
+        else initOutput(0);
+    } 
+    else{
+        if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
+            initOutput(0);
+        else  initOutput(clearColor); 
+    } 
+
+    if(!IndexingSample.empty()){
+        
+        int LastInty = 256;
+        for (auto const& it : Inty_node) { //for each graylevel(from small num to large num).
+            if(LastInty != it.first){
+                LastInty = it.first;
+                //cout<<"LastInty "<<LastInty<<"\t";
+                if(action){//highlight
+                    if(!interpolate){//Add interpolate later
+                        auto it1 = Inty_node.lower_bound(it.first);
+                        auto it2 = Inty_node.upper_bound(it.first);
+                        while(it1 != it2){//process all nodes for the current intensity
+                            int node_id = it1->second;
+                            if(std::find(nodesID.begin(), nodesID.end(), node_id) != nodesID.end()){//if nodesID contains node_id
+                                renderLayer(it.first, node_id);  
+                            }
+                            ++it1;
+                        } 
+                    } 
+                }
+                else{//else recon without the selected nodes-CCs
+                    if(interpolate){//Add interpolate later
+                       /* bool last_layer = false; 
+                        int SuperResolution = 1;
+                        auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
+                        //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());
+                        
+                        if(it.first == (int)max_level) last_layer = true;
+                        get_interp_layer(it.first, nodeID, SuperResolution, last_layer);
+                */
+                    }
+                    else{
+                        auto it1 = Inty_node.lower_bound(it.first);
+                        auto it2 = Inty_node.upper_bound(it.first);
+                        while(it1 != it2){//process all nodes for the current intensity
+                            int node_id = it1->second;
+                            if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()){//if nodesID doesn't contain node_id
+                                renderLayer(it.first, node_id);  
+                            }
+                            ++it1;
+                        } 
+                    }
                 } 
             }
         }

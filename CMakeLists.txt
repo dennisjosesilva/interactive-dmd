@@ -48,6 +48,7 @@ qt5_wrap_cpp(PROJECT_SOURCE
   include/CustomWidgets/TitleColorBar.hpp
   include/CustomWidgets/CollapsableWidget.hpp
   include/CustomWidgets/OrientablePushButton.hpp
+  include/CustomWidgets/ThresholdControl.hpp
   include/ManipulateCPs/ManipulateCPs.hpp
   include/ManipulateCPs/CpViewer.hpp
   include/ManipulateCPs/node.hpp

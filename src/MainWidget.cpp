@@ -23,7 +23,6 @@
 #include <QDebug>
 
 #include "TreeVisualiser/TreeVisualiser.hpp"
-
 #include "MainWindow.hpp"
 
 MainWidget::MainWidget(QWidget *parent)
@@ -38,12 +37,15 @@ MainWidget::MainWidget(QWidget *parent)
   QLayout *mainLayout = new QVBoxLayout;
 
   imageViewer_ = new iv::ImageViewerWidget{this};
+  ThresCtl = new ThresholdControl{this};
+
   treeVis_ = new TreeVisualiser{this};
   Interactive_sdmd = new InteractiveSdmd();
 
   createDockTreeVisualiser();
   createDockWidgetSdmd();
 
+  mainLayout->addWidget(ThresCtl);
   mainLayout->addWidget(imageViewer_);
 
   connect(imageViewer_, &iv::ImageViewerWidget::imageMousePress, 

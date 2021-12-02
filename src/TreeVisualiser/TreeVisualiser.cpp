@@ -613,69 +613,57 @@ void TreeVisualiser::SplineManipulateBtn_press()
 }
 void TreeVisualiser::skelRecBtn_press()
 {
-  if (curNodeSelection_ != nullptr) {
-    SimpleImageViewer *iv = nullptr;
-    if (skelRecDock_ == nullptr) {
-      iv = new SimpleImageViewer;
-      skelRecDock_ = mainWidget_->createDockWidget(tr("SDMD reconstruction of the selected nodes"), iv);
-      skelRecDock_->setGNode(curNodeSelection_);//?
-      connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
-      skelRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
-    }
-    else {
-      iv = qobject_cast<SimpleImageViewer *>(skelRecDock_->widget());
-    }
+  SimpleImageViewer *iv = nullptr;
+  if (skelRecDock_ == nullptr) {
+    iv = new SimpleImageViewer;
+    skelRecDock_ = mainWidget_->createDockWidget(tr("SDMD reconstruction of the selected nodes"), iv);
+    skelRecDock_->setGNode(curNodeSelection_);//?
+    connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
+    skelRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
+  }
+  else {
+    iv = qobject_cast<SimpleImageViewer *>(skelRecDock_->widget());
+  }
 
-    // NodePtr mnode = curNodeSelection_->mtreeNode();
-    NodePtr mnode = curNodeSelection_->mnode();
-    //dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 1);
-    vector<int> testID;
-    testID.push_back(0);
-    testID.push_back(1);
-    testID.push_back(4);
-    testID.push_back(3);
-    dmdrecon_->ReconstructMultiNode(false, testID, 1);
-    QImage img = fieldToQImage(dmdrecon_->getOutput());    
-    iv->setImage(img);
+  vector<int> keptNodes;
+  for (int i = 0; i < selectedNodesForRec_.size(); ++i) {
+    if (selectedNodesForRec_[i]) 
+      keptNodes.push_back(i);
   }
-  else{
-    QMessageBox::information(0, "For your information",
-        "Please select a node.");
-  }
-  
+
+  dmdrecon_->ReconstructMultiNode(false, keptNodes, 1);
+  QImage img = fieldToQImage(dmdrecon_->getOutput());    
+  iv->setImage(img);    
 }
 
 void TreeVisualiser::removeSkelBtn_press()
 {
-  if (curNodeSelection_ != nullptr) {
-    SimpleImageViewer *iv = nullptr;
-    if (removeSkelDock_ == nullptr) {
-      iv = new SimpleImageViewer;
-      removeSkelDock_ = mainWidget_->createDockWidget(tr("SDMD remove skeleton reconstruction"), iv);
-      removeSkelDock_->setGNode(curNodeSelection_);
-      connect(removeSkelDock_, &MyDockWidget::closed, this, &TreeVisualiser::removeSkelDock_onClose);
-      removeSkelDock_->resize(domain_.width() + 22, domain_.height() + 84);
-    }
-    else {
-      iv = qobject_cast<SimpleImageViewer *>(removeSkelDock_->widget());
-    }
+  SimpleImageViewer *iv = nullptr;
+  if (removeSkelDock_ == nullptr) {
+    iv = new SimpleImageViewer;
+    removeSkelDock_ = mainWidget_->createDockWidget(tr("SDMD remove skeleton reconstruction"), iv);
+    removeSkelDock_->setGNode(curNodeSelection_);
+    connect(removeSkelDock_, &MyDockWidget::closed, this, &TreeVisualiser::removeSkelDock_onClose);
+    removeSkelDock_->resize(domain_.width() + 22, domain_.height() + 84);
+  }
+  else {
+    iv = qobject_cast<SimpleImageViewer *>(removeSkelDock_->widget());
+  }
 
-    // NodePtr mnode = curNodeSelection_->mtreeNode();
-    NodePtr mnode = curNodeSelection_->mnode();
-    //dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 0);
-    vector<int> testID;
-    testID.push_back(0);
-    testID.push_back(1);
-    testID.push_back(4);
-    testID.push_back(3);
-    dmdrecon_->ReconstructMultiNode(false, testID, 0);
-    QImage img = fieldToQImage(dmdrecon_->getOutput());    
-    iv->setImage(img);
+  // NodePtr mnode = curNodeSelection_->mtreeNode();
+  NodePtr mnode = curNodeSelection_->mnode();
+  //dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 0);
+  
+  // collect nodes that should be used in the reconstruction
+  vector<int> removedNodes;
+  for (int i=0; i < selectedNodesForRec_.size(); ++i) {
+    if (!selectedNodesForRec_[i])
+      removedNodes.push_back(i);
   }
-  else{
-    QMessageBox::information(0, "For your information",
-        "Please select a node.");
-  }
+      
+  dmdrecon_->ReconstructMultiNode(false, removedNodes, 0);
+  QImage img = fieldToQImage(dmdrecon_->getOutput());    
+  iv->setImage(img);  
 }
 
 void TreeVisualiser::incNodeReconBtn_press()

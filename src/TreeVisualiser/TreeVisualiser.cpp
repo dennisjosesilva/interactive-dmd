@@ -112,9 +112,19 @@ QLayout *TreeVisualiser::createButtons()
   skelRecBtn->setIconSize(QSize{32, 32});
   connect(skelRecBtn, &QPushButton::clicked, this, &TreeVisualiser::skelRecBtn_press);
   
-  QPushButton *removeSkelBtn = new QPushButton { QIcon{":/images/Remove_Skel_icon.png"}, "", this};
+  QPushButton *removeSkelBtn = new QPushButton{ QIcon{":/images/Remove_Skel_icon.png"}, "", this};
   removeSkelBtn->setIconSize(QSize{32, 32});
   connect(removeSkelBtn, &QPushButton::clicked, this, &TreeVisualiser::removeSkelBtn_press);
+
+  QPushButton *remNodeToReconBtn = new QPushButton { QIcon{":/images/icicle_node_removal_icon.png"},
+    "", this};
+  remNodeToReconBtn->setIconSize(QSize{32, 32});
+  connect(remNodeToReconBtn, &QPushButton::clicked, this, &TreeVisualiser::remNodeReconBtn_press);
+
+  QPushButton *incNodeToReconBtn = new QPushButton{ QIcon{":/images/icicle_node_inclusion_icon.png"}, 
+    "", this};
+  incNodeToReconBtn->setIconSize(QSize{32, 32});
+  connect(incNodeToReconBtn, &QPushButton::clicked, this, &TreeVisualiser::incNodeReconBtn_press);
 
   btnLayout->addWidget(binRecBtn);
   btnLayout->addWidget(binRecPlusBtn);
@@ -122,6 +132,8 @@ QLayout *TreeVisualiser::createButtons()
   btnLayout->addWidget(greyRecPlusBtn);  
   btnLayout->addWidget(skelRecBtn);
   btnLayout->addWidget(removeSkelBtn);
+  btnLayout->addWidget(remNodeToReconBtn);
+  btnLayout->addWidget(incNodeToReconBtn);
   
   return btnLayout;
 }
@@ -600,6 +612,16 @@ void TreeVisualiser::removeSkelBtn_press()
     QImage img = fieldToQImage(dmdrecon_->getOutput());    
     iv->setImage(img);
   }
+}
+
+void TreeVisualiser::incNodeReconBtn_press()
+{
+
+}
+
+void TreeVisualiser::remNodeReconBtn_press()
+{
+
 }
 
 void TreeVisualiser::nodeMousePress(GNode *node, 

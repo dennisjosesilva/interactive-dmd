@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QImage>
 #include <QMap>
+#include <QVector>
 
 #include <IcicleMorphotreeWidget/Graphics/Node/GNode.hpp>
 #include <IcicleMorphotreeWidget/IcicleMorphotreeWidget.hpp>
@@ -135,6 +136,8 @@ protected slots:
   void greyRecPlusBtn_press(); 
   void skelRecBtn_press(); 
   void removeSkelBtn_press();
+  void incNodeReconBtn_press();
+  void remNodeReconBtn_press();
   
 private:
   uint32 maxValue_;
@@ -156,4 +159,6 @@ private:
   AttributeComputer attrCompueter_;
   TitleColorBar *curColorBar_;
   CpViewer *cv = nullptr;
+
+  QVector<bool> includedNodes_;
 };

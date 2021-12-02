@@ -9,6 +9,7 @@
 #include "InteractiveSdmd.hpp"
 #include <QDockWidget>
 #include "CustomWidgets/ClosableDockWidget.hpp"
+#include "CustomWidgets/ThresholdControl.hpp"
 
 class MainWidget : public QWidget
 {  
@@ -72,6 +73,7 @@ private:
   QDockWidget *dockWidgetSdmd_;
 
   ImageViewerWidget::ImageViewerWidget *imageViewer_;
+  ThresholdControl *ThresCtl;
   TreeVisualiser *treeVis_;
 
   InteractiveSdmd *Interactive_sdmd;

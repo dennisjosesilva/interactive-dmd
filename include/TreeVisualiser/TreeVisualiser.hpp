@@ -126,13 +126,15 @@ protected slots:
 
   void binRecDock_onClose(MyDockWidget *dock);
   void greyRecDock_onClose(MyDockWidget *dock);
+  void SplineManipDock_onClose(MyDockWidget *dock);
   void skelRecDock_onClose(MyDockWidget *dock);
   void removeSkelDock_onClose(MyDockWidget *dock);
 
   void binRecBtn_press();
   void binRecPlusBtn_press();
   void greyRecBtn_press();
-  void greyRecPlusBtn_press(); 
+  void greyRecPlusBtn_press();
+  void SplineManipulateBtn_press();
   void skelRecBtn_press(); 
   void removeSkelBtn_press();
   
@@ -145,6 +147,7 @@ private:
 
   MyDockWidget *binRecDock_;
   MyDockWidget *greyRecDock_;
+  MyDockWidget *SplineManipDock_;
   MyDockWidget *skelRecDock_;
   MyDockWidget *removeSkelDock_;
 

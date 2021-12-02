@@ -49,6 +49,7 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     curNodeSelection_{nullptr},
     binRecDock_{nullptr},
     greyRecDock_{nullptr},
+    SplineManipDock_{nullptr},
     skelRecDock_{nullptr},
     removeSkelDock_{nullptr},
     curColorBar_{nullptr},
@@ -107,7 +108,11 @@ QLayout *TreeVisualiser::createButtons()
     "", this};
   greyRecPlusBtn->setIconSize(QSize{32, 32});
   connect(greyRecPlusBtn, &QPushButton::clicked, this, &TreeVisualiser::greyRecPlusBtn_press);
-    
+  
+  QPushButton *SplineManipulateBtn = new QPushButton{ QIcon{":/images/Spline_CPs_icon.png"}, "", this};
+  SplineManipulateBtn->setIconSize(QSize{32, 32});
+  connect(SplineManipulateBtn, &QPushButton::clicked, this, &TreeVisualiser::SplineManipulateBtn_press);
+  
   QPushButton *skelRecBtn = new QPushButton{ QIcon{":/images/Skel_icon.png"}, "", this};
   skelRecBtn->setIconSize(QSize{32, 32});
   connect(skelRecBtn, &QPushButton::clicked, this, &TreeVisualiser::skelRecBtn_press);
@@ -119,7 +124,8 @@ QLayout *TreeVisualiser::createButtons()
   btnLayout->addWidget(binRecBtn);
   btnLayout->addWidget(binRecPlusBtn);
   btnLayout->addWidget(greyRecBtn);
-  btnLayout->addWidget(greyRecPlusBtn);  
+  btnLayout->addWidget(greyRecPlusBtn); 
+  btnLayout->addWidget(SplineManipulateBtn); 
   btnLayout->addWidget(skelRecBtn);
   btnLayout->addWidget(removeSkelBtn);
   
@@ -539,22 +545,21 @@ void TreeVisualiser::greyRecPlusBtn_press()
   reconstructGreyImage(iv, curNodeSelection_->mnode());
 }
 
-void TreeVisualiser::skelRecBtn_press()
+void TreeVisualiser::SplineManipulateBtn_press()
 {
   if (curNodeSelection_ != nullptr) {
     //CpViewer *cv = nullptr;
-    if (skelRecDock_ == nullptr) {
+    if (SplineManipDock_ == nullptr) {
       
       cv = new CpViewer(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
       
-      skelRecDock_ = mainWidget_->createDockWidget(tr("Reconstruction of the selected node"), cv);
+      SplineManipDock_ = mainWidget_->createDockWidget(tr("Spline-based shape manipulation"), cv);
       
-      //skelRecDock_->setGNode(curNodeSelection_);
-      connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
-      skelRecDock_->resize(domain_.width() + 32, domain_.height() + 170);
+      connect(SplineManipDock_, &MyDockWidget::closed, this, &TreeVisualiser::SplineManipDock_onClose);
+      SplineManipDock_->resize(domain_.width() + 32, domain_.height() + 170);
     }
     else {
-      cv = qobject_cast<CpViewer *>(skelRecDock_->widget());
+      cv = qobject_cast<CpViewer *>(SplineManipDock_->widget());
       cv->Update();
     }
  
@@ -577,6 +582,40 @@ void TreeVisualiser::skelRecBtn_press()
     QMessageBox::information(0, "For your information",
         "Please select a node.");
   }
+
+}
+void TreeVisualiser::skelRecBtn_press()
+{
+  if (curNodeSelection_ != nullptr) {
+    SimpleImageViewer *iv = nullptr;
+    if (skelRecDock_ == nullptr) {
+      iv = new SimpleImageViewer;
+      skelRecDock_ = mainWidget_->createDockWidget(tr("SDMD reconstruction of the selected nodes"), iv);
+      skelRecDock_->setGNode(curNodeSelection_);//?
+      connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
+      skelRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
+    }
+    else {
+      iv = qobject_cast<SimpleImageViewer *>(skelRecDock_->widget());
+    }
+
+    // NodePtr mnode = curNodeSelection_->mtreeNode();
+    NodePtr mnode = curNodeSelection_->mnode();
+    //dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 1);
+    vector<int> testID;
+    testID.push_back(0);
+    testID.push_back(1);
+    testID.push_back(4);
+    testID.push_back(3);
+    dmdrecon_->ReconstructMultiNode(false, testID, 1);
+    QImage img = fieldToQImage(dmdrecon_->getOutput());    
+    iv->setImage(img);
+  }
+  else{
+    QMessageBox::information(0, "For your information",
+        "Please select a node.");
+  }
+  
 }
 
 void TreeVisualiser::removeSkelBtn_press()
@@ -585,7 +624,7 @@ void TreeVisualiser::removeSkelBtn_press()
     SimpleImageViewer *iv = nullptr;
     if (removeSkelDock_ == nullptr) {
       iv = new SimpleImageViewer;
-      removeSkelDock_ = mainWidget_->createDockWidget(tr("DMD remove skeleton reconstruction"), iv);
+      removeSkelDock_ = mainWidget_->createDockWidget(tr("SDMD remove skeleton reconstruction"), iv);
       removeSkelDock_->setGNode(curNodeSelection_);
       connect(removeSkelDock_, &MyDockWidget::closed, this, &TreeVisualiser::removeSkelDock_onClose);
       removeSkelDock_->resize(domain_.width() + 22, domain_.height() + 84);
@@ -596,9 +635,19 @@ void TreeVisualiser::removeSkelBtn_press()
 
     // NodePtr mnode = curNodeSelection_->mtreeNode();
     NodePtr mnode = curNodeSelection_->mnode();
-    dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 0);
+    //dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 0);
+    vector<int> testID;
+    testID.push_back(0);
+    testID.push_back(1);
+    testID.push_back(4);
+    testID.push_back(3);
+    dmdrecon_->ReconstructMultiNode(false, testID, 0);
     QImage img = fieldToQImage(dmdrecon_->getOutput());    
     iv->setImage(img);
+  }
+  else{
+    QMessageBox::information(0, "For your information",
+        "Please select a node.");
   }
 }
 
@@ -634,6 +683,10 @@ void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)
 void TreeVisualiser::greyRecDock_onClose(MyDockWidget *dock)
 {
   greyRecDock_ = nullptr;
+}
+void TreeVisualiser::SplineManipDock_onClose(MyDockWidget *dock)
+{
+  SplineManipDock_ = nullptr;
 }
 
 void TreeVisualiser::skelRecDock_onClose(MyDockWidget *dock)

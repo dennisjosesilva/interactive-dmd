@@ -38,6 +38,7 @@ class dmdReconstruct {
     
     void ReconstructImage(bool interpolate);
     void ReconstructIndexingImage(bool interpolate, int nodeID, int action);
+    void ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action);
 
 
     void get_interp_layer(int i, int SuperResolution, bool last_layer);

@@ -22,7 +22,6 @@
 
 #include <QDebug>
 
-#include "TreeVisualiser/TreeVisualiser.hpp"
 #include "MainWindow.hpp"
 
 MainWidget::MainWidget(QWidget *parent)
@@ -53,6 +52,11 @@ MainWidget::MainWidget(QWidget *parent)
 
   connect(treeVis_, &TreeVisualiser::nodeSelected, this, &MainWidget::treeVis_NodeSelected);
   connect(treeVis_, &TreeVisualiser::nodeUnselected, this, &MainWidget::treeVis_NodeUnselected);
+  connect(treeVis_, &TreeVisualiser::ImageHasBeenReconstructed, this, &MainWidget::ChangeDisplayImg);
+
+  connect(ThresCtl, &ThresholdControl::ImageHasBeenReconstructed, this, &MainWidget::ChangeDisplayImg);
+  connect(ThresCtl, &ThresholdControl::LayerHasBeenSelected, this, &MainWidget::DisplaySelectedNodes);
+  connect(ThresCtl, &ThresholdControl::DisplayOriginalImg, this, &MainWidget::DisplayOrigImg);
 
   imageViewer_->scrollAreaWidget()->viewport()->installEventFilter(this);
   
@@ -66,7 +70,7 @@ bool MainWidget::loadImage(const QString &filename)
   
   QImageReader reader{filename};
   reader.setAutoTransform(true);
-  const QImage newImage = reader.read();
+  newImage = reader.read();
   
   if (newImage.isNull()) {
     QMessageBox::information(this, QGuiApplication::applicationDisplayName(), 
@@ -80,6 +84,8 @@ bool MainWidget::loadImage(const QString &filename)
   Interactive_sdmd->setImage(newImage);
   const char *c_str = filename.toLocal8Bit().data();
   Interactive_sdmd->readIntoSdmd(c_str);
+
+  ThresCtl->readImgIntoSdmd(c_str);
   
   return true;
 }
@@ -261,4 +267,18 @@ void MainWidget::treeVis_NodeSelected(GNode *node)
 void MainWidget::treeVis_NodeUnselected(GNode *node) 
 {
   imageViewer_->removeOverlay();
+}
+
+void MainWidget::ChangeDisplayImg(QImage img)
+{
+  imageViewer_->setImage(img);
+}
+void MainWidget::DisplaySelectedNodes(vector<int> selectedIntensity)
+{
+  for(auto it = selectedIntensity.begin();it!=selectedIntensity.end();it++)
+    cout << *it << "\t";
+}
+void MainWidget::DisplayOrigImg()
+{
+  imageViewer_->setImage(newImage);
 }

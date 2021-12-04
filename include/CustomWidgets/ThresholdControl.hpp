@@ -2,6 +2,8 @@
 
 #include <QWidget>
 #include <QDoubleSpinBox>
+#include "dmdProcess.hpp"
+#include "dmdReconstruct.hpp"
 
 class OrientablePushButton;
 class QLayout;
@@ -12,6 +14,7 @@ class ThresholdControl : public QWidget
   
 public:
   ThresholdControl(QWidget *parent=nullptr);
+  inline void readImgIntoSdmd(const char *c_str) { dmdProcess_.readFromFile(c_str); }
 
 protected:
   QLayout *createLayerThresholdLayout();
@@ -19,13 +22,21 @@ protected:
   QLayout *createSaliencyThresholdLayout();
   QLayout *createHausdorffThresholdLayout();
   QLayout* createRunButtons();
+  QImage fieldToImage(FIELD<float> *field) const; 
+
+public: 
+signals: 
+  void ImageHasBeenReconstructed(QImage reconImage); 
+  void LayerHasBeenSelected(vector<int> selectedIntensity);
+  void DisplayOriginalImg();
 
 protected slots:
   void layerThresSpinBox_onValueChanged(double val);
   void islandThresSpinBox_onValueChanged(double val);
   void saliencyThresSpinBox_onValueChanged(double val);
   void hausdorffThresSpinBox_onValueChanged(double val);
-  void onStateChanged(int state);
+  void Interp_onStateChanged(int state);
+  void DisplayOrigImg_onStateChanged(int state);
   void RunBtn_press(); 
  
 private:
@@ -36,4 +47,10 @@ private:
   QDoubleSpinBox *hausdorffThresSpinBox_;
   QLayout *layout_;
   bool InterpState = false;
+
+  int layerVal;
+  float IslandsVal, SaliencyVal, HDVal;
+
+  dmdProcess dmdProcess_;
+  dmdReconstruct dmdRecon_;
 };

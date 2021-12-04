@@ -44,6 +44,10 @@ public:
   
 protected slots:
   void imageMousePress(const QPointF &p);
+  void ChangeDisplayImg(QImage img);
+  void DisplaySelectedNodes(vector<int> selectedIntensity);
+  void DisplayOrigImg();
+  
 
 protected:
   void wheelEvent(QWheelEvent *e);
@@ -77,4 +81,5 @@ private:
   TreeVisualiser *treeVis_;
 
   InteractiveSdmd *Interactive_sdmd;
+  QImage newImage;
 };

@@ -358,13 +358,16 @@ void dmdProcess::calculateImportance(bool cumulative, int num_layers) {
 
 void dmdProcess::removeLayers() {
     float val_up, val_dn;
-
+  
+    if(!selectedIntensity.empty()) selectedIntensity.clear();
+    
     printf("Filtering image layers...\n");
     printf("The following grayscale intensities are selected: \n");
-    
+
     for (int i = 0; i < 256; ++i) {
         if (importance[i] == 1) {
             printf("%d, ", i);
+            selectedIntensity.push_back(i);
         }
     }
 
@@ -394,7 +397,6 @@ void dmdProcess::removeLayers() {
         }
     }
     //processedImage->writePGM("afterlayer.pgm");
-
 }
 
 void dmdProcess::LayerSelection(bool cumulative, int num_layers){

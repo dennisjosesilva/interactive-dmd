@@ -4,7 +4,7 @@
 
 FIELD<float>* prev_layer;
 FIELD<float>* prev_layer_dt;
-bool firstTime;
+bool firstTime, DrawnTheLayer;
 int CurrNode;
 
 dmdReconstruct::dmdReconstruct() {
@@ -552,8 +552,8 @@ void dmdReconstruct::ReconstructImage(bool interpolate){
 
 }
 
-FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, int nodeID){
-   
+FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> nodesID, bool action){
+ 
     program.link();
     program.bind();
 
@@ -579,6 +579,8 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, int nodeID){
 
     //read each skeleton point
     float x, y, r;
+    bool DrawTheNode;
+    DrawnTheLayer=false;
     vector<Vector3<float>> SampleForEachCC;
     Vector3<float> EachSample;
     
@@ -587,7 +589,18 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, int nodeID){
     while(it1 != it2){//process all nodes for the current intensity
         int node_id = it1->second;
         ++it1;
-        if(node_id != nodeID){
+        if(action) {
+            if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end())//if nodesID doesn't contain node_id
+                DrawTheNode = false;
+            else DrawTheNode = true;
+        }
+        else{
+            if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()) //if nodesID doesn't contain node_id
+                DrawTheNode = true;
+            else DrawTheNode = false;
+        }
+        if(DrawTheNode){
+            DrawnTheLayer = true; 
             SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
             for(auto it = SampleForEachCC.begin();it!=SampleForEachCC.end();it++){
                 EachSample = *it;
@@ -656,14 +669,15 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, int nodeID){
 }
 
 
-void dmdReconstruct::get_interp_layer(int intensity, int nodeID, int SuperResolution, bool last_layer)
+void dmdReconstruct::get_interp_layer(int intensity, vector<int> nodesID, bool action, bool last_layer)
 {
-    bool interp_firstLayer = 0;
+    bool interp_firstLayer = 1;
     int prev_intensity, prev_bound_value, curr_bound_value;
     unsigned int x, y;
     
-    FIELD<float>* curr_layer = renderLayer_interp(intensity, nodeID);
+    FIELD<float>* curr_layer = renderLayer_interp(intensity, nodesID, action);
     
+    if(DrawnTheLayer){
     FIELD<float>* curr_dt = get_dt_of_alpha(curr_layer);
    if(firstTime || last_layer){
     stringstream layer;
@@ -756,101 +770,8 @@ void dmdReconstruct::get_interp_layer(int intensity, int nodeID, int SuperResolu
 
     delete curr_layer;
     delete curr_dt;
-}
-
-void dmdReconstruct::renderIndexingLayer(int intensity, int nodeID){
-    //cout<<"nodeID: "<<nodeID<<endl;
-   
-    program.link();
-    program.bind();
-
-//    ==============DRAWING TO THE FBO============
-
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
-
-    contextFunc->glEnable(GL_DEPTH_TEST);
-    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
-    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
-
-
-    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
-    vertexPositionBuffer.create();
-    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    vertexPositionBuffer.bind();
-
-    GLfloat width_2 = (GLfloat)width/2.0;
-    //program.setUniformValue("width_2", width_2);
-    GLfloat height_2 = (GLfloat)height/2.0;
-    //program.setUniformValue("height_2", height_2);
-
-    //read each skeleton point
-    float x, y, r;
-    vector<Vector3<float>> SampleForEachCC;
-    Vector3<float> EachSample;
-    
-    auto it1 = Inty_node.lower_bound(intensity);
-    auto it2 = Inty_node.upper_bound(intensity);
-    while(it1 != it2){//process all nodes for the current intensity
-        int node_id = it1->second;
-        ++it1;
-        if(node_id != nodeID){
-            SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
-            for(auto it = SampleForEachCC.begin();it!=SampleForEachCC.end();it++){
-                EachSample = *it;
-                x = EachSample[0];
-                y = height - EachSample[1] - 1;
-                r = EachSample[2]; 
-
-                float vertexPositions[] = {
-                (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
-                (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
-                (x+r+1)/width_2 - 1, (y+r+1)/height_2 - 1,
-                (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
-                };
-
-                    
-                vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
-                
-                program.enableAttributeArray("position");
-                program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
-                
-                program.setUniformValue("r", (GLfloat)r);
-                
-                program.setUniformValue("x0", (GLfloat)x);
-                
-                program.setUniformValue("y0", (GLfloat)y);
-
-                contextFunc->glDrawArrays(GL_QUADS, 0, 4);
-
-            }
-        }
     }
-
-    //========SAVE IMAGE===========
-        float *data = (float *) malloc(width * height * sizeof (float));
-        
-        contextFunc->glEnable(GL_TEXTURE_2D);
-        contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
-
-        // Altering range [0..1] -> [0 .. 255] 
-        contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
-
-
-        for (unsigned int x = 0; x < width; ++x) 
-            for (unsigned int y = 0; y < height; ++y)
-            {
-                unsigned int y_ = height - 1 -y;
-
-                if(*(data + y * width + x))
-                    output->set(x, y_, intensity);
-            }
-        
-        free(data);
-      
-    program.release();
-    vertexPositionBuffer.release();
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+    //else the layer is blank, no need to update prev_realted.
 
 }
 
@@ -943,11 +864,10 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID){
 }
 
 
-void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int action){
+void dmdReconstruct::ReconstructIndexingImage(int nodeID){
     if(nodeID > 0) CurrNode = nodeID;
-    firstTime = true;
-    if(action) initOutput(0);
-    else initOutput(clearColor);
+    
+    initOutput(0);
     if(!IndexingSample.empty()){
         
         int LastInty = 256;
@@ -956,36 +876,22 @@ void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int 
             if(LastInty != it.first){
                 LastInty = it.first;
                 //cout<<"LastInty "<<LastInty<<"\t";
-                if(action){//highlight
-                    if(nodeID != 0){
-                        auto it1 = Inty_node.lower_bound(it.first);
-                        auto it2 = Inty_node.upper_bound(it.first);
-                        while(it1 != it2){//process all nodes for the current intensity
-                            int node_id = it1->second;
-                            if(node_id == nodeID){
-                                renderLayer(it.first, nodeID);
-                                found = true;
-                                break;
-                            }
-                            ++it1;
-                        }
-                        if(found) break;
-                    }
-                }
-                else{//else delete the current node-CC
-                    if(interpolate){
-                        bool last_layer = false; 
-                        int SuperResolution = 1;
-                        auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
-                        //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());
-                        
-                        if(it.first == (int)max_level) last_layer = true;
-                        get_interp_layer(it.first, nodeID, SuperResolution, last_layer);
                 
-                    /**/
+                if(nodeID != 0){
+                    auto it1 = Inty_node.lower_bound(it.first);
+                    auto it2 = Inty_node.upper_bound(it.first);
+                    while(it1 != it2){//process all nodes for the current intensity
+                        int node_id = it1->second;
+                        if(node_id == nodeID){
+                            renderLayer(it.first, nodeID);
+                            found = true;
+                            break;
+                        }
+                        ++it1;
                     }
-                    else renderIndexingLayer(it.first, nodeID);
-                } 
+                    if(found) break;
+                }
+                
             }
         }
         
@@ -999,72 +905,82 @@ void dmdReconstruct::ReconstructIndexingImage(bool interpolate, int nodeID, int 
 
 void dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action){
     //sort(nodesID.begin(),nodesID.end());//sort it from small num to large num, i,e., from root to leaves
+    if(!nodesID.empty()){
 
-    firstTime = true;//for interpolation process.
+        firstTime = true;//for interpolation process.
 
-    //process the background color
-    if(action)
-    {
-        if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
-            initOutput(clearColor);
-        else initOutput(0);
-    } 
-    else{
-        if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
-            initOutput(0);
-        else  initOutput(clearColor); 
-    } 
+        //process the background color
+        if(action)
+        {
+            if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
+                initOutput(clearColor);
+            else initOutput(0);
+        } 
+        else{
+            if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
+                initOutput(0);
+            else  initOutput(clearColor); 
+        } 
 
-    if(!IndexingSample.empty()){
-        
-        int LastInty = 256;
-        for (auto const& it : Inty_node) { //for each graylevel(from small num to large num).
-            if(LastInty != it.first){
-                LastInty = it.first;
-                //cout<<"LastInty "<<LastInty<<"\t";
-                if(action){//highlight
-                    if(!interpolate){//Add interpolate later
-                        auto it1 = Inty_node.lower_bound(it.first);
-                        auto it2 = Inty_node.upper_bound(it.first);
-                        while(it1 != it2){//process all nodes for the current intensity
-                            int node_id = it1->second;
-                            if(std::find(nodesID.begin(), nodesID.end(), node_id) != nodesID.end()){//if nodesID contains node_id
-                                renderLayer(it.first, node_id);  
-                            }
-                            ++it1;
+        if(!IndexingSample.empty()){
+            
+            int LastInty = 256;
+            for (auto const& it : Inty_node) { //for each graylevel(from small num to large num).
+                if(LastInty != it.first){//for each graylevel, only enter once.
+                    LastInty = it.first;
+                    //cout<<"LastInty "<<LastInty<<"\t";
+                    if(action){//highlight
+                    if(interpolate){
+                            bool last_layer = false; 
+                            auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
+                            //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());
+                            
+                            if(it.first == (int)max_level) last_layer = true;
+                            get_interp_layer(it.first, nodesID, 1, last_layer);
+                    
+                        }
+                        else 
+                        {
+                            auto it1 = Inty_node.lower_bound(it.first);
+                            auto it2 = Inty_node.upper_bound(it.first);
+                            while(it1 != it2){//process all nodes for the current intensity
+                                int node_id = it1->second;
+                                if(std::find(nodesID.begin(), nodesID.end(), node_id) != nodesID.end()){//if nodesID contains node_id
+                                    renderLayer(it.first, node_id);  
+                                }
+                                ++it1;
+                            } 
                         } 
-                    } 
+                    }
+                    else{//else recon without the selected nodes-CCs
+                        if(interpolate){//Add interpolate later
+                            bool last_layer = false; 
+                            auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
+                            //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());
+                            
+                            if(it.first == (int)max_level) last_layer = true;
+                            get_interp_layer(it.first, nodesID, 0, last_layer);
+                    
+                        }
+                        else{
+                            auto it1 = Inty_node.lower_bound(it.first);
+                            auto it2 = Inty_node.upper_bound(it.first);
+                            while(it1 != it2){//process all nodes for the current intensity
+                                int node_id = it1->second;
+                                if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()){//if nodesID doesn't contain node_id
+                                    renderLayer(it.first, node_id);  
+                                }
+                                ++it1;
+                            } 
+                        }
+                    }
                 }
-                else{//else recon without the selected nodes-CCs
-                    if(interpolate){//Add interpolate later
-                       /* bool last_layer = false; 
-                        int SuperResolution = 1;
-                        auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
-                        //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());
-                        
-                        if(it.first == (int)max_level) last_layer = true;
-                        get_interp_layer(it.first, nodeID, SuperResolution, last_layer);
-                */
-                    }
-                    else{
-                        auto it1 = Inty_node.lower_bound(it.first);
-                        auto it2 = Inty_node.upper_bound(it.first);
-                        while(it1 != it2){//process all nodes for the current intensity
-                            int node_id = it1->second;
-                            if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()){//if nodesID doesn't contain node_id
-                                renderLayer(it.first, node_id);  
-                            }
-                            ++it1;
-                        } 
-                    }
-                } 
             }
+            
+            output->NewwritePGM("output.pgm");
+            printf("DMD finished!\n");
         }
-        
-        output->NewwritePGM("output.pgm");
-        printf("DMD finished!\n");
     }
-
-    else printf("gray_levels is empty!");
+    else printf("Nothing is selected!");
 
 }

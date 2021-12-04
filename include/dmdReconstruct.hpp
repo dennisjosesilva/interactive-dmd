@@ -28,8 +28,7 @@ class dmdReconstruct {
     void renderLayer(int intensity_index);
     void renderMovedLayer(int intensity, vector<Vector3<float>> SampleForEachCC);
     void renderLayer(int intensity, int nodeID);//for action = 1 situation.
-    void renderIndexingLayer(int intensity, int nodeID);
- 
+    
     FIELD<float>* renderLayer_interp(int i);
 
 
@@ -37,15 +36,15 @@ class dmdReconstruct {
     void readIndexingControlPoints(int width, int height, int clear_color, multimap<int,int> Inty_Node);
     
     void ReconstructImage(bool interpolate);
-    void ReconstructIndexingImage(bool interpolate, int nodeID, int action);
+    void ReconstructIndexingImage(int nodeID);
     void ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action);
 
 
     void get_interp_layer(int i, int SuperResolution, bool last_layer);
-    void get_interp_layer(int intensity, int nodeID, int SuperResolution, bool last_layer);
+    void get_interp_layer(int intensity, vector<int> nodesID, bool action, bool last_layer);
     FIELD<float>* get_dt_of_alpha(FIELD<float>* alpha);
  
-    FIELD<float>* renderLayer_interp(int intensity, int nodeID);
+    FIELD<float>* renderLayer_interp(int intensity, vector<int> nodesID, bool action);
     
     void initOutput(int clear_color);
 

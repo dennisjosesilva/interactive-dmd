@@ -24,6 +24,9 @@ class dmdProcess {
       nPix = OriginalImage->dimX() * OriginalImage->dimY();
     }
 
+    inline int getImgWidth(){return OriginalImage->dimX();}
+    inline int getImgHeight(){return OriginalImage->dimY();}
+
     //inline FIELD<float> *curImage() { return processedImage; }
 
     //
@@ -34,14 +37,15 @@ class dmdProcess {
     int indexingSkeletons(FIELD<float> * CC, int intensity, int index);
     //vector<int> getIntensityOfNode(){return IntensityOfNode;}
     multimap<int,int> getInty_Node(){return Inty_node;}
-    vector<int> get_gray_levels() {return gray_levels;}
+    vector<int> get_gray_levels() {return gray_levels;}//without the clear_color layer
+    inline vector<int> get_selected_intensity() {return selectedIntensity;}
     
     //
     void find_layers(int clear_color, double* importance_upper, double width);
     void calculateImportance(bool cumulative, int num_layers);
     void removeLayers();
     int CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFile, float hausdorff, FIELD<float> *sm);
-
+    
     int clear_color;
 
   private:
@@ -52,6 +56,7 @@ class dmdProcess {
     BSplineCurveFitterWindow3 spline;
     vector<int> gray_levels;
     multimap<int,int> Inty_node;
+    vector<int> selectedIntensity;
     //stringstream ofBuffer;
 };
 

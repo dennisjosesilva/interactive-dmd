@@ -6,6 +6,7 @@
 #include <QCheckBox>
 #include <QPushButton>
 
+
 ThresholdControl::ThresholdControl(QWidget *parent)
   :QWidget{parent}
 {
@@ -40,6 +41,7 @@ QLayout *ThresholdControl::createLayerThresholdLayout()
   layerThresSpinBox_->setRange(1, 255);
   layerThresSpinBox_->setSingleStep(1);
   layerThresSpinBox_->setValue(15);
+  layerVal = 15;
 
   layerThresLayout->addWidget(layerThresLabel);
   layerThresLayout->addWidget(layerThresSpinBox_);
@@ -67,6 +69,7 @@ QLayout *ThresholdControl::createIslandThresholdLayout()
   islandThresSpinBox_->setDecimals(3);
   islandThresSpinBox_->setSingleStep(0.005);
   islandThresSpinBox_->setValue(0.01);
+  IslandsVal = 0.01;
 
   islandThresLayout->addWidget(label);
   islandThresLayout->addWidget(islandThresSpinBox_);
@@ -94,6 +97,7 @@ QLayout *ThresholdControl::createSaliencyThresholdLayout()
   saliencyThresSpinBox_->setRange(0.1, 3);
   saliencyThresSpinBox_->setSingleStep(0.05);
   saliencyThresSpinBox_->setValue(0.5);
+  SaliencyVal = 0.5;
 
   saliencyThresLayout->addWidget(label);
   saliencyThresLayout->addWidget(saliencyThresSpinBox_);
@@ -121,6 +125,7 @@ QLayout *ThresholdControl::createHausdorffThresholdLayout()
   hausdorffThresSpinBox_->setDecimals(3);
   hausdorffThresSpinBox_->setSingleStep(0.001);
   hausdorffThresSpinBox_->setValue(0.002);
+  HDVal = 0.002;
 
   hausdorffThresLayout->addWidget(label);
   hausdorffThresLayout->addWidget(hausdorffThresSpinBox_);
@@ -136,15 +141,20 @@ QLayout *ThresholdControl::createRunButtons()
   QLayout *btnLayout = new QHBoxLayout;
 
   QCheckBox *checkBox = new QCheckBox(this);
-  checkBox->setText("Interpolation");
-  connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(onStateChanged(int)));
+  checkBox->setText("Interp");
+  connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(Interp_onStateChanged(int)));
   btnLayout->addWidget(checkBox);
+
+  QCheckBox *checkBox2 = new QCheckBox(this);
+  checkBox2->setText("OrigImg");
+  connect(checkBox2, SIGNAL(stateChanged(int)), this, SLOT(DisplayOrigImg_onStateChanged(int)));
+  btnLayout->addWidget(checkBox2);
 
   //QPushButton *skelRecBtn = new QPushButton{ QIcon{":/images/Skel_icon.png"}, "", this};
   //skelRecBtn->setIconSize(QSize{50, 50});
   QPushButton *skelRecBtn = new QPushButton();
-  skelRecBtn->setText("Run SDMD");
-  skelRecBtn->setFixedSize(QSize{80, 30});
+  skelRecBtn->setText("Run");
+  skelRecBtn->setFixedSize(QSize{50, 30});
   connect(skelRecBtn, &QPushButton::clicked, this, &ThresholdControl::RunBtn_press);
   
   btnLayout->addWidget(skelRecBtn);
@@ -154,49 +164,71 @@ QLayout *ThresholdControl::createRunButtons()
 
 void ThresholdControl::layerThresSpinBox_onValueChanged(double val)
 {
-  printf("layer");
+  layerVal = val;
 }
 
 void ThresholdControl::islandThresSpinBox_onValueChanged(double val)
 {
-  printf("island");
+  IslandsVal = val;
 }
 void ThresholdControl::saliencyThresSpinBox_onValueChanged(double val)
 {
-  printf("saliency");
+  SaliencyVal = val;
 }
 void ThresholdControl::hausdorffThresSpinBox_onValueChanged(double val)
 {
-  printf("Hausdorff");
+  HDVal = val;
 }
-void ThresholdControl::onStateChanged(int state)
+void ThresholdControl::Interp_onStateChanged(int state)
 {
   if(state == 2) InterpState = true;//checked
   else InterpState = false;//0-unchecked
 }
+void ThresholdControl::DisplayOrigImg_onStateChanged(int state)
+{
+  if(state == 2) //checked
+  {
+    emit DisplayOriginalImg();
+  }
+  //else //0-unchecked
+
+}
+
+QImage ThresholdControl::fieldToImage(FIELD<float> *fimg) const
+{
+  QImage img{fimg->dimX(), fimg->dimY(), QImage::Format_Grayscale8};
+  float *fimg_data = fimg->data();
+  uchar *img_data = img.bits();
+
+  int N = fimg->dimX() * fimg->dimY();
+  for (int i = 0; i < N; ++i)
+    img_data[i] = static_cast<uchar>(fimg_data[i]);
+ 
+  return img;
+}
 
 void ThresholdControl::RunBtn_press()
 {
-  /*int CPnum;
+  int CPnum;
   
-  bar->showMessage(tr("Removing Islands..."));
+  //bar->showMessage(tr("Removing Islands..."));
   
   dmdProcess_.removeIslands(IslandsVal, nullptr);
-  bar->showMessage(tr("Selecting layers..."));
+  //bar->showMessage(tr("Selecting layers..."));
   dmdProcess_.LayerSelection(true, layerVal);
-  bar->showMessage(tr("Computing Skeletons..."));
+  emit LayerHasBeenSelected(dmdProcess_.get_selected_intensity());
+  //bar->showMessage(tr("Computing Skeletons..."));
   CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, nullptr);
 
-  bar->showMessage(tr("Reading Control points..."));
-  dmdRecon_.readControlPoints(scribble_->image().width(), scribble_->image().height(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
-  bar->showMessage(tr("Reconstruction..."));
-  cout<<"InterpState: "<<InterpState<<endl;
+  //bar->showMessage(tr("Reading Control points..."));
+  dmdRecon_.readControlPoints(dmdProcess_.getImgWidth(), dmdProcess_.getImgWidth(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
+  //bar->showMessage(tr("Reconstruction..."));
+  //cout<<"InterpState: "<<InterpState<<endl;
   dmdRecon_.ReconstructImage(InterpState);
   
-  bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
+  //bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
 
   QImage img = fieldToImage(dmdRecon_.getOutput());    
-  setImage(img);
-  */
- printf("run");
+ 
+  emit ImageHasBeenReconstructed(img);
 }

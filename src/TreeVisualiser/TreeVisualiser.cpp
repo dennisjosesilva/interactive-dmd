@@ -592,7 +592,7 @@ void TreeVisualiser::SplineManipulateBtn_press()
  
     // NodePtr mnode = curNodeSelection_->mtreeNode();
     NodePtr mnode = curNodeSelection_->mnode();
-    dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 1);
+    dmdrecon_->ReconstructIndexingImage(mnode->id());
   
    if(mnode->id() == 0){
      QMessageBox::information(0, "For your information",
@@ -614,6 +614,7 @@ void TreeVisualiser::SplineManipulateBtn_press()
 void TreeVisualiser::skelRecBtn_press()
 {
   if (curNodeSelection_ != nullptr) {
+    /*
     SimpleImageViewer *iv = nullptr;
     if (skelRecDock_ == nullptr) {
       iv = new SimpleImageViewer;
@@ -625,18 +626,20 @@ void TreeVisualiser::skelRecBtn_press()
     else {
       iv = qobject_cast<SimpleImageViewer *>(skelRecDock_->widget());
     }
-
+  */
     // NodePtr mnode = curNodeSelection_->mtreeNode();
     NodePtr mnode = curNodeSelection_->mnode();
-    //dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 1);
+    
     vector<int> testID;
     testID.push_back(0);
     testID.push_back(1);
     testID.push_back(4);
     testID.push_back(3);
     dmdrecon_->ReconstructMultiNode(false, testID, 1);
-    QImage img = fieldToQImage(dmdrecon_->getOutput());    
-    iv->setImage(img);
+    QImage img = fieldToQImage(dmdrecon_->getOutput());   
+    emit ImageHasBeenReconstructed(img);
+    
+    //iv->setImage(img);
   }
   else{
     QMessageBox::information(0, "For your information",
@@ -648,6 +651,7 @@ void TreeVisualiser::skelRecBtn_press()
 void TreeVisualiser::removeSkelBtn_press()
 {
   if (curNodeSelection_ != nullptr) {
+    /*
     SimpleImageViewer *iv = nullptr;
     if (removeSkelDock_ == nullptr) {
       iv = new SimpleImageViewer;
@@ -659,18 +663,18 @@ void TreeVisualiser::removeSkelBtn_press()
     else {
       iv = qobject_cast<SimpleImageViewer *>(removeSkelDock_->widget());
     }
-
+*/
     // NodePtr mnode = curNodeSelection_->mtreeNode();
     NodePtr mnode = curNodeSelection_->mnode();
-    //dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 0);
+    
     vector<int> testID;
-    testID.push_back(0);
     testID.push_back(1);
     testID.push_back(4);
     testID.push_back(3);
     dmdrecon_->ReconstructMultiNode(false, testID, 0);
     QImage img = fieldToQImage(dmdrecon_->getOutput());    
-    iv->setImage(img);
+     emit ImageHasBeenReconstructed(img);
+     //iv->setImage(img);
   }
   else{
     QMessageBox::information(0, "For your information",

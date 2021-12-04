@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # FIND CUDA PACKAGE
 find_package(CUDA REQUIRED) 
+find_package(OpenMP REQUIRED)
 
 # INCLUDE DIRECTORIES
 include_directories(include "${CUDA_INCLUDE_DIRS}")
@@ -66,4 +67,5 @@ target_link_libraries(interactive-dmd PUBLIC
   Qt5::Gui
   cgraph
   gvc
-  cudart)
+  cudart
+  OpenMP::OpenMP_CXX)

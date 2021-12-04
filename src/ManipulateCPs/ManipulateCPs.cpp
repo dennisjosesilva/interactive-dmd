@@ -169,7 +169,9 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, int intensity)
 }
 void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
 {
-  recon->ReconstructIndexingImage(false, -1, 0);
+  vector<int> reconAll;
+  reconAll.push_back(10000);
+  recon->ReconstructMultiNode(false, reconAll, 0);
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
 }
 

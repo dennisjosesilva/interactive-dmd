@@ -170,7 +170,7 @@ void MainWindow::createToolBar()
   imageToolBar->addAction(imageZoomOutAct_);
 
   // ========= DMD tool bar ==============
-  /*QToolBar *dmdToolBar = addToolBar("DMD Toolbar");
+  QToolBar *dmdToolBar = addToolBar("DMD Toolbar");
   dmdToolBar->setIconSize(QSize{ 32, 32});
 
   const QIcon dmdProcessIcon = QIcon{":/images/Skel_icon.png"};
@@ -178,7 +178,7 @@ void MainWindow::createToolBar()
   dmdProcessAct_->setStatusTip("DMD process");
   connect(dmdProcessAct_, &QAction::triggered, this, &MainWindow::dmdProcessAct_onTrigged);
   dmdToolBar->addAction(dmdProcessAct_);
-*/
+ /**/
 }
 
 

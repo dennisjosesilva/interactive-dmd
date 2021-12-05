@@ -42,6 +42,8 @@ public:
   inline bool isHighlightNodeActivated() const { return highlightNode_; }
   void setHighlightNodeActivated(bool checked);
   
+  void setImage(const QImage &image);
+
 protected slots:
   void imageMousePress(const QPointF &p);
   void ChangeDisplayImg(QImage img);

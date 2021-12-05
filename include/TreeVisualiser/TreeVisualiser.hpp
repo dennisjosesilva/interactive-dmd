@@ -100,6 +100,8 @@ public:
   inline void resetCache() { treeWidget_->resetCachedContent(); }
   inline void updateTreeRendering() { treeWidget_->updateTreeRendering(); }
   
+  FIELD<float>* SDMDReconstruction(unsigned int id);
+
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   

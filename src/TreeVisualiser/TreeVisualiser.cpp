@@ -207,6 +207,12 @@ void TreeVisualiser::setUnitHeightNode(float val)
   updateTransparencyOfTheNodes();
 }
 
+FIELD<float> *TreeVisualiser::SDMDReconstruction(unsigned int id)
+{
+  dmdrecon_->ReconstructIndexingImage(true, id, 1);
+  return dmdrecon_->getOutput();
+}
+
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 {  
   // namespace mw = MorphotreeWidget;
@@ -264,18 +270,6 @@ void TreeVisualiser::reconstructGreyImage(SimpleImageViewer *iv, NodePtr node)
   
   iv->setImage(img);
 }
-
-// std::shared_ptr<MorphotreeWidget::TreeSimplification> TreeVisualiser::duplicateTreeSimplification()
-// {
-//   namespace mw = MorphotreeWidget;
-//   using TSType = mw::TreeSimplificationProgressiveAreaDifferenceFilter;
-
-//   std::shared_ptr<TSType> ts = std::dynamic_pointer_cast<TSType>(
-//     treeWidget_->treeSimplification());
-
-//   return std::make_shared<TSType>(ts->numberOfLeavesToKeep(), 
-//     ts->areaThresholdToKeep(), ts->progDiffThresholdToKeep());
-// }
 
 FIELD<float> *TreeVisualiser::binImageToField(const std::vector<bool> &bimg) const
 {
@@ -613,17 +607,17 @@ void TreeVisualiser::SplineManipulateBtn_press()
 }
 void TreeVisualiser::skelRecBtn_press()
 {
-  SimpleImageViewer *iv = nullptr;
-  if (skelRecDock_ == nullptr) {
-    iv = new SimpleImageViewer;
-    skelRecDock_ = mainWidget_->createDockWidget(tr("SDMD reconstruction of the selected nodes"), iv);
-    skelRecDock_->setGNode(curNodeSelection_);//?
-    connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
-    skelRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
-  }
-  else {
-    iv = qobject_cast<SimpleImageViewer *>(skelRecDock_->widget());
-  }
+  // SimpleImageViewer *iv = nullptr;
+  // if (skelRecDock_ == nullptr) {
+  //   iv = new SimpleImageViewer;
+  //   skelRecDock_ = mainWidget_->createDockWidget(tr("SDMD reconstruction of the selected nodes"), iv);
+  //   skelRecDock_->setGNode(curNodeSelection_);//?
+  //   connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
+  //   skelRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
+  // }
+  // else {
+  //   iv = qobject_cast<SimpleImageViewer *>(skelRecDock_->widget());
+  // }
 
   vector<int> keptNodes;
   for (int i = 0; i < selectedNodesForRec_.size(); ++i) {
@@ -633,22 +627,23 @@ void TreeVisualiser::skelRecBtn_press()
 
   dmdrecon_->ReconstructMultiNode(false, keptNodes, 1);
   QImage img = fieldToQImage(dmdrecon_->getOutput());    
-  iv->setImage(img);    
+  mainWidget_->setImage(img);
+  // iv->setImage(img);    
 }
 
 void TreeVisualiser::removeSkelBtn_press()
 {
   SimpleImageViewer *iv = nullptr;
-  if (removeSkelDock_ == nullptr) {
-    iv = new SimpleImageViewer;
-    removeSkelDock_ = mainWidget_->createDockWidget(tr("SDMD remove skeleton reconstruction"), iv);
-    removeSkelDock_->setGNode(curNodeSelection_);
-    connect(removeSkelDock_, &MyDockWidget::closed, this, &TreeVisualiser::removeSkelDock_onClose);
-    removeSkelDock_->resize(domain_.width() + 22, domain_.height() + 84);
-  }
-  else {
-    iv = qobject_cast<SimpleImageViewer *>(removeSkelDock_->widget());
-  }
+  // if (removeSkelDock_ == nullptr) {
+  //   iv = new SimpleImageViewer;
+  //   removeSkelDock_ = mainWidget_->createDockWidget(tr("SDMD remove skeleton reconstruction"), iv);
+  //   removeSkelDock_->setGNode(curNodeSelection_);
+  //   connect(removeSkelDock_, &MyDockWidget::closed, this, &TreeVisualiser::removeSkelDock_onClose);
+  //   removeSkelDock_->resize(domain_.width() + 22, domain_.height() + 84);
+  // }
+  // else {
+  //   iv = qobject_cast<SimpleImageViewer *>(removeSkelDock_->widget());
+  // }
 
   // NodePtr mnode = curNodeSelection_->mtreeNode();
   NodePtr mnode = curNodeSelection_->mnode();
@@ -663,7 +658,8 @@ void TreeVisualiser::removeSkelBtn_press()
       
   dmdrecon_->ReconstructMultiNode(false, keptNodes, 0);
   QImage img = fieldToQImage(dmdrecon_->getOutput());    
-  iv->setImage(img);  
+  mainWidget_->setImage(img);
+  // iv->setImage(img);  
 }
 
 void TreeVisualiser::incNodeReconBtn_press()
@@ -732,7 +728,7 @@ void TreeVisualiser::removeSkelDock_onClose(MyDockWidget *dock)
 
 void TreeVisualiser::selectNodeByPixel(int x, int y)
 {
-  GNode *node = treeWidget_->gnode(x, y);
+  GNode *node = treeWidget_->gnode(x, y, selectedNodesForRec_);
 
   if (curNodeSelection_ != node) {
     if (curNodeSelection_ != nullptr) {

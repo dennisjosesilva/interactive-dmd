@@ -28,7 +28,8 @@ MainWidget::MainWidget(QWidget *parent)
   :QWidget{parent},
    needTreeVisualiserUpdate_{false},
    nodeSelectionByClickActivated_{false},
-   ctrlDown_{false}
+   ctrlDown_{false},
+   reconMode_{ReconMode::MorphoTree}
 { 
   namespace iv = ImageViewerWidget;  
   namespace mw = IcicleMorphotreeWidget;
@@ -182,38 +183,43 @@ void MainWidget::createDockWidgetSdmd()
 
 void MainWidget::highlightNode(GNode *node)
 {
-  // using morphotree::Box;
+  using morphotree::Box;
 
-  // Box domain = treeVis_->domain();
-  // //std::vector<bool> nodeImg = node->simplifiedMTreeNode()->reconstruct(domain);
-  // std::vector<bool> nodeImg = node->mnode()->reconstruct(domain);
-  // QImage bimg{ static_cast<int>(domain.width()), static_cast<int>(domain.height()), 
-  //   QImage::Format_ARGB32 };
-  
-  // for (int l = 0; l < domain.height(); l++) {
-  //   QRgb *line = reinterpret_cast<QRgb*>(bimg.scanLine(l));
-  //   for (int c = 0; c < domain.width(); c++) {
-  //     if (nodeImg[domain.pointToIndex(c, l)])
-  //       line[c] = qRgba(255, 0, 0, 200);
-  //     else 
-  //       line[c] = qRgba(0, 0, 0, 0);
-  //   }
-  // }
-
-  FIELD<float> *nodeImg = treeVis_->SDMDReconstruction(node->mnode()->id());
-  QImage bimg { nodeImg->dimX(), nodeImg->dimY(), QImage::Format_ARGB32 };
-
-  for (int l = 0; l < nodeImg->dimY(); l++) {
-    QRgb *line = reinterpret_cast<QRgb*>(bimg.scanLine(l));
-    for (int c = 0; c < nodeImg->dimX(); c++) {
-      if ((*nodeImg)(c, l) > 0) 
-        line[c] = qRgba(255, 0, 0, 200);
-      else 
-        line[c] = qRgba(0, 0, 0, 0);
+  if (reconMode_ == ReconMode::MorphoTree) {
+    Box domain = treeVis_->domain();
+    //std::vector<bool> nodeImg = node->simplifiedMTreeNode()->reconstruct(domain);
+    std::vector<bool> nodeImg = node->mnode()->reconstruct(domain);
+    QImage bimg{ static_cast<int>(domain.width()), static_cast<int>(domain.height()), 
+      QImage::Format_ARGB32 };
+    
+    for (int l = 0; l < domain.height(); l++) {
+      QRgb *line = reinterpret_cast<QRgb*>(bimg.scanLine(l));
+      for (int c = 0; c < domain.width(); c++) {
+        if (nodeImg[domain.pointToIndex(c, l)])
+          line[c] = qRgba(255, 0, 0, 200);
+        else 
+          line[c] = qRgba(0, 0, 0, 0);
+      }
     }
-  }
 
-  imageViewer_->setOverlayImage(bimg);
+    imageViewer_->setOverlayImage(bimg);
+  }
+  else if (reconMode_ == ReconMode::SDMD) {
+    FIELD<float> *nodeImg = treeVis_->SDMDReconstruction(node->mnode()->id());
+    QImage bimg { nodeImg->dimX(), nodeImg->dimY(), QImage::Format_ARGB32 };
+
+    for (int l = 0; l < nodeImg->dimY(); l++) {
+      QRgb *line = reinterpret_cast<QRgb*>(bimg.scanLine(l));
+      for (int c = 0; c < nodeImg->dimX(); c++) {
+        if ((*nodeImg)(c, l) > 0) 
+          line[c] = qRgba(255, 0, 0, 200);
+        else 
+          line[c] = qRgba(0, 0, 0, 0);
+      }
+    }
+
+    imageViewer_->setOverlayImage(bimg);
+  }
 }
 
 QDockWidget *MainWidget::morphotreeDockWidget()

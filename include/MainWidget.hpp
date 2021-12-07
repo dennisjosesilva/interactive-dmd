@@ -11,6 +11,8 @@
 #include "CustomWidgets/ClosableDockWidget.hpp"
 #include "CustomWidgets/ThresholdControl.hpp"
 
+enum class ReconMode { MorphoTree, SDMD };
+
 class MainWidget : public QWidget
 {  
   Q_OBJECT
@@ -44,6 +46,9 @@ public:
   
   void setImage(const QImage &image);
 
+  ReconMode reconMode() const { return reconMode_; }
+  void setReconMode(ReconMode reconMode) { reconMode_ = reconMode; }
+
 protected slots:
   void imageMousePress(const QPointF &p);
   void ChangeDisplayImg(QImage img);
@@ -68,6 +73,8 @@ private:
   void highlightNode(GNode *node);
 
 private:
+  ReconMode reconMode_;
+
   bool ctrlDown_;
 
   bool needTreeVisualiserUpdate_;

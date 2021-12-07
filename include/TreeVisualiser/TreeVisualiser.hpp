@@ -126,7 +126,6 @@ signals:
   void nodeSelected(GNode *node);
   void nodeUnselected(GNode *node);
  
-  void ImageHasBeenReconstructed(QImage reconImage);
 
 protected slots:
   void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);

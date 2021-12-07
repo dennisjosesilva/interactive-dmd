@@ -28,7 +28,7 @@ void dmdReconstruct::reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> 
     
     initOutput(0);
     renderMovedLayer(inty, movedSample);
-
+ 
     //update IndexingCP.
     IndexingCP[IndexingCP.size() - CurrNode] = CPlist;
     //update IndexingSample
@@ -589,19 +589,27 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> node
     while(it1 != it2){//process all nodes for the current intensity
         int node_id = it1->second;
         ++it1;
-        if(action) {
-            if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end())//if nodesID doesn't contain node_id
-                DrawTheNode = false;
-            else DrawTheNode = true;
+        SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
+        
+        if(SampleForEachCC.empty()) {
+            DrawTheNode = false;
+            cout<<"The component of Node-"<<node_id<<" is too small to generate any skeletons."<<endl;
         }
         else{
-            if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()) //if nodesID doesn't contain node_id
-                DrawTheNode = true;
-            else DrawTheNode = false;
+            if(action) {
+                if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end())//if nodesID doesn't contain node_id
+                    DrawTheNode = false;
+                else DrawTheNode = true;
+            }
+            else{
+                if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()) //if nodesID doesn't contain node_id
+                    DrawTheNode = true;
+                else DrawTheNode = false;
+            }
         }
         if(DrawTheNode){
             DrawnTheLayer = true; 
-            SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
+            
             for(auto it = SampleForEachCC.begin();it!=SampleForEachCC.end();it++){
                 EachSample = *it;
                 x = EachSample[0];
@@ -777,90 +785,92 @@ void dmdReconstruct::get_interp_layer(int intensity, vector<int> nodesID, bool a
 
 void dmdReconstruct::renderLayer(int intensity, int nodeID){
     //cout<<"nodeID: "<<nodeID<<endl;
-   
-    program.link();
-    program.bind();
-
-//    ==============DRAWING TO THE FBO============
-
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
-
-    contextFunc->glEnable(GL_DEPTH_TEST);
-    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
-    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
-
-
-    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
-    vertexPositionBuffer.create();
-    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    vertexPositionBuffer.bind();
-
-    GLfloat width_2 = (GLfloat)width/2.0;
-    //program.setUniformValue("width_2", width_2);
-    GLfloat height_2 = (GLfloat)height/2.0;
-    //program.setUniformValue("height_2", height_2);
-
-    //read each skeleton point
-    float x, y, r;
     vector<Vector3<float>> SampleForEachCC;
     Vector3<float> EachSample;
     
     SampleForEachCC = IndexingSample.at(IndexingSample.size() - nodeID);
-    for(auto it = SampleForEachCC.begin();it!=SampleForEachCC.end();it++){
-        EachSample = *it;
-        x = EachSample[0];
-        y = height - EachSample[1] - 1;
-        r = EachSample[2]; 
+    if(!SampleForEachCC.empty()){
+        program.link();
+        program.bind();
 
-        float vertexPositions[] = {
-        (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
-        (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
-        (x+r+1)/width_2 - 1, (y+r+1)/height_2 - 1,
-        (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
-        };
+    //    ==============DRAWING TO THE FBO============
 
+        contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+
+        contextFunc->glEnable(GL_DEPTH_TEST);
+        contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
+        contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        contextFunc->glClear(GL_COLOR_BUFFER_BIT);
+
+
+        QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
+        vertexPositionBuffer.create();
+        vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+        vertexPositionBuffer.bind();
+
+        GLfloat width_2 = (GLfloat)width/2.0;
+        //program.setUniformValue("width_2", width_2);
+        GLfloat height_2 = (GLfloat)height/2.0;
+        //program.setUniformValue("height_2", height_2);
+
+        //read each skeleton point
+        float x, y, r;
+        
+        for(auto it = SampleForEachCC.begin();it!=SampleForEachCC.end();it++){
+            EachSample = *it;
+            x = EachSample[0];
+            y = height - EachSample[1] - 1;
+            r = EachSample[2]; 
+
+            float vertexPositions[] = {
+            (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
+            (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
+            (x+r+1)/width_2 - 1, (y+r+1)/height_2 - 1,
+            (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
+            };
+
+                
+            vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
             
-        vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
-        
-        program.enableAttributeArray("position");
-        program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
-        
-        program.setUniformValue("r", (GLfloat)r);
-        
-        program.setUniformValue("x0", (GLfloat)x);
-        
-        program.setUniformValue("y0", (GLfloat)y);
+            program.enableAttributeArray("position");
+            program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
+            
+            program.setUniformValue("r", (GLfloat)r);
+            
+            program.setUniformValue("x0", (GLfloat)x);
+            
+            program.setUniformValue("y0", (GLfloat)y);
 
-        contextFunc->glDrawArrays(GL_QUADS, 0, 4);
+            contextFunc->glDrawArrays(GL_QUADS, 0, 4);
 
+        }
+        
+        //========SAVE IMAGE===========
+            float *data = (float *) malloc(width * height * sizeof (float));
+            
+            contextFunc->glEnable(GL_TEXTURE_2D);
+            contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+
+            // Altering range [0..1] -> [0 .. 255] 
+            contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
+
+
+            for (unsigned int x = 0; x < width; ++x) 
+                for (unsigned int y = 0; y < height; ++y)
+                {
+                    unsigned int y_ = height - 1 -y;
+
+                    if(*(data + y * width + x))
+                        output->set(x, y_, intensity);
+                }
+            
+            free(data);
+    
+        program.release();
+        vertexPositionBuffer.release();
+        contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
     }
-       
-    //========SAVE IMAGE===========
-        float *data = (float *) malloc(width * height * sizeof (float));
-        
-        contextFunc->glEnable(GL_TEXTURE_2D);
-        contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
-
-        // Altering range [0..1] -> [0 .. 255] 
-        contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
-
-
-        for (unsigned int x = 0; x < width; ++x) 
-            for (unsigned int y = 0; y < height; ++y)
-            {
-                unsigned int y_ = height - 1 -y;
-
-                if(*(data + y * width + x))
-                    output->set(x, y_, intensity);
-            }
-        
-        free(data);
-      
-    program.release();
-    vertexPositionBuffer.release();
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
-
+    else cout<<"The component of Node-"<<nodeID<<" is too small to generate any skeletons."<<endl;
 }
 
 
@@ -917,6 +927,7 @@ void dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID,
             else initOutput(0);
         } 
         else{
+            
             if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
                 initOutput(0);
             else  initOutput(clearColor); 
@@ -930,7 +941,7 @@ void dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID,
                     LastInty = it.first;
                     //cout<<"LastInty "<<LastInty<<"\t";
                     if(action){//highlight
-                    if(interpolate){
+                        if(interpolate){
                             bool last_layer = false; 
                             auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
                             //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());

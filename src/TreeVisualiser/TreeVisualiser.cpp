@@ -633,7 +633,8 @@ void TreeVisualiser::skelRecBtn_press()
 
 void TreeVisualiser::removeSkelBtn_press()
 {
-  SimpleImageViewer *iv = nullptr;
+  
+  //SimpleImageViewer *iv = nullptr;
   // if (removeSkelDock_ == nullptr) {
   //   iv = new SimpleImageViewer;
   //   removeSkelDock_ = mainWidget_->createDockWidget(tr("SDMD remove skeleton reconstruction"), iv);
@@ -646,7 +647,7 @@ void TreeVisualiser::removeSkelBtn_press()
   // }
 
   // NodePtr mnode = curNodeSelection_->mtreeNode();
-  NodePtr mnode = curNodeSelection_->mnode();
+  //NodePtr mnode = curNodeSelection_->mnode();
   //dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 0);
   
   // collect nodes that should be used in the reconstruction
@@ -654,6 +655,7 @@ void TreeVisualiser::removeSkelBtn_press()
   for (int i=0; i < selectedNodesForRec_.size(); ++i) {
     if (selectedNodesForRec_[i])
       keptNodes.push_back(i);
+      
   }
       
   dmdrecon_->ReconstructMultiNode(false, keptNodes, 0);

@@ -20,7 +20,7 @@ FIELD<float>* skelImp;//for importance map
 vector<vector<Vector3<float>>> BranchSet;
 vector<int *> connection;
 extern float diagonal;
-int SkeletonNum = 0;
+
 
 dmdProcess::dmdProcess() {
     printf("Into dmdProcess class.\n");
@@ -535,7 +535,7 @@ void tracePath(int x, int y, FIELD<float> *skel, FIELD<float> *dt, vector<Vector
 	//OutFile<<seq<<" " << x << " " << y << " " <<dt->value(x, y)<< " " <<skelImp->value(x,y) <<endl;//for 4D
    
     Branch.push_back(CurrentPx);
-    SkeletonNum ++;
+    //SkeletonNum ++;
     
 	skel->set(x, y, 0);
     //segment->set(x,y,255);
@@ -759,73 +759,70 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
     ske<<"output/c"<<intensity<<"-"<<index<<".pgm";
     CC->writePGM(ske.str().c_str());
    */
-    bool ADAPTIVE = false;
-    if(!ADAPTIVE)
-    {
-        FIELD<float> *skelCurr = 0;
-        int seq = 0, x, y; 
-        int SkelPoints = 0;
-        
-        skelImp = computeSkeleton(intensity, CC, 1.0);//salThres needs to be improved, set by users.
-        
-        //skel importance map or saliency map transforms to skel.
-        skelCurr = new FIELD<float>(skelImp->dimX(), skelImp->dimY());
-        for (int i = 0; i < skelImp->dimX(); ++i) {
-            for (int j = 0; j < skelImp->dimY(); ++j) {
-                bool is_skel_point = skelImp->value(i,j);
-                skelCurr->set(i, j, is_skel_point ? 255 : 0);
-            }
-        } 
-        
-        analyze_cca(intensity, skelCurr);
-        removeDoubleSkel(skelCurr);
-        
-        for (y = 0; y < skelCurr->dimY(); ++y) {
-            for (x = 0; x < skelCurr->dimX(); ++x) {
-                if (skelCurr->value(x, y) > 0) {
-                    SkelPoints++;
-                    if(CC->value(x,y) == 0)//dt=0
-                        skelCurr->set(x,y,0);
-                }
+    
+    FIELD<float> *skelCurr = 0;
+    int seq = 0, x, y; 
+    int SkelPoints = 0;
+    
+    skelImp = computeSkeleton(intensity, CC, 0.5);//salThres needs to be improved, set by users.
+    
+    //skel importance map or saliency map transforms to skel.
+    skelCurr = new FIELD<float>(skelImp->dimX(), skelImp->dimY());
+    for (int i = 0; i < skelImp->dimX(); ++i) {
+        for (int j = 0; j < skelImp->dimY(); ++j) {
+            bool is_skel_point = skelImp->value(i,j);
+            skelCurr->set(i, j, is_skel_point ? 255 : 0);
+        }
+    } 
+    
+    analyze_cca(intensity, skelCurr);
+    removeDoubleSkel(skelCurr);
+    
+    for (y = 0; y < skelCurr->dimY(); ++y) {
+        for (x = 0; x < skelCurr->dimX(); ++x) {
+            if (skelCurr->value(x, y) > 0) {
+                SkelPoints++;
+                if(CC->value(x,y) == 0)//dt=0
+                    skelCurr->set(x,y,0);
             }
         }
-        
-        if(SkelPoints == 0)  
-            printf(" Attention: There are no skeletons produced for this layer. \n");
-        
-        
-        ///////segment and store into the BranchSets;
-        SkeletonNum = 0;
-        for (y = 0; y < skelCurr->dimY(); ++y) {
-            for (x = 0; x < skelCurr->dimX(); ++x) {
-                if (skelCurr->value(x, y) > 0) {
-                    vector<Vector3<float>> Branch;
-                    //if(imDupeCurr->value(x,y) == 0) cout<<"! ";
-                    tracePath(x, y, skelCurr, CC, Branch, seq);//get the connection
-                    seq++;
-                }
-            }
-        }
-        if(intensity == clear_color) BranchSet.clear();//nodeTD=0
-        else{
-            //IntensityOfNode.push_back(intensity);
-            Inty_node.insert(make_pair(intensity, index));
-            ////fit with spline///
-            float hausdorff = 0.002; //spline fitting error threshold
-            if(BranchSet.size()>0){
-                //BSplineCurveFitterWindow3 spline;
-                spline.indexingSpline(BranchSet, hausdorff, diagonal, intensity, index);//
-                
-                BranchSet.clear();//important.
-                connection.clear();
-            }
-        }
-       
-        delete skelCurr;
     }
-    else
-        printf("Adaptive Layer Encoding method will be added later...\n");
+ 
+    if(intensity == clear_color) BranchSet.clear();//nodeTD=0
+    else{
+        if(SkelPoints != 0)  
+        {
+            ///////segment and store into the BranchSets;
+            
+            for (y = 0; y < skelCurr->dimY(); ++y) {
+                for (x = 0; x < skelCurr->dimX(); ++x) {
+                    if (skelCurr->value(x, y) > 0) {
+                        vector<Vector3<float>> Branch;
+                        //if(imDupeCurr->value(x,y) == 0) cout<<"! ";
+                        tracePath(x, y, skelCurr, CC, Branch, seq);//get the connection
+                        seq++;
+                    }
+                }
+            }
+        }   
+        else {
+            BranchSet.clear();
+            //cout<<"index: "<<index<<endl;
+        }    
+        //IntensityOfNode.push_back(intensity);
+        Inty_node.insert(make_pair(intensity, index));
+        ////fit with spline///
+        float hausdorff = 0.002; //spline fitting error threshold
+        //if(BranchSet.size()>0){
+        //BSplineCurveFitterWindow3 spline;
+        spline.indexingSpline(BranchSet, hausdorff, diagonal, intensity, index);//
+        
+        BranchSet.clear();//important.
+        connection.clear();
+         
+    }
     
-    return SkeletonNum;
+    delete skelCurr;
     
+    return SkelPoints;
 }

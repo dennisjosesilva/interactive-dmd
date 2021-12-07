@@ -52,8 +52,7 @@ MainWidget::MainWidget(QWidget *parent)
 
   connect(treeVis_, &TreeVisualiser::nodeSelected, this, &MainWidget::treeVis_NodeSelected);
   connect(treeVis_, &TreeVisualiser::nodeUnselected, this, &MainWidget::treeVis_NodeUnselected);
-  connect(treeVis_, &TreeVisualiser::ImageHasBeenReconstructed, this, &MainWidget::ChangeDisplayImg);
-
+  
   connect(ThresCtl, &ThresholdControl::ImageHasBeenReconstructed, this, &MainWidget::ChangeDisplayImg);
   connect(ThresCtl, &ThresholdControl::LayerHasBeenSelected, this, &MainWidget::DisplaySelectedNodes);
   connect(ThresCtl, &ThresholdControl::DisplayOriginalImg, this, &MainWidget::DisplayOrigImg);

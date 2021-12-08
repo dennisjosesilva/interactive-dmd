@@ -629,7 +629,11 @@ void TreeVisualiser::SplineManipulateBtn_press()
    }
    else{
      vector<vector<Vector3<float>>> storeCPs = dmdrecon_->GetCPs(mnode->id());
-     cv->transData(mnode->level(), storeCPs, dmdrecon_);
+     if(storeCPs.empty()){
+       QMessageBox::information(0, "For your information",
+        "The node is too small to generate any control points.");
+     }
+     else cv->transData(mnode->level(), storeCPs, dmdrecon_);
    }
     
   }

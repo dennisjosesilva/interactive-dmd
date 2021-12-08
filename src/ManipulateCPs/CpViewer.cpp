@@ -26,27 +26,44 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   removeCPsBtn->setIconSize(QSize{32, 32});
   connect(removeCPsBtn, &QPushButton::clicked, this, &CpViewer::removeCPsBtn_press);
 
+
+  QPushButton *AddCPsBtn = new QPushButton { QIcon{":/images/AddCP_icon.png"}, tr(""), this};
+  AddCPsBtn->setIconSize(QSize{32, 32});
+  connect(AddCPsBtn, &QPushButton::clicked, this, &CpViewer::AddCPsBtn_press);
+
+  QPushButton *DeleteCPsBtn = new QPushButton { QIcon{":/images/DeleteCP_icon.png"}, tr(""), this};
+  DeleteCPsBtn->setIconSize(QSize{32, 32});
+  connect(DeleteCPsBtn, &QPushButton::clicked, this, &CpViewer::DeleteCPsBtn_press);
+  
+  QPushButton *DeleteMultiCPsBtn = new QPushButton { QIcon{":/images/DeleteMultiCP_icon.png"}, tr(""), this};
+  DeleteMultiCPsBtn->setIconSize(QSize{32, 32}); 
+  connect(DeleteMultiCPsBtn, &QPushButton::clicked, this, &CpViewer::DeleteMultiCPsBtn_press);
+
   QPushButton *skelRecBtn = new QPushButton();
   skelRecBtn->setText("Reconstruct\n CC");
   //QPushButton *skelRecBtn = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
-  skelRecBtn->setFixedSize(QSize{160, 38});//?
+  skelRecBtn->setFixedSize(QSize{100, 38});//?
   connect(skelRecBtn, &QPushButton::clicked, this, &CpViewer::ReconBtn_press);
   
 
   QPushButton *skelRecBtn_ = new QPushButton();
   skelRecBtn_->setText("Reconstruct\n Image");
   //QPushButton *skelRecBtn_ = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
-  skelRecBtn_->setFixedSize(QSize{160, 38});//?
+  skelRecBtn_->setFixedSize(QSize{100, 38});//?
   connect(skelRecBtn_, &QPushButton::clicked, this, &CpViewer::ReconImageBtn_press);
 
   btnLayout->addWidget(showCPsBtn);
   btnLayout->addWidget(removeCPsBtn);
+  btnLayout->addWidget(AddCPsBtn);
+  btnLayout->addWidget(DeleteCPsBtn);
+  btnLayout->addWidget(DeleteMultiCPsBtn);
   btnLayout->addWidget(skelRecBtn);
   btnLayout->addWidget(skelRecBtn_);
+
   mainLayout->addItem(btnLayout);
 
 // -------------------- Second Row - BranchManipulate  ------------------------
-  QLayout *BranchManipulate = new QHBoxLayout; 
+  //QLayout *BranchManipulate = new QHBoxLayout; 
 
   QLayout *Sliders = new QVBoxLayout;
 
@@ -86,23 +103,13 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   Sliders->addItem(degreeLayout);
 
 
-  QLayout *CPbuttons = new QVBoxLayout;
+  //QLayout *CPbuttons = new QVBoxLayout;
 
-  QPushButton *AddCPsBtn = new QPushButton { QIcon{":/images/AddCP_icon.png"}, tr(""), this};
-  AddCPsBtn->setIconSize(QSize{32, 32});
-  connect(AddCPsBtn, &QPushButton::clicked, this, &CpViewer::AddCPsBtn_press);
 
-  QPushButton *DeleteCPsBtn = new QPushButton { QIcon{":/images/DeleteCP_icon.png"}, tr(""), this};
-  DeleteCPsBtn->setIconSize(QSize{32, 32});
-  connect(DeleteCPsBtn, &QPushButton::clicked, this, &CpViewer::DeleteCPsBtn_press);
+  //BranchManipulate->addItem(Sliders);
+  //BranchManipulate->addItem(CPbuttons);
 
-  CPbuttons->addWidget(AddCPsBtn);
-  CPbuttons->addWidget(DeleteCPsBtn);
-
-  BranchManipulate->addItem(Sliders);
-  BranchManipulate->addItem(CPbuttons);
-
-  mainLayout->addItem(BranchManipulate);
+  mainLayout->addItem(Sliders);
 
   manipulate_CPs = new ManipulateCPs(w, h);
   mainLayout->addWidget(manipulate_CPs);
@@ -164,4 +171,8 @@ void CpViewer::AddCPsBtn_press()
 void CpViewer::DeleteCPsBtn_press()
 {
   manipulate_CPs->deleteCurrCp();
+}
+void CpViewer::DeleteMultiCPsBtn_press()
+{
+  manipulate_CPs->deleteMultiCp();
 }

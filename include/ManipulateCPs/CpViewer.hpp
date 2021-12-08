@@ -26,8 +26,9 @@ protected slots:
   void removeCPsBtn_press();
   void ReconBtn_press();
   void ReconImageBtn_press();
-  void AddCPsBtn_press();
+  void AddCPsBtn_press(); 
   void DeleteCPsBtn_press();
+  void DeleteMultiCPsBtn_press();
   void CPradiusSlider_onValueChange(int val);
   void degreeSlider_onValueChange(int val);
   void ChangeSliderValue(int val, int maxDegree, int degree);

@@ -12,6 +12,7 @@ ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
   scene->setItemIndexMethod(QGraphicsScene::NoIndex);
   scene->setSceneRect(-w/2, -h/2, w, h);
   setScene(scene);
+  setDragMode(QGraphicsView::RubberBandDrag);
   setCacheMode(CacheBackground);
   setViewportUpdateMode(BoundingRectViewportUpdate);
   setRenderHint(QPainter::Antialiasing);
@@ -25,39 +26,40 @@ void ManipulateCPs::ShowingCPs(){
   Vector3<float> ReadingEachCP;
   
   for(auto i = 0; i < CPlist.size(); ++i){
-    ReadingCPforEachBranch = CPlist[i];
-    
-    Node_ *prevNode = nullptr;
-    int degree, maxDegree;
-    for(auto j = 0; j < ReadingCPforEachBranch.size(); ++j){
-        
-        ReadingEachCP = ReadingCPforEachBranch[j];
-        if(j == 0) 
-        {
-          maxDegree = ReadingEachCP[0] - 1;
-          degree = ReadingEachCP[1];
-        }
-        else{ //read 
-          Node_ *node1 = new Node_(this);
-          scene->addItem(node1);
-          node1->setPos(ReadingEachCP[0] - w/2, ReadingEachCP[1] - h/2);
-          node1->setIndex(i, j);
-          node1->setRadius(ReadingEachCP[2]);
-          node1->setDegree(maxDegree, degree);
-          node1->setPrevNode(prevNode);
+    if(!CPlist[i].empty()){
+      ReadingCPforEachBranch = CPlist[i];
+      
+      Node_ *prevNode = nullptr;
+      int degree, maxDegree;
+      for(auto j = 0; j < ReadingCPforEachBranch.size(); ++j){
+          
+          ReadingEachCP = ReadingCPforEachBranch[j];
+          if(j == 0) 
+          {
+            maxDegree = ReadingEachCP[0] - 1;
+            degree = ReadingEachCP[1];
+          }
+          else{ //read 
+            Node_ *node1 = new Node_(this);
+            scene->addItem(node1);
+            node1->setPos(ReadingEachCP[0] - w/2, ReadingEachCP[1] - h/2);
+            node1->setIndex(i, j);//i means the (i+1)_th branch; j means the j_th CP. When j=0, represents(CPnum,degree,sampleNum)
+            node1->setRadius(ReadingEachCP[2]);
+            node1->setDegree(maxDegree, degree);
+            node1->setPrevNode(prevNode);
 
-          if(j > 1){
-            prevNode->setNextNode(node1);
-            Edge *edge = new Edge(prevNode, node1, i);
-            scene->addItem(edge);
-            WholeEdgeList << edge;
-          } 
-           
-          prevNode = node1;
-          if(j == ReadingCPforEachBranch.size() - 1) node1->setNextNode(nullptr);
-        }
+            if(j > 1){
+              prevNode->setNextNode(node1);
+              Edge *edge = new Edge(prevNode, node1, i);
+              scene->addItem(edge);
+              WholeEdgeList << edge;
+            } 
+            
+            prevNode = node1;
+            if(j == ReadingCPforEachBranch.size() - 1) node1->setNextNode(nullptr);
+          }
+      }
     }
-   
   }
 
 }
@@ -70,12 +72,48 @@ void ManipulateCPs::AddOneCp(){
 
 }
 
+void ManipulateCPs::DeleteLastTwoCPs(Node_ *CurrNode)
+{
+  int CurrNodeIndex_m = CurrNode->getIndexM();
+  //1. update CPlist - erase the branch
+  //CPlist.erase(CPlist.begin() + CurrNodeIndex_m);//The size will decrease
+  vector<Vector3<float>> *changedBranch;
+  changedBranch = &(CPlist[CurrNodeIndex_m]);
+  changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
+
+  //2. change sliders
+  emit PressNode(0, 1, 0); 
+
+  //3.remove two points in the scene.
+  scene->removeItem(CurrNode);
+  Node_ *forewardNode = CurrNode->getPrevNode();
+  if (forewardNode != nullptr) scene->removeItem(forewardNode);
+  Node_ *backwardNode = CurrNode->getNextNode();
+  if (backwardNode != nullptr) scene->removeItem(backwardNode);
+
+  //4.remove edges of CurrNode
+  QVector<Edge*> EdgeList = CurrNode->getEdgeList();
+  for (Edge *edge : qAsConst(EdgeList)){
+    scene->removeItem(edge);
+    //does WholeEdgeList need remove edge? Seems doesn't.
+  }
+
+}
+
 void ManipulateCPs::deleteCurrCp(){
   //update CPlist
   int CurrCPNum = CPlist[CurrNodeIndex_m][0][0] - 1;
   if(CurrCPNum < 2){
-    QMessageBox::information(0, "For your information",
-        "Please leave at least two nodes!");
+    //QMessageBox::information(0, "For your information","Please leave at least two nodes!");
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "For your information", 
+    "There are only two CPs for this branch, Do you want to delete both of them?",
+                                  QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+      //delete both of the two CPs, i.e., delete this branch
+      DeleteLastTwoCPs(CurrPressedNode);
+    } 
+    //else do nothing.
   }
   else {
     CPlist[CurrNodeIndex_m][0][0] = CurrCPNum;
@@ -96,6 +134,7 @@ void ManipulateCPs::deleteCurrCp(){
       backwardNode = backwardNode->getNextNode();
     }
    
+    //update CPlist
     vector<Vector3<float>> *changedBranch;
     changedBranch = &(CPlist[CurrNodeIndex_m]);
     changedBranch->erase(changedBranch->begin() + CurrNodeIndex_n);
@@ -131,9 +170,41 @@ void ManipulateCPs::deleteCurrCp(){
   
 }
 
+void ManipulateCPs::deleteMultiCp()
+{
+  //cout<<"MultiCPsDelete: "<<MultiCPsDelete.size()<<endl;
+  if(!MultiCPsDelete.empty())
+  {
+    for(auto it_ = MultiCPsDelete.begin();it_!=MultiCPsDelete.end();it_++){
+        
+      Node_ *CurrPoint = (*it_);
+      int CurrNodeIndex_m = CurrPoint->getIndexM();
+      if(!CPlist[CurrNodeIndex_m].empty()){//means the points has already been deleted.
+        int CurrCPNum = CPlist[CurrNodeIndex_m][0][0];
+      
+        if(CurrCPNum < 3)
+          DeleteLastTwoCPs(CurrPoint); //delete both of the two CPs, i.e., delete this branch
+      
+      }
+        
+    }
+
+    MultiCPsDelete.clear();
+
+  }
+  
+}
+void ManipulateCPs::TranspCurrPoint(Node_ *node){
+  MultiCPsDelete.push_back(node);
+}
+
 void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degree){
   emit PressNode(radius, maxDegree, degree); 
   CurrPressedNode = node;
+  
+  CurrNodeIndex_m = CurrPressedNode->getIndexM();
+  CurrNodeIndex_n = CurrPressedNode->getIndexN();
+  
   //make edge thicker.
   for (Edge *edge : qAsConst(WholeEdgeList)){
     edge->setThickerSignal(false);
@@ -143,6 +214,7 @@ void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degre
   //make one branch seleted.
   isBranchSelected = true;
 }
+
 void ManipulateCPs::Update(){
   scene->clear();
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
@@ -170,7 +242,7 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, int intensity)
 void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
 {
   vector<int> reconAll;
-  reconAll.push_back(10000);
+  reconAll.push_back(10000);//Just make sure reconstruct all nodes.
   recon->ReconstructMultiNode(false, reconAll, 0);
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
 }
@@ -368,10 +440,13 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
   }
 
 }
+
 void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
   //const QPoint& point = event->pos(); 
+ 
   if(AddCPbuttonPressed == true){
-    QPointF scenePoint = mapToScene(event->pos()); 
+    QPointF scenePoint = mapToScene(event->pos());
+
     //std::cout<< scenePoint.x() <<"---/"<<scenePoint.y()<<endl;
     int index_n = DetermineLocation(scenePoint);
     //std::cout<<"index_n---"<<index_n<<endl;
@@ -383,6 +458,13 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
   
   QGraphicsView::mousePressEvent(event);
 }
+
+// void ManipulateCPs::mouseReleaseEvent(QMouseEvent *event) {
+//   QPointF releasePoint = mapToScene(event->pos());
+//    std::cout<< releasePoint.x() <<"---/"<<releasePoint.y()<<endl;
+
+//   QGraphicsView::mouseReleaseEvent(event);
+// }
 
 void ManipulateCPs::drawBackground(QPainter *painter, const QRectF &rect)
 {

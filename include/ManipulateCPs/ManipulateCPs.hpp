@@ -33,10 +33,13 @@ public:
   void ReconFromMovedCPs(dmdReconstruct *recon, int intensity);
   void ReconImageFromMovedCPs(dmdReconstruct *recon);
   void Press_node(Node_ *node, int radius, int maxDegree, int degree);
-  inline void setCurrentNodeIndex(int m, int n) {CurrNodeIndex_m = m; CurrNodeIndex_n = n;}
+  //inline void setCurrentNodeIndex(int m, int n) {CurrNodeIndex_m = m; CurrNodeIndex_n = n;}
+  void TranspCurrPoint(Node_ *node);
   inline void setCPs(vector<vector<Vector3<float>>> CPs) {CPlist = CPs;}
   void deleteCurrCp();
+  void deleteMultiCp();
   void AddOneCp();
+  void DeleteLastTwoCPs(Node_ *CurrNode);
 
 public: 
 signals: 
@@ -50,6 +53,7 @@ protected:
   void keyPressEvent(QKeyEvent *event) override;
   void wheelEvent(QWheelEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
+  //void mouseReleaseEvent(QMouseEvent *event) override;
 
   void drawBackground(QPainter *painter, const QRectF &rect) override;
   void scaleView(qreal scaleFactor);
@@ -68,4 +72,6 @@ private:
   Node_ *CurrPrevNode, *CurrNextNode;
   bool isBranchSelected = false;
   bool AddCPbuttonPressed = false;
+  vector<Node_ *> MultiCPsDelete;
+  
 };

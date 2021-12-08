@@ -12,6 +12,7 @@ Node_::Node_(ManipulateCPs *graphWidget)
 {
   setFlag(ItemIsMovable);
   setFlag(ItemSendsGeometryChanges);
+  setFlag(ItemIsSelectable);
   setCacheMode(DeviceCoordinateCache);
   setZValue(-1);
 }
@@ -43,21 +44,21 @@ QPainterPath Node_::shape() const
 void Node_::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)//setting style for each node
 {
   QRadialGradient gradient(-3, -3, 10);
-  if (option->state & QStyle::State_Sunken) {
-   
-    gradient.setCenter(3, 3);
-    gradient.setFocalPoint(3, 3);
-    gradient.setColorAt(1, QColor(Qt::yellow).lighter(120));
-    gradient.setColorAt(0, QColor(Qt::darkYellow).lighter(120));
+  if(isSelected()){
+    gradient.setColorAt(0, Qt::blue);
+    gradient.setColorAt(1, Qt::darkBlue);
+    graph->TranspCurrPoint(this);
   }
-  else {
+  else{
     gradient.setColorAt(0, Qt::yellow);
     gradient.setColorAt(1, Qt::darkYellow);
   }
+  
   painter->setBrush(gradient);
 
   painter->setPen(QPen(Qt::red, 0));
   painter->drawEllipse(-NodeRadius, -NodeRadius, 2*NodeRadius, 2*NodeRadius);
+
 }
 
 QVariant Node_::itemChange(GraphicsItemChange change, const QVariant &value)
@@ -79,13 +80,12 @@ QVariant Node_::itemChange(GraphicsItemChange change, const QVariant &value)
 
 void Node_::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-  //std::cout<<"mousePressEvent"<<std::endl;
-  graph->setCurrentNodeIndex(index_m, index_n);
+  //graph->setCurrentNodeIndex(index_m, index_n);
   graph->Press_node(this, radius_, maxDegree, degree);
-  
+ 
   update();
-  
   QGraphicsItem::mousePressEvent(event);
+ 
 }
 
 void Node_::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

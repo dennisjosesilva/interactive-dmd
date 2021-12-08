@@ -102,6 +102,15 @@ public:
   
   FIELD<float>* SDMDReconstruction(unsigned int id);
 
+  bool isNodeSelectedForReconstruction(unsigned int id) const { return selectedNodesForRec_[id]; }
+  bool &isNodeSelectedForReconstruction(unsigned int id) { return selectedNodesForRec_[id]; }
+  void setNodeSelectedForReconstruction(unsigned int id, bool val) { selectedNodesForRec_[id] = val; }
+
+  const QVector<bool> &selectedNodesForReconstruction() const { return selectedNodesForRec_; }
+  QVector<bool> &selectedNodesForReconstruction() { return selectedNodesForRec_; }
+
+  void selectNodesForRecBasedOnIntensities(const std::vector<int> &sIntensities);
+
 protected:  
   std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
   

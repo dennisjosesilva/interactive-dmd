@@ -215,6 +215,38 @@ FIELD<float> *TreeVisualiser::SDMDReconstruction(unsigned int id)
   return dmdrecon_->getOutput();
 }
 
+void TreeVisualiser::selectNodesForRecBasedOnIntensities(
+  const std::vector<int> &sIntensities)
+{
+  // type aliases
+  using uint32 = unsigned int;
+
+  // Considering only 8-bit images.
+  const int MAX_LEVEL = 255;
+
+  // auxilariaries variables
+  const MTree &tree = treeWidget_->mtree();
+  std::vector<std::vector<uint32>> levelNodeMap(MAX_LEVEL);
+
+  // maps each node to its associated level
+  tree.tranverse([&levelNodeMap](NodePtr node) {
+    levelNodeMap[node->level()].push_back(node->id());
+  });
+
+  // make all nodes unselected for reconstruction but the root node.
+  selectedNodesForRec_.fill(false);
+  selectedNodesForRec_[0] = true;
+
+  // selected all nodes with level at the sIntensity list.
+  for (int level : sIntensities)  {
+    for (uint32 nodeId : levelNodeMap[level]) 
+      selectedNodesForRec_[nodeId] = true;
+  }
+
+  // update node transparency 
+  updateTransparencyOfTheNodes();
+}
+
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 {  
   // namespace mw = MorphotreeWidget;

@@ -297,11 +297,13 @@ void MainWidget::ChangeDisplayImg(QImage img)
 {
   imageViewer_->setImage(img);
 }
+
 void MainWidget::DisplaySelectedNodes(vector<int> selectedIntensity)
-{
-  for(auto it = selectedIntensity.begin();it!=selectedIntensity.end();it++)
-    cout << *it << "\t";
+{  
+  treeVis_->selectNodesForRecBasedOnIntensities(selectedIntensity);
+  setReconMode(ReconMode::SDMD);
 }
+
 void MainWidget::DisplayOrigImg()
 {
   imageViewer_->setImage(newImage);

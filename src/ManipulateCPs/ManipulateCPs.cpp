@@ -64,11 +64,11 @@ void ManipulateCPs::ShowingCPs(){
 
 }
 void ManipulateCPs::AddOneCp(){
-  if(!isBranchSelected){//
-    QMessageBox::information(0, "For your information",
-        "Please select a branch/point first!");
-  }
-  else AddCPbuttonPressed = true;
+  // if(!isBranchSelected){//
+  //   QMessageBox::information(0, "For your information",
+  //       "Please select a branch/point first!");
+  // }
+  AddCPbuttonPressed = true;
 
 }
 
@@ -194,8 +194,17 @@ void ManipulateCPs::deleteMultiCp()
   }
   
 }
+
 void ManipulateCPs::TranspCurrPoint(Node_ *node){
+  
   MultiCPsDelete.push_back(node);
+}
+
+void ManipulateCPs::MoveMultiPoint(Node_ *node, QPointF newPos){
+  //cout<<" CurrNodeIndex_m "<<node->getIndexM()<<" "<<node->getIndexN()<<" "<<newPos.rx()<<" "<<newPos.ry()<<endl;
+  
+  CPlist[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
+  CPlist[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
 }
 
 void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degree){
@@ -365,6 +374,70 @@ int ManipulateCPs::DetermineLocation(QPointF pressedPoint){
   return 100;//Didn't click in the right place.
 }
 
+void ManipulateCPs::AddNewBranch(QPointF point)
+{
+  //1. update CPlist - erase the branch
+  int set_radius = 1;
+ 
+  vector<Vector3<float>> addedBranch;
+  Vector3<float> FirstTriple;
+  FirstTriple[0] = 2;//CPnum = 2;
+  FirstTriple[1] = 1;//degree = 2;
+  FirstTriple[2] = 10;//Samplenum = 10;
+
+  Vector3<float> firstPoint;
+  firstPoint[0] = point.x() + w/2;
+  firstPoint[1] = point.y() + h/2;
+  firstPoint[2] = set_radius;
+  
+  Vector3<float> secondPoint;
+  secondPoint[0] = point.x() + w/2 + 1;
+  secondPoint[1] = point.y() + h/2 + 1;
+  secondPoint[2] = set_radius;
+
+  addedBranch.push_back(FirstTriple);
+  addedBranch.push_back(firstPoint);
+  addedBranch.push_back(secondPoint);
+
+  cout<<"CPlist.size(): "<<CPlist.size()<<endl;
+  CPlist.push_back(addedBranch);
+  cout<<"CPlist.size(): "<<CPlist.size()<<endl;
+
+  //2. change sliders
+  emit PressNode(set_radius, 1, 1); 
+
+  //3.add two points in the scene.
+  Node_ *node1 = new Node_(this);
+  scene->addItem(node1);
+  node1->setPos(point.x(), point.y());
+  node1->setIndex(CPlist.size()-1, 1);
+  node1->setRadius(set_radius);
+  node1->setDegree(1, 1);
+
+  Node_ *node2 = new Node_(this);
+  scene->addItem(node2);
+  node2->setPos(point.x()+1, point.y()+1);
+  node2->setIndex(CPlist.size()-1, 2);
+  node2->setRadius(set_radius);
+  node2->setDegree(1, 1);
+
+  node1->setPrevNode(nullptr);
+  node1->setNextNode(node2);
+  node2->setPrevNode(node1);
+  node2->setNextNode(nullptr);
+
+  //4.Add edges between them
+  Edge *edge = new Edge(node1, node2, CPlist.size()-1);
+  edge->setThickerSignal(true);
+  scene->addItem(edge);
+  WholeEdgeList << edge;
+
+  //5. Add all features of pressing the node1.
+  CurrNodeIndex_n = 1;
+  CurrPressedNode = node1;
+
+}
+
 void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
   int set_radius = 1;
   //update CPlist
@@ -446,12 +519,17 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
  
   if(AddCPbuttonPressed == true){
     QPointF scenePoint = mapToScene(event->pos());
-
     //std::cout<< scenePoint.x() <<"---/"<<scenePoint.y()<<endl;
-    int index_n = DetermineLocation(scenePoint);
-    //std::cout<<"index_n---"<<index_n<<endl;
-    if(index_n != 100)
-      updateAddingCP(index_n, scenePoint);
+    if(!isBranchSelected){//Didn't select a branch
+      AddNewBranch(scenePoint);
+    }
+    else{
+        int index_n = DetermineLocation(scenePoint);
+        //std::cout<<"index_n---"<<index_n<<endl;
+        if(index_n != 100)
+          updateAddingCP(index_n, scenePoint);
+        else AddNewBranch(scenePoint);
+    }
     
     AddCPbuttonPressed = false;
   }

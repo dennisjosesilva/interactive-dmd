@@ -48,6 +48,7 @@ public:
 
   ReconMode reconMode() const { return reconMode_; }
   void setReconMode(ReconMode reconMode) { reconMode_ = reconMode; }
+  inline bool GetInterpState(){return ThresCtl->getInterpState();}
 
 protected slots:
   void imageMousePress(const QPointF &p);
@@ -91,4 +92,5 @@ private:
 
   InteractiveSdmd *Interactive_sdmd;
   QImage newImage;
+  bool HasUpdatedTreeVisualiser = false;
 };

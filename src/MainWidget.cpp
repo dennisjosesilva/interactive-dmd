@@ -125,6 +125,7 @@ void MainWidget::updateTreeVisualiser()
   mainWindow->statusBar()->clearMessage();
   mainWindow->statusBar()->showMessage(tr("Loading Skeleton (DMD)"));
   treeVis_->registerDMDSkeletons();  
+  HasUpdatedTreeVisualiser = true;
 }
 
 void MainWidget::zoomOut()
@@ -300,8 +301,11 @@ void MainWidget::ChangeDisplayImg(QImage img)
 
 void MainWidget::DisplaySelectedNodes(vector<int> selectedIntensity)
 {  
-  treeVis_->selectNodesForRecBasedOnIntensities(selectedIntensity);
-  setReconMode(ReconMode::SDMD);
+  if(HasUpdatedTreeVisualiser){
+    treeVis_->selectNodesForRecBasedOnIntensities(selectedIntensity);
+    setReconMode(ReconMode::SDMD);
+  }
+  
 }
 
 void MainWidget::DisplayOrigImg()

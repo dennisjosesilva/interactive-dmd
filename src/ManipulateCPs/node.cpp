@@ -68,7 +68,10 @@ QVariant Node_::itemChange(GraphicsItemChange change, const QVariant &value)
   case ItemPositionHasChanged:
     for (Edge *edge : qAsConst(edgeList))
       edge->adjust();
-    //graph->itemMoved();
+    
+    if(index_m!=1000)
+      graph->MoveMultiPoint(this, pos());
+    //std::cout<<"ItemPositionHasChanged"<<std::endl;
     break;
   
   default:
@@ -80,6 +83,7 @@ QVariant Node_::itemChange(GraphicsItemChange change, const QVariant &value)
 
 void Node_::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+  //std::cout<<"mousePressEvent"<<std::endl;
   //graph->setCurrentNodeIndex(index_m, index_n);
   graph->Press_node(this, radius_, maxDegree, degree);
  

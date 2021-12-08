@@ -35,6 +35,7 @@ public:
   void Press_node(Node_ *node, int radius, int maxDegree, int degree);
   //inline void setCurrentNodeIndex(int m, int n) {CurrNodeIndex_m = m; CurrNodeIndex_n = n;}
   void TranspCurrPoint(Node_ *node);
+  void MoveMultiPoint(Node_ *node, QPointF newPos);
   inline void setCPs(vector<vector<Vector3<float>>> CPs) {CPlist = CPs;}
   void deleteCurrCp();
   void deleteMultiCp();
@@ -61,6 +62,7 @@ protected:
 private:
   int DetermineLocation(QPointF pressedPoint);
   void updateAddingCP(int index_n, QPointF point);
+  void AddNewBranch(QPointF point);
   QImage backgroundImg;
   int w, h;
   int CurrNodeIndex_m, CurrNodeIndex_n;

@@ -15,6 +15,7 @@ class ThresholdControl : public QWidget
 public:
   ThresholdControl(QWidget *parent=nullptr);
   inline void readImgIntoSdmd(const char *c_str) { dmdProcess_.readFromFile(c_str); }
+  inline bool getInterpState() {return InterpState;}
 
 protected:
   QLayout *createLayerThresholdLayout();

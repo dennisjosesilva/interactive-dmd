@@ -53,7 +53,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     skelRecDock_{nullptr},
     removeSkelDock_{nullptr},
     curColorBar_{nullptr},
-    maxValue_{0}
+    maxValue_{0},
+    gradientRenderStyle_{true}
 {  
   using GNodeEventHandler = IcicleMorphotreeWidget::GNodeEventHandler;
   using FixedHeightTreeLayout = IcicleMorphotreeWidget::FixedHeightTreeLayout;    
@@ -161,7 +162,8 @@ void TreeVisualiser::useGradientGNodeStyle()
   treeWidget_->setGNodeFactory(std::make_unique<GradientNodeGNodeFactory>());
   treeWidget_->updateTreeRendering();
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);  
-  
+  treeWidget_->grayscaleBar()->setShowBorders(false);
+  gradientRenderStyle_ = true;
 
   updateTransparencyOfTheNodes();
 }
@@ -175,7 +177,8 @@ void TreeVisualiser::useFixedColorGNodeStyle()
   treeWidget_->setGNodeFactory(std::make_unique<FixedColorGNodeFactory>());
   treeWidget_->updateTreeRendering();
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);
-     
+  treeWidget_->grayscaleBar()->setShowBorders(true);
+  gradientRenderStyle_ = false;
 
   updateTransparencyOfTheNodes();
 }
@@ -255,17 +258,17 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
     clearAttributes();
 
   maxValue_ = static_cast<uint32>(*std::max_element(f.begin(), f.end()));
-  curNodeSelection_ = nullptr;
-  // if (treeWidget_->treeSimplification() == nullptr) 
-  //   treeWidget_->loadImage(domain, f, 
-  //     std::make_shared<mw::TreeSimplificationProgressiveAreaDifferenceFilter>(6, 50, 180));
-  // else 
-  //   treeWidget_->loadImage(domain, f, treeWidget_->treeSimplification());
+  curNodeSelection_ = nullptr;  
   treeWidget_->loadImage(domain, f);
 
-  treeWidget_->removeGrayScaleBar();
-    // TODO: Make it dynamic  
+  treeWidget_->removeGrayScaleBar();    
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, 10.f);
+  
+  if (gradientRenderStyle_)
+    treeWidget_->grayscaleBar()->setShowBorders(false);
+  else 
+    treeWidget_->grayscaleBar()->setShowBorders(true);
+
   selectedNodesForRec_.clear();
   selectedNodesForRec_.resize(treeWidget_->mtree().numberOfNodes());
   selectedNodesForRec_.fill(true);

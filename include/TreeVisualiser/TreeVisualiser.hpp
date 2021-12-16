@@ -178,4 +178,5 @@ private:
   CpViewer *cv = nullptr;
 
   QVector<bool> selectedNodesForRec_;
+  bool gradientRenderStyle_;
 };

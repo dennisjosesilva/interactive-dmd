@@ -198,6 +198,7 @@ void ManipulateCPs::deleteMultiCp()
 void ManipulateCPs::TranspCurrPoint(Node_ *node){
   
   MultiCPsDelete.push_back(node);
+  //cout<<"MultiCPsDelete: "<<MultiCPsDelete.size()<<endl;
 }
 
 void ManipulateCPs::MoveMultiPoint(Node_ *node, QPointF newPos){
@@ -247,6 +248,9 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, int intensity)
   //dmdReconstruct recon;
   recon->reconFromMovedCPs(intensity, CPlist);
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
+  MultiCPsDelete.clear();//To avoid being deleted next.
+  AllItemsUnselected = true;
+  //cout<<"MultiCPsDelete---: "<<MultiCPsDelete.size()<<endl;
 }
 void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
 {
@@ -533,7 +537,7 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
     
     AddCPbuttonPressed = false;
   }
-  
+  AllItemsUnselected = false;
   QGraphicsView::mousePressEvent(event);
 }
 

@@ -221,7 +221,7 @@ void ThresholdControl::RunBtn_press()
   CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, nullptr);
 
   //bar->showMessage(tr("Reading Control points..."));
-  dmdRecon_.readControlPoints(dmdProcess_.getImgWidth(), dmdProcess_.getImgWidth(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
+  dmdRecon_.readControlPoints(dmdProcess_.getImgWidth(), dmdProcess_.getImgHeight(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
   //bar->showMessage(tr("Reconstruction..."));
   //cout<<"InterpState: "<<InterpState<<endl;
   dmdRecon_.ReconstructImage(InterpState);

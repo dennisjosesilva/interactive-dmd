@@ -424,12 +424,12 @@ void dmdReconstruct::get_interp_layer(int i, int SuperResolution, bool last_laye
     int intensity = gray_levels.at(i);
     FIELD<float>* curr_layer = renderLayer_interp(i);
     //debug
-     /*//if(firstTime || last_layer){
+     if(firstTime || last_layer){
     stringstream skel;
     skel<<"out/s"<<intensity<<".pgm";
     curr_layer->writePGM(skel.str().c_str());
-    //}
-    */
+    }
+    /**/
     FIELD<float>* curr_dt = get_dt_of_alpha(curr_layer);
     
 
@@ -593,7 +593,7 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> node
         
         if(SampleForEachCC.empty()) {
             DrawTheNode = false;
-            cout<<"The component of Node-"<<node_id<<" is too small to generate any skeletons."<<endl;
+            //cout<<"The component of Node-"<<node_id<<" is too small to generate any skeletons."<<endl;
         }
         else{
             if(action) {
@@ -610,11 +610,17 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> node
         if(DrawTheNode){
             DrawnTheLayer = true; 
             
+            //FIELD<float>* skel = new FIELD<float>(width, height);
+            // for (unsigned int x = 0; x < width; ++x) 
+            //     for (unsigned int y = 0; y < height; ++y)
+            //         skel->set(x, y, 0);
             for(auto it = SampleForEachCC.begin();it!=SampleForEachCC.end();it++){
                 EachSample = *it;
                 x = EachSample[0];
                 y = height - EachSample[1] - 1;
                 r = EachSample[2]; 
+
+                //skel->set(x, height-1-y, 1);
 
                 float vertexPositions[] = {
                 (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
@@ -638,6 +644,10 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> node
                 contextFunc->glDrawArrays(GL_QUADS, 0, 4);
 
             }
+            // stringstream skelname;
+            // skelname<<"out/skel"<<intensity<<".pgm";
+            // skel->writePGM(skelname.str().c_str());
+        
         }
     }
 
@@ -685,7 +695,7 @@ void dmdReconstruct::get_interp_layer(int intensity, vector<int> nodesID, bool a
     
     FIELD<float>* curr_layer = renderLayer_interp(intensity, nodesID, action);
     
-    if(DrawnTheLayer){
+    if(DrawnTheLayer || last_layer){
     FIELD<float>* curr_dt = get_dt_of_alpha(curr_layer);
    if(firstTime || last_layer){
     stringstream layer;

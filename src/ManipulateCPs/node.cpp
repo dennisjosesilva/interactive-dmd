@@ -44,6 +44,8 @@ QPainterPath Node_::shape() const
 void Node_::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)//setting style for each node
 {
   QRadialGradient gradient(-3, -3, 10);
+  if(graph->getItemsUnselectionState())//unselected
+    setSelected(false);
   if(isSelected()){
     gradient.setColorAt(0, Qt::blue);
     gradient.setColorAt(1, Qt::darkBlue);

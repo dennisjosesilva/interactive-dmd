@@ -41,6 +41,7 @@ public:
   void deleteMultiCp();
   void AddOneCp();
   void DeleteLastTwoCPs(Node_ *CurrNode);
+  inline bool getItemsUnselectionState() {return AllItemsUnselected;}
 
 public: 
 signals: 
@@ -75,5 +76,6 @@ private:
   bool isBranchSelected = false;
   bool AddCPbuttonPressed = false;
   vector<Node_ *> MultiCPsDelete;
+  bool AllItemsUnselected = false;
   
 };

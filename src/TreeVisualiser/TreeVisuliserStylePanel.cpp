@@ -79,8 +79,7 @@ QLayout *TreeVisualiserStylePanel::createMeasuresSection()
   
   unitHeightSpinBox_ = new QDoubleSpinBox{this};
   unitHeightSpinBox_->setRange(0.1, 80);
-  unitHeightSpinBox_->setSingleStep(0.5);
-  unitHeightSpinBox_->setValue(treeVis_->unitHeightNode());
+  unitHeightSpinBox_->setSingleStep(0.5);  
   unitHeightLayout->addWidget(uniHeightLabel);
   unitHeightLayout->addWidget(unitHeightSpinBox_);
   connect(unitHeightSpinBox_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
@@ -91,8 +90,7 @@ QLayout *TreeVisualiserStylePanel::createMeasuresSection()
 }
 
 void TreeVisualiserStylePanel::unitHeightSpinBox_onValueChanged(double val)
-{
-  treeVis_->setUnitHeightNode(val);  
+{  
 }
 
 void TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle(bool checked)

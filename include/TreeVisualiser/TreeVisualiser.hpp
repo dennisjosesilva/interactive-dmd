@@ -86,16 +86,14 @@ public:
 
   Box domain() const { return domain_; }
 
-  inline bool hasNodeSelected() const { return curNodeSelection_ != nullptr; }
-  inline GNode* curSelectedNode() { return curNodeSelection_; }
+  GNode *curSelectedNode();
+  GNode *curSelectedNode() const;
+  inline bool hasNodeSelected() const { return curSelectedNodeIndex_ != InvalidNodeIndex; }
   std::vector<bool> recSimpleNode() const;
   std::vector<bool> recFullNode() const;
 
   void useGradientGNodeStyle();
   void useFixedColorGNodeStyle();
-
-  float unitHeightNode() const;
-  void setUnitHeightNode(float val);
 
   inline void resetCache() { treeWidget_->resetCachedContent(); }
   inline void updateTreeRendering() { treeWidget_->updateTreeRendering(); }
@@ -112,8 +110,8 @@ public:
   void selectNodesForRecBasedOnIntensities(const std::vector<int> &sIntensities);
 
 protected:  
-  std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;
-  
+  std::vector<uint8> bool2UInt8(const std::vector<bool> &binimg) const;  
+
   // FIELD<float> *binimageToField(const std::vector<uint32> &pidx) const;
   FIELD<float> *binImageToField(const std::vector<bool> &bimg) const;
   FIELD<float> *greyImageToField(const std::vector<uint8> &img) const;
@@ -155,13 +153,17 @@ protected slots:
   void incNodeReconBtn_press();
   void remNodeReconBtn_press();
   
+  void updateCustomTreeVisualisationWhenRedraw();
+
 private:
+  const uint32 InvalidNodeIndex = std::numeric_limits<uint32>::max();
+
+  uint32 curSelectedNodeIndex_;
+  
   uint32 maxValue_;
   IcicleMorphotreeWidget::IcicleMorphotreeWidget *treeWidget_;
   morphotree::Box domain_;
   
-  GNode* curNodeSelection_;
-
   MyDockWidget *binRecDock_;
   MyDockWidget *greyRecDock_;
   MyDockWidget *SplineManipDock_;

@@ -16,7 +16,6 @@ TreeVisualiserStylePanel::TreeVisualiserStylePanel(TreeVisualiser *treeVis,
   QVBoxLayout *layout = new QVBoxLayout;
   layout->addItem(createTitle());
   layout->addWidget(createRenderStyleSection());
-  layout->addItem(createMeasuresSection());
   layout->addStretch();
   setLayout(layout);
 }
@@ -64,33 +63,6 @@ QGroupBox *TreeVisualiserStylePanel::createRenderStyleSection()
 
   groupBox->setLayout(layout);
   return groupBox;
-}
-
-QLayout *TreeVisualiserStylePanel::createMeasuresSection()
-{
-  QLayout *layout = new QVBoxLayout; 
-  QLabel *label = new QLabel{tr("Measures"), this};
-  label->setStyleSheet("font-weight: bold;");
-  layout->addWidget(label);
-  layout->addWidget(createHLine());
-
-  QLayout *unitHeightLayout = new QHBoxLayout;
-  QLabel *uniHeightLabel = new QLabel{tr("Unit Height: "), this};
-  
-  unitHeightSpinBox_ = new QDoubleSpinBox{this};
-  unitHeightSpinBox_->setRange(0.1, 80);
-  unitHeightSpinBox_->setSingleStep(0.5);  
-  unitHeightLayout->addWidget(uniHeightLabel);
-  unitHeightLayout->addWidget(unitHeightSpinBox_);
-  connect(unitHeightSpinBox_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-    &TreeVisualiserStylePanel::unitHeightSpinBox_onValueChanged);
-
-  layout->addItem(unitHeightLayout);
-  return layout;
-}
-
-void TreeVisualiserStylePanel::unitHeightSpinBox_onValueChanged(double val)
-{  
 }
 
 void TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle(bool checked)

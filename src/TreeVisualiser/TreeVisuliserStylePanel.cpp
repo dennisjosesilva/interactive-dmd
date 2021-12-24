@@ -22,7 +22,6 @@ TreeVisualiserStylePanel::TreeVisualiserStylePanel(TreeVisualiser *treeVis,
 
 QLayout* TreeVisualiserStylePanel::createTitle()
 {
-  
   QLayout *layout = new QVBoxLayout;
   
   QLabel *titleLabel = new QLabel{tr("MorphoTree Style"), this};

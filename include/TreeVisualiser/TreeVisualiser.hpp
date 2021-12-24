@@ -28,6 +28,7 @@ class QGraphicsSceneMouseEvent;
 class MainWidget;
 class QSlider;
 
+
 class MyDockWidget : public QDockWidget
 {
 Q_OBJECT
@@ -138,15 +139,15 @@ protected slots:
   void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);
 
   void binRecDock_onClose(MyDockWidget *dock);
-  void greyRecDock_onClose(MyDockWidget *dock);
+  
   void SplineManipDock_onClose(MyDockWidget *dock);
   void skelRecDock_onClose(MyDockWidget *dock);
   void removeSkelDock_onClose(MyDockWidget *dock);
 
   void binRecBtn_press();
-  void binRecPlusBtn_press();
-  void greyRecBtn_press();
-  void greyRecPlusBtn_press();
+  void fitToWindowBtn_press();
+  void zoomInBtn_press();
+  void zoomOutBtn_press();
   void SplineManipulateBtn_press();
   void skelRecBtn_press(); 
   void removeSkelBtn_press();
@@ -164,8 +165,10 @@ private:
   IcicleMorphotreeWidget::IcicleMorphotreeWidget *treeWidget_;
   morphotree::Box domain_;
   
+
+
+
   MyDockWidget *binRecDock_;
-  MyDockWidget *greyRecDock_;
   MyDockWidget *SplineManipDock_;
   MyDockWidget *skelRecDock_;
   MyDockWidget *removeSkelDock_;

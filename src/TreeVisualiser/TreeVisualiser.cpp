@@ -1,4 +1,4 @@
-// #include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
+  // #include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
 #include <IcicleMorphotreeWidget/Graphics/Node/GNodeEventHandler.hpp>
 #include <IcicleMorphotreeWidget/Graphics/Node/GNodeFactory.hpp>
 #include <IcicleMorphotreeWidget/TreeLayout/AutoSizeTreeLayout.hpp>
@@ -48,7 +48,6 @@ QSize MyDockWidget::sizeHint() const
 TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   : mainWidget_{mainWidget},    
     binRecDock_{nullptr},
-    greyRecDock_{nullptr},
     SplineManipDock_{nullptr},
     skelRecDock_{nullptr},
     removeSkelDock_{nullptr},
@@ -98,58 +97,62 @@ QLayout *TreeVisualiser::createButtons()
 {
   QLayout *btnLayout = new QHBoxLayout;
 
+  // Image Reconstruction button
+  // ---------------------------
   QPushButton *binRecBtn = new QPushButton{ QIcon{":/images/binrec_icon.png"}, 
     tr(""), this};
   binRecBtn->setIconSize(QSize{32, 32});
   connect(binRecBtn, &QPushButton::clicked, this, &TreeVisualiser::binRecBtn_press);
+  btnLayout->addWidget(binRecBtn);
 
-  QPushButton *binRecPlusBtn = new QPushButton { QIcon{":/images/binrec_plus_icon.png"},
-    tr(""), this};  
-  binRecPlusBtn->setIconSize(QSize{32, 32});
-  connect(binRecPlusBtn, &QPushButton::clicked, this, &TreeVisualiser::binRecPlusBtn_press);
+  // Zoom Controls buttons
+  // ----------------------
+  QPushButton *fitToWindowBtn = new QPushButton{ QIcon{":/images/fit_to_widget_icon.png"}, "", this};
+  fitToWindowBtn->setIconSize(QSize{32, 32});
+  connect(fitToWindowBtn, &QPushButton::clicked, this, &TreeVisualiser::fitToWindowBtn_press);
+  btnLayout->addWidget(fitToWindowBtn);
 
-  QPushButton *greyRecBtn = new QPushButton{ QIcon{":/images/greyrec_icon.png"}, 
-    tr(""), this};
-  greyRecBtn->setIconSize(QSize{32, 32});
-  connect(greyRecBtn, &QPushButton::clicked, this, &TreeVisualiser::greyRecBtn_press);
+  QPushButton *zoomInBtn = new QPushButton{ QIcon{":/images/image_zoom_in_icon.png"}, "", this};
+  zoomInBtn->setIconSize(QSize{32, 32});
+  connect(zoomInBtn, &QPushButton::clicked, this, &TreeVisualiser::zoomInBtn_press);
+  btnLayout->addWidget(zoomInBtn);
 
-  QPushButton *greyRecPlusBtn = new QPushButton{ QIcon{":/images/greyrec_plus_icon.png"},
-    "", this};
-  greyRecPlusBtn->setIconSize(QSize{32, 32});
-  connect(greyRecPlusBtn, &QPushButton::clicked, this, &TreeVisualiser::greyRecPlusBtn_press);
-  
-  QPushButton *SplineManipulateBtn = new QPushButton{ QIcon{":/images/Spline_CPs_icon.png"}, "", this};
-  SplineManipulateBtn->setIconSize(QSize{32, 32});
-  connect(SplineManipulateBtn, &QPushButton::clicked, this, &TreeVisualiser::SplineManipulateBtn_press);
-  
-  QPushButton *skelRecBtn = new QPushButton{ QIcon{":/images/Skel_icon.png"}, "", this};
-  skelRecBtn->setIconSize(QSize{32, 32});
-  connect(skelRecBtn, &QPushButton::clicked, this, &TreeVisualiser::skelRecBtn_press);
-  
-  QPushButton *removeSkelBtn = new QPushButton{ QIcon{":/images/Remove_Skel_icon.png"}, "", this};
-  removeSkelBtn->setIconSize(QSize{32, 32});
-  connect(removeSkelBtn, &QPushButton::clicked, this, &TreeVisualiser::removeSkelBtn_press);
+  QPushButton *zoomOutBtn = new QPushButton{ QIcon{":/images/image_zoom_out_icon.png"}, "", this};
+  zoomOutBtn->setIconSize(QSize{32, 32});
+  connect(zoomOutBtn, &QPushButton::clicked, this, &TreeVisualiser::zoomOutBtn_press);
+  btnLayout->addWidget(zoomOutBtn);
 
+  // Node selection for reconstruction buttons
+  // -----------------------------------------
   QPushButton *remNodeToReconBtn = new QPushButton { QIcon{":/images/icicle_node_removal_icon.png"},
     "", this};
   remNodeToReconBtn->setIconSize(QSize{32, 32});
   connect(remNodeToReconBtn, &QPushButton::clicked, this, &TreeVisualiser::remNodeReconBtn_press);
+  btnLayout->addWidget(remNodeToReconBtn);
 
   QPushButton *incNodeToReconBtn = new QPushButton{ QIcon{":/images/icicle_node_inclusion_icon.png"}, 
     "", this};
   incNodeToReconBtn->setIconSize(QSize{32, 32});
   connect(incNodeToReconBtn, &QPushButton::clicked, this, &TreeVisualiser::incNodeReconBtn_press);
-
-  btnLayout->addWidget(binRecBtn);
-  btnLayout->addWidget(binRecPlusBtn);
-  btnLayout->addWidget(greyRecBtn);
-  btnLayout->addWidget(greyRecPlusBtn); 
-  btnLayout->addWidget(SplineManipulateBtn); 
-  btnLayout->addWidget(skelRecBtn);
-  btnLayout->addWidget(removeSkelBtn);
-  btnLayout->addWidget(remNodeToReconBtn);
   btnLayout->addWidget(incNodeToReconBtn);
+
+  // SDMD Manipulation and reconstruction buttons 
+  // --------------------------------------------
+  QPushButton *SplineManipulateBtn = new QPushButton{ QIcon{":/images/Spline_CPs_icon.png"}, "", this};
+  SplineManipulateBtn->setIconSize(QSize{32, 32});
+  connect(SplineManipulateBtn, &QPushButton::clicked, this, &TreeVisualiser::SplineManipulateBtn_press);
+  btnLayout->addWidget(SplineManipulateBtn);
   
+  QPushButton *skelRecBtn = new QPushButton{ QIcon{":/images/Skel_icon.png"}, "", this};
+  skelRecBtn->setIconSize(QSize{32, 32});
+  connect(skelRecBtn, &QPushButton::clicked, this, &TreeVisualiser::skelRecBtn_press);
+  btnLayout->addWidget(skelRecBtn);
+
+  QPushButton *removeSkelBtn = new QPushButton{ QIcon{":/images/Remove_Skel_icon.png"}, "", this};
+  removeSkelBtn->setIconSize(QSize{32, 32});
+  connect(removeSkelBtn, &QPushButton::clicked, this, &TreeVisualiser::removeSkelBtn_press);  
+  btnLayout->addWidget(removeSkelBtn);
+ 
   return btnLayout;
 }
 
@@ -545,51 +548,6 @@ void TreeVisualiser::binRecBtn_press()
   }
 }
 
-void TreeVisualiser::binRecPlusBtn_press()
-{
-  SimpleImageViewer *iv = new SimpleImageViewer;
-  MyDockWidget *dock = mainWidget_->createDockWidget(
-    tr("binary node reconstruction"), iv);
-  dock->setGNode(curSelectedNode());
-
-  dock->resize(domain_.width() + 22, domain_.height() + 84);
-  // reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());  
-  reconstructBinaryImage(iv, curSelectedNode()->mnode());
-}
-
-void TreeVisualiser::greyRecBtn_press()
-{  
-  if (hasNodeSelected()) {
-    SimpleImageViewer *iv = nullptr;
-    if (greyRecDock_ == nullptr) {
-      iv = new SimpleImageViewer;
-      greyRecDock_ = mainWidget_->createDockWidget(
-        tr("grey node reconstruction"), iv);      
-      greyRecDock_->setGNode(curSelectedNode());
-      connect(greyRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::greyRecDock_onClose);
-      greyRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
-    }
-    else {
-      iv = qobject_cast<SimpleImageViewer *>(greyRecDock_->widget());
-    }
-    
-    // reconstructGreyImage(iv, curNodeSelection_->mtreeNode());    
-    reconstructGreyImage(iv, curSelectedNode()->mnode());
-  }
-}
-
-void TreeVisualiser::greyRecPlusBtn_press()
-{
-  SimpleImageViewer *iv = new SimpleImageViewer;
-  MyDockWidget *dock = mainWidget_->createDockWidget(
-    tr("greyscale node reconstruction"), iv);
-  dock->setGNode(curSelectedNode());
-
-  dock->resize(domain_.width() + 22, domain_.height() + 84);
-  // reconstructGreyImage(iv, curNodeSelection_->mtreeNode());  
-  reconstructGreyImage(iv, curSelectedNode()->mnode());
-}
-
 void TreeVisualiser::SplineManipulateBtn_press()
 {
   if (hasNodeSelected()) {
@@ -742,10 +700,6 @@ void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)
   binRecDock_ = nullptr;  
 }
 
-void TreeVisualiser::greyRecDock_onClose(MyDockWidget *dock)
-{
-  greyRecDock_ = nullptr;
-}
 void TreeVisualiser::SplineManipDock_onClose(MyDockWidget *dock)
 {
   SplineManipDock_ = nullptr;
@@ -759,6 +713,21 @@ void TreeVisualiser::skelRecDock_onClose(MyDockWidget *dock)
 void TreeVisualiser::removeSkelDock_onClose(MyDockWidget *dock)
 {
   removeSkelDock_ = nullptr;
+}
+
+void TreeVisualiser::fitToWindowBtn_press()
+{
+  treeWidget_->fitToWidget();
+}
+
+void TreeVisualiser::zoomInBtn_press()
+{
+  treeWidget_->visZoomIn();
+}
+
+void TreeVisualiser::zoomOutBtn_press()
+{
+  treeWidget_->visZoomOut();
 }
 
 void TreeVisualiser::selectNodeByPixel(int x, int y)

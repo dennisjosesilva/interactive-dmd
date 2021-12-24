@@ -30,5 +30,6 @@
   <file>images/icicle_node_selection_pixel_icon.png</file>
   <file>images/icicle_node_inclusion_icon.png</file>
   <file>images/icicle_node_removal_icon.png</file>
+  <file>images/fit_to_widget_icon.png</file>
 </qresource>
 </RCC>

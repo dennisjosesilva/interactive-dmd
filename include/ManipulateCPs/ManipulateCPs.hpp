@@ -28,7 +28,7 @@ public:
   void ShowingCPs();
   
   void itemMoved(QPointF Pos);
-  void changeCurrNodeR(int r);
+  void changeCurrNodeRInCplist(int r);
   void changeCurrbranchDegree(int d);
   void ReconFromMovedCPs(dmdReconstruct *recon, int intensity);
   void ReconImageFromMovedCPs(dmdReconstruct *recon);
@@ -45,7 +45,7 @@ public:
 
 public: 
 signals: 
-  void PressNode(int radius, int maxDegree, int degree); 
+  void PressNode(int radius, int degree); 
 
 public slots:
   void zoomIn();
@@ -53,6 +53,7 @@ public slots:
 
 protected:
   void keyPressEvent(QKeyEvent *event) override;
+  void keyReleaseEvent(QKeyEvent *event) override;
   void wheelEvent(QWheelEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
   //void mouseReleaseEvent(QMouseEvent *event) override;
@@ -77,5 +78,6 @@ private:
   bool AddCPbuttonPressed = false;
   vector<Node_ *> MultiCPsDelete;
   bool AllItemsUnselected = false;
-  
+  bool Key_Shift_pressed = false;
+  bool Key_D_pressed = false;
 };

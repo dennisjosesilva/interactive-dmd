@@ -82,7 +82,7 @@ void ManipulateCPs::DeleteLastTwoCPs(Node_ *CurrNode)
   changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
 
   //2. change sliders
-  emit PressNode(0, 1, 0); 
+  emit PressNode(0, 0); 
 
   //3.remove two points in the scene.
   scene->removeItem(CurrNode);
@@ -140,7 +140,7 @@ void ManipulateCPs::deleteCurrCp(){
     changedBranch->erase(changedBranch->begin() + CurrNodeIndex_n);
     
     //change sliders
-    emit PressNode(0, CPlist[CurrNodeIndex_m][0][0]-1, CPlist[CurrNodeIndex_m][0][1]); 
+    emit PressNode(0, CPlist[CurrNodeIndex_m][0][1]); 
 
     scene->removeItem(CurrPressedNode);
     //remove two edges of CurrPressedNode
@@ -209,7 +209,7 @@ void ManipulateCPs::MoveMultiPoint(Node_ *node, QPointF newPos){
 }
 
 void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degree){
-  emit PressNode(radius, maxDegree, degree); 
+  emit PressNode(radius, degree); 
   CurrPressedNode = node;
   
   CurrNodeIndex_m = CurrPressedNode->getIndexM();
@@ -235,7 +235,7 @@ void ManipulateCPs::itemMoved(QPointF Pos)
     CPlist[CurrNodeIndex_m][CurrNodeIndex_n][0] = Pos.rx() + w/2;
     CPlist[CurrNodeIndex_m][CurrNodeIndex_n][1] = Pos.ry() + h/2;
 }
-void ManipulateCPs::changeCurrNodeR(int r)
+void ManipulateCPs::changeCurrNodeRInCplist(int r)
 {
   CPlist[CurrNodeIndex_m][CurrNodeIndex_n][2] = r;
 }
@@ -262,7 +262,6 @@ void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
 
 void ManipulateCPs::keyPressEvent(QKeyEvent *event)
 {
-  
   switch (event->key())
   {
   case Qt::Key_Plus:
@@ -271,14 +270,66 @@ void ManipulateCPs::keyPressEvent(QKeyEvent *event)
   case Qt::Key_Minus:
     zoomOut();
     break;
+  case Qt::Key_Shift:
+    Key_Shift_pressed = true;
+    break;
+  case Qt::Key_D:
+    Key_D_pressed = true;
+    break;
   default:
     QGraphicsView::keyPressEvent(event);
   }
 }
 
+void ManipulateCPs::keyReleaseEvent(QKeyEvent *event)
+{
+  switch (event->key())
+  {
+    case Qt::Key_Shift:
+      Key_Shift_pressed = false;
+      break;
+    case Qt::Key_D:
+      Key_D_pressed = false;
+      break;
+  }
+
+}
 void ManipulateCPs::wheelEvent(QWheelEvent *event)
 {
-  scaleView(pow(2.0, -event->angleDelta().y() / 240.0));
+  if(Key_Shift_pressed){
+    //std::cout<< event->angleDelta().y() / 120.0 <<"---"<<endl;
+    int setR = CurrPressedNode->getRadius() + event->angleDelta().y() / 120.0;
+    CurrPressedNode->setRadius(setR);
+    CurrPressedNode->setPaintRadius(true);
+    CurrPressedNode->update();
+    //update CPlist
+    changeCurrNodeRInCplist(setR);
+    //change value display
+    emit PressNode(setR, 0);
+  }
+  else if(Key_D_pressed){//change degree
+    int setD = CurrPressedNode->getDegree() + event->angleDelta().y() / 120.0;
+    setD = (setD < 1) ? 1 : setD;
+    setD = (setD > CurrPressedNode->getMaxDegree()) ? CurrPressedNode->getMaxDegree() : setD;
+
+    CurrPressedNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
+    //update CPlist
+    changeCurrbranchDegree(setD);
+    //change value display
+    emit PressNode(0, setD);
+     //update degree for all nodes in the branch.
+    Node_ *forewardNode = CurrPressedNode->getPrevNode();
+    while(forewardNode != nullptr){
+      forewardNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
+      forewardNode = forewardNode->getPrevNode();
+    }
+    Node_ *backwardNode = CurrPressedNode->getNextNode();
+    while(backwardNode != nullptr){
+      backwardNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
+      backwardNode = backwardNode->getNextNode();
+    }
+  }
+    else scaleView(pow(2.0, -event->angleDelta().y() / 240.0));
 }
 
 
@@ -408,7 +459,7 @@ void ManipulateCPs::AddNewBranch(QPointF point)
   cout<<"CPlist.size(): "<<CPlist.size()<<endl;
 
   //2. change sliders
-  emit PressNode(set_radius, 1, 1); 
+  emit PressNode(set_radius, 1); 
 
   //3.add two points in the scene.
   Node_ *node1 = new Node_(this);
@@ -498,7 +549,7 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
   // Add all features of pressing the node1.
   CurrNodeIndex_n = index_n;
   //change sliders
-  emit PressNode(set_radius, CPlist[CurrNodeIndex_m][0][0]-1, CPlist[CurrNodeIndex_m][0][1]); 
+  emit PressNode(set_radius, CPlist[CurrNodeIndex_m][0][1]); 
   CurrPressedNode = node1;
 
   
@@ -520,7 +571,7 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
 
 void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
   //const QPoint& point = event->pos(); 
- 
+  //cout<<"view: mousePressEvent"<<endl;
   if(AddCPbuttonPressed == true){
     QPointF scenePoint = mapToScene(event->pos());
     //std::cout<< scenePoint.x() <<"---/"<<scenePoint.y()<<endl;

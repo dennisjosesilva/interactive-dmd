@@ -60,56 +60,10 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   btnLayout->addWidget(skelRecBtn);
   btnLayout->addWidget(skelRecBtn_);
 
+  QLayout *CPradiusLayout = createTextLayout();
+  btnLayout->addItem(CPradiusLayout);
+
   mainLayout->addItem(btnLayout);
-
-// -------------------- Second Row - BranchManipulate  ------------------------
-  //QLayout *BranchManipulate = new QHBoxLayout; 
-
-  QLayout *Sliders = new QVBoxLayout;
-
-  // ------------ CPradiusSlider_  ---------------
-  QHBoxLayout *CPrLayout = new QHBoxLayout;
-  CPrLayout->addWidget(new QLabel{"CP radius:    ", this});
-  CPradiusSlider_ = new QSlider{Qt::Horizontal, this};
-  CPradiusSlider_->setRange(1, w/2);
-  CPradius =  w/2;
-  CPradiusSlider_->setValue(CPradius);
-  CPradiusLabel_ = new QLabel(QString::number(CPradius), this);
-  CPradiusLabel_->setFixedWidth(35);
-  CPradiusLabel_->setAlignment(Qt::AlignHCenter);
-  connect(CPradiusSlider_, &QSlider::sliderMoved, this,
-    &CpViewer::CPradiusSlider_onValueChange);
-  
-  CPrLayout->addWidget(CPradiusSlider_);  
-  CPrLayout->addWidget(CPradiusLabel_);
-  Sliders->addItem(CPrLayout);
-  
-  
-  // ------------ degreeSlider_  ---------------
-  QHBoxLayout *degreeLayout = new QHBoxLayout;
-  degreeLayout->addWidget(new QLabel{"Degree:      ", this});
-  degreeSlider_ = new QSlider{Qt::Horizontal, this};
-  degreeSlider_->setRange(1, 1);
-  degree =  1;
-  degreeSlider_->setValue(degree);
-  degreeLabel_ = new QLabel(QString::number(degree), this);
-  degreeLabel_->setFixedWidth(35);
-  degreeLabel_->setAlignment(Qt::AlignHCenter);
-  connect(degreeSlider_, &QSlider::sliderMoved, this,
-    &CpViewer::degreeSlider_onValueChange);
-  
-  degreeLayout->addWidget(degreeSlider_);  
-  degreeLayout->addWidget(degreeLabel_);
-  Sliders->addItem(degreeLayout);
-
-
-  //QLayout *CPbuttons = new QVBoxLayout;
-
-
-  //BranchManipulate->addItem(Sliders);
-  //BranchManipulate->addItem(CPbuttons);
-
-  mainLayout->addItem(Sliders);
 
   manipulate_CPs = new ManipulateCPs(w, h);
   mainLayout->addWidget(manipulate_CPs);
@@ -117,9 +71,33 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   setLayout(mainLayout);
 
   connect(manipulate_CPs, &ManipulateCPs::PressNode,
-    this, &CpViewer::ChangeSliderValue);
+    this, &CpViewer::ChangeValueDisplay);
 }
 
+QLayout *CpViewer::createTextLayout()
+{
+  QLayout *TextLayout = new QVBoxLayout;
+  QLayout *CPradiusLayout = new QHBoxLayout;
+
+  QLabel *CPradiusLabel = new QLabel{tr("  Radius: "), this};
+  CPradiusLabel_num = new QLabel(QString::number(0), this);
+  
+  CPradiusLayout->addWidget(CPradiusLabel);
+  CPradiusLayout->addWidget(CPradiusLabel_num);
+
+  QLayout *DegreeLayout = new QHBoxLayout;
+
+  QLabel *DegreeLabel = new QLabel{tr("  Degree: "), this};
+  DegreeLabel_num = new QLabel(QString::number(0), this);
+ 
+  DegreeLayout->addWidget(DegreeLabel);
+  DegreeLayout->addWidget(DegreeLabel_num);
+
+  TextLayout->addItem(CPradiusLayout);
+  TextLayout->addItem(DegreeLayout);
+  
+  return TextLayout; 
+}
 
 void CpViewer::showCPsBtn_press()
 {
@@ -141,28 +119,10 @@ void CpViewer::ReconImageBtn_press()
   manipulate_CPs->ReconImageFromMovedCPs(recon_);
 }
 
-void CpViewer::CPradiusSlider_onValueChange(int val)
-{  
-  if(CPradius != w/2) manipulate_CPs->changeCurrNodeR(val);
-  //cout<<"CPradius "<<CPradius<<endl;
-  CPradiusLabel_->setText(QString::number(val));
-}
-void CpViewer::degreeSlider_onValueChange(int val)
+void CpViewer::ChangeValueDisplay(int radius, int degree)
 {
-  manipulate_CPs->changeCurrbranchDegree(val);
-  degreeLabel_->setText(QString::number(val));
-}
-
-void CpViewer::ChangeSliderValue(int radius, int maxDegree, int degree)
-{
-  CPradius = radius;
-  CPradiusSlider_->setValue(radius);
-  CPradiusLabel_->setText(QString::number(radius));
-
-  degreeSlider_->setRange(1, maxDegree);
-  degreeSlider_->setValue(degree);
-  degreeLabel_->setText(QString::number(degree));
-
+  if(radius != 0) CPradiusLabel_num->setText(QString::number(radius));
+  if(degree != 0) DegreeLabel_num->setText(QString::number(degree));
 }
 void CpViewer::AddCPsBtn_press()
 {

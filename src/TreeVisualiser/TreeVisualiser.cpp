@@ -614,7 +614,7 @@ void TreeVisualiser::SplineManipulateBtn_press()
       SplineManipDock_ = mainWidget_->createDockWidget(tr("Spline-based shape manipulation"), cv);
       
       connect(SplineManipDock_, &MyDockWidget::closed, this, &TreeVisualiser::SplineManipDock_onClose);
-      SplineManipDock_->resize(domain_.width() + 32, domain_.height() + 170);
+      SplineManipDock_->resize(domain_.width() + 32, domain_.height() + 100);
     }
     else {
       cv = qobject_cast<CpViewer *>(SplineManipDock_->widget());

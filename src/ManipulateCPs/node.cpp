@@ -30,7 +30,7 @@ QVector<Edge *> Node_::edges() const
 
 QRectF Node_::boundingRect() const 
 {
-  qreal adjust = 2; //2
+  qreal adjust = 200; //Make sure the radius contour can be shown
   return QRectF( -NodeRadius - adjust, -NodeRadius - adjust, 2*(NodeRadius + adjust), 2*(NodeRadius + adjust));
 }
 
@@ -61,6 +61,13 @@ void Node_::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
   painter->setPen(QPen(Qt::red, 0));
   painter->drawEllipse(-NodeRadius, -NodeRadius, 2*NodeRadius, 2*NodeRadius);
 
+  if(paintRadius){
+    painter->setBrush(QColor(200,200,200,150));
+    painter->setPen(QPen(Qt::blue, 1));
+    painter->drawEllipse(-NodeRadius-radius_, -NodeRadius-radius_, 2*(NodeRadius+radius_), 2*(NodeRadius+radius_));
+    paintRadius = false;
+  }
+  
 }
 
 QVariant Node_::itemChange(GraphicsItemChange change, const QVariant &value)
@@ -90,8 +97,9 @@ void Node_::mousePressEvent(QGraphicsSceneMouseEvent *event)
   graph->Press_node(this, radius_, maxDegree, degree);
  
   update();
+  paintRadius = true;
   QGraphicsItem::mousePressEvent(event);
- 
+  //cout<<"item: mousePressEvent"<<endl;
 }
 
 void Node_::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

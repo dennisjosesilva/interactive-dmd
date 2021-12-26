@@ -35,11 +35,11 @@ void Edge::adjust()
 
   prepareGeometryChange();
 
-  if (length > qreal(nodeR * 2)) {//two nodes does not overlap
+  //if (length > qreal(nodeR * 2)) {//two nodes does not overlap
     QPointF edgeOffset((line.dx() * nodeR) / length, (line.dy() * nodeR) / length);
     sourcePoint = line.p1() + edgeOffset;
     destPoint = line.p2() - edgeOffset;
-  } 
+  //} 
   
 }
 

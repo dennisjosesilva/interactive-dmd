@@ -79,7 +79,10 @@ QVariant Node_::itemChange(GraphicsItemChange change, const QVariant &value)
       edge->adjust();
     
     if(index_m!=1000)
+    {
       graph->MoveMultiPoint(this, pos());
+    }
+      
     //std::cout<<"ItemPositionHasChanged"<<std::endl;
     break;
   

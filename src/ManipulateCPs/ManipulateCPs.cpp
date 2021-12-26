@@ -103,8 +103,7 @@ void ManipulateCPs::DeleteLastTwoCPs(Node_ *CurrNode)
 void ManipulateCPs::deleteCurrCp(){
   //update CPlist
   int CurrCPNum = CPlist[CurrNodeIndex_m][0][0] - 1;
-  if(CurrCPNum < 2){
-    //QMessageBox::information(0, "For your information","Please leave at least two nodes!");
+  /*if(CurrCPNum < 2){
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this, "For your information", 
     "There are only two CPs for this branch, Do you want to delete both of them?",
@@ -114,11 +113,13 @@ void ManipulateCPs::deleteCurrCp(){
       DeleteLastTwoCPs(CurrPressedNode);
     } 
     //else do nothing.
-  }
-  else {
+  }*/
+  if(CurrCPNum == 0) DeleteLastTwoCPs(CurrPressedNode);
+  else
+  {
     CPlist[CurrNodeIndex_m][0][0] = CurrCPNum;
-    if(CPlist[CurrNodeIndex_m][0][1] == CurrCPNum) 
-      CPlist[CurrNodeIndex_m][0][1] -= 1;
+    while(CPlist[CurrNodeIndex_m][0][1] > CurrCPNum-1) 
+      CPlist[CurrNodeIndex_m][0][1] -= 1;//change degree.
     
     //update cpnum and degree for all nodes.
     Node_ *forewardNode = CurrPressedNode->getPrevNode();
@@ -139,7 +140,7 @@ void ManipulateCPs::deleteCurrCp(){
     changedBranch = &(CPlist[CurrNodeIndex_m]);
     changedBranch->erase(changedBranch->begin() + CurrNodeIndex_n);
     
-    //change sliders
+    //change value display
     emit PressNode(0, CPlist[CurrNodeIndex_m][0][1]); 
 
     scene->removeItem(CurrPressedNode);
@@ -165,9 +166,7 @@ void ManipulateCPs::deleteCurrCp(){
       if(CurrPrevN == nullptr) CurrNextN->setPrevNode(nullptr);
       else CurrPrevN->setNextNode(nullptr);
     }
-
-  } 
-  
+  }
 }
 
 void ManipulateCPs::deleteMultiCp()

@@ -1,6 +1,7 @@
-// #include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
+  // #include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
 #include <IcicleMorphotreeWidget/Graphics/Node/GNodeEventHandler.hpp>
 #include <IcicleMorphotreeWidget/Graphics/Node/GNodeFactory.hpp>
+#include <IcicleMorphotreeWidget/TreeLayout/AutoSizeTreeLayout.hpp>
 #include <MainWidget.hpp>
 
 #include "MainWidget.hpp"
@@ -45,10 +46,8 @@ QSize MyDockWidget::sizeHint() const
 }
 
 TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
-  : mainWidget_{mainWidget},
-    curNodeSelection_{nullptr},
+  : mainWidget_{mainWidget},    
     binRecDock_{nullptr},
-    greyRecDock_{nullptr},
     SplineManipDock_{nullptr},
     skelRecDock_{nullptr},
     removeSkelDock_{nullptr},
@@ -60,24 +59,32 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   using FixedHeightTreeLayout = IcicleMorphotreeWidget::FixedHeightTreeLayout;    
   using GrayscaleBasedHeightTreeLayout = IcicleMorphotreeWidget::GrayscaleBasedHeightTreeLayout;
   using GradientGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory;                                                       
+  using AutoSizeTreeLayout = IcicleMorphotreeWidget::AutoSizeTreeLayout;
   using IcicleMorphotreeWidget = IcicleMorphotreeWidget::IcicleMorphotreeWidget;
-
+  
   QLayout *mainLayout = new QVBoxLayout;
   QLayout *controlsLayout = new QHBoxLayout;
   QLayout *btnLayout = createButtons();
 
   mainLayout->addItem(btnLayout);  
   
+  // treeWidget_ = new IcicleMorphotreeWidget{this, 
+  //   std::make_unique<GrayscaleBasedHeightTreeLayout>(
+  //     std::make_unique<GradientGNodeFactory>(),
+  //     20.f, 20.f, 10.f)};
+
   treeWidget_ = new IcicleMorphotreeWidget{this, 
-    std::make_unique<GrayscaleBasedHeightTreeLayout>(
-      std::make_unique<GradientGNodeFactory>(),
-      20.f, 20.f, 10.f)};
+    std::make_unique<AutoSizeTreeLayout>(
+      std::make_unique<GradientGNodeFactory>(), 20.f, 20.f)};
 
   controlsLayout->addWidget(treeWidget_);  
 
   connect(GNodeEventHandler::Singleton(), &GNodeEventHandler::mousePress, 
     this, &TreeVisualiser::nodeMousePress);
   
+  connect(treeWidget_, &IcicleMorphotreeWidget::treeAboutToBeRedrawn, this, 
+    &TreeVisualiser::updateCustomTreeVisualisationWhenRedraw);
+
   TreeVisualiserStylePanel *tl = new TreeVisualiserStylePanel{this, nullptr};  
   CollapsableWidget *cw = new CollapsableWidget{"Style", tl, this};  
   controlsLayout->addWidget(cw);    
@@ -90,58 +97,62 @@ QLayout *TreeVisualiser::createButtons()
 {
   QLayout *btnLayout = new QHBoxLayout;
 
+  // Image Reconstruction button
+  // ---------------------------
   QPushButton *binRecBtn = new QPushButton{ QIcon{":/images/binrec_icon.png"}, 
     tr(""), this};
   binRecBtn->setIconSize(QSize{32, 32});
   connect(binRecBtn, &QPushButton::clicked, this, &TreeVisualiser::binRecBtn_press);
+  btnLayout->addWidget(binRecBtn);
 
-  QPushButton *binRecPlusBtn = new QPushButton { QIcon{":/images/binrec_plus_icon.png"},
-    tr(""), this};  
-  binRecPlusBtn->setIconSize(QSize{32, 32});
-  connect(binRecPlusBtn, &QPushButton::clicked, this, &TreeVisualiser::binRecPlusBtn_press);
+  // Zoom Controls buttons
+  // ----------------------
+  QPushButton *fitToWindowBtn = new QPushButton{ QIcon{":/images/fit_to_widget_icon.png"}, "", this};
+  fitToWindowBtn->setIconSize(QSize{32, 32});
+  connect(fitToWindowBtn, &QPushButton::clicked, this, &TreeVisualiser::fitToWindowBtn_press);
+  btnLayout->addWidget(fitToWindowBtn);
 
-  QPushButton *greyRecBtn = new QPushButton{ QIcon{":/images/greyrec_icon.png"}, 
-    tr(""), this};
-  greyRecBtn->setIconSize(QSize{32, 32});
-  connect(greyRecBtn, &QPushButton::clicked, this, &TreeVisualiser::greyRecBtn_press);
+  QPushButton *zoomInBtn = new QPushButton{ QIcon{":/images/image_zoom_in_icon.png"}, "", this};
+  zoomInBtn->setIconSize(QSize{32, 32});
+  connect(zoomInBtn, &QPushButton::clicked, this, &TreeVisualiser::zoomInBtn_press);
+  btnLayout->addWidget(zoomInBtn);
 
-  QPushButton *greyRecPlusBtn = new QPushButton{ QIcon{":/images/greyrec_plus_icon.png"},
-    "", this};
-  greyRecPlusBtn->setIconSize(QSize{32, 32});
-  connect(greyRecPlusBtn, &QPushButton::clicked, this, &TreeVisualiser::greyRecPlusBtn_press);
-  
-  QPushButton *SplineManipulateBtn = new QPushButton{ QIcon{":/images/Spline_CPs_icon.png"}, "", this};
-  SplineManipulateBtn->setIconSize(QSize{32, 32});
-  connect(SplineManipulateBtn, &QPushButton::clicked, this, &TreeVisualiser::SplineManipulateBtn_press);
-  
-  QPushButton *skelRecBtn = new QPushButton{ QIcon{":/images/Skel_icon.png"}, "", this};
-  skelRecBtn->setIconSize(QSize{32, 32});
-  connect(skelRecBtn, &QPushButton::clicked, this, &TreeVisualiser::skelRecBtn_press);
-  
-  QPushButton *removeSkelBtn = new QPushButton{ QIcon{":/images/Remove_Skel_icon.png"}, "", this};
-  removeSkelBtn->setIconSize(QSize{32, 32});
-  connect(removeSkelBtn, &QPushButton::clicked, this, &TreeVisualiser::removeSkelBtn_press);
+  QPushButton *zoomOutBtn = new QPushButton{ QIcon{":/images/image_zoom_out_icon.png"}, "", this};
+  zoomOutBtn->setIconSize(QSize{32, 32});
+  connect(zoomOutBtn, &QPushButton::clicked, this, &TreeVisualiser::zoomOutBtn_press);
+  btnLayout->addWidget(zoomOutBtn);
 
+  // Node selection for reconstruction buttons
+  // -----------------------------------------
   QPushButton *remNodeToReconBtn = new QPushButton { QIcon{":/images/icicle_node_removal_icon.png"},
     "", this};
   remNodeToReconBtn->setIconSize(QSize{32, 32});
   connect(remNodeToReconBtn, &QPushButton::clicked, this, &TreeVisualiser::remNodeReconBtn_press);
+  btnLayout->addWidget(remNodeToReconBtn);
 
   QPushButton *incNodeToReconBtn = new QPushButton{ QIcon{":/images/icicle_node_inclusion_icon.png"}, 
     "", this};
   incNodeToReconBtn->setIconSize(QSize{32, 32});
   connect(incNodeToReconBtn, &QPushButton::clicked, this, &TreeVisualiser::incNodeReconBtn_press);
-
-  btnLayout->addWidget(binRecBtn);
-  btnLayout->addWidget(binRecPlusBtn);
-  btnLayout->addWidget(greyRecBtn);
-  btnLayout->addWidget(greyRecPlusBtn); 
-  btnLayout->addWidget(SplineManipulateBtn); 
-  btnLayout->addWidget(skelRecBtn);
-  btnLayout->addWidget(removeSkelBtn);
-  btnLayout->addWidget(remNodeToReconBtn);
   btnLayout->addWidget(incNodeToReconBtn);
+
+  // SDMD Manipulation and reconstruction buttons 
+  // --------------------------------------------
+  QPushButton *SplineManipulateBtn = new QPushButton{ QIcon{":/images/Spline_CPs_icon.png"}, "", this};
+  SplineManipulateBtn->setIconSize(QSize{32, 32});
+  connect(SplineManipulateBtn, &QPushButton::clicked, this, &TreeVisualiser::SplineManipulateBtn_press);
+  btnLayout->addWidget(SplineManipulateBtn);
   
+  QPushButton *skelRecBtn = new QPushButton{ QIcon{":/images/Skel_icon.png"}, "", this};
+  skelRecBtn->setIconSize(QSize{32, 32});
+  connect(skelRecBtn, &QPushButton::clicked, this, &TreeVisualiser::skelRecBtn_press);
+  btnLayout->addWidget(skelRecBtn);
+
+  QPushButton *removeSkelBtn = new QPushButton{ QIcon{":/images/Remove_Skel_icon.png"}, "", this};
+  removeSkelBtn->setIconSize(QSize{32, 32});
+  connect(removeSkelBtn, &QPushButton::clicked, this, &TreeVisualiser::removeSkelBtn_press);  
+  btnLayout->addWidget(removeSkelBtn);
+ 
   return btnLayout;
 }
 
@@ -155,61 +166,20 @@ void TreeVisualiser::updateTransparencyOfTheNodes()
 
 void TreeVisualiser::useGradientGNodeStyle()
 {  
-  using GradientNodeGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory; 
-  curNodeSelection_ = nullptr;
-  float unitHeight = unitHeightNode();
-  treeWidget_->removeGrayScaleBar();
+  using GradientNodeGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory;   
   treeWidget_->setGNodeFactory(std::make_unique<GradientNodeGNodeFactory>());
   treeWidget_->updateTreeRendering();
-  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);  
   treeWidget_->grayscaleBar()->setShowBorders(false);
-  gradientRenderStyle_ = true;
-
-  updateTransparencyOfTheNodes();
+  gradientRenderStyle_ = true;  
 }
 
 void TreeVisualiser::useFixedColorGNodeStyle()
 {
-  using FixedColorGNodeFactory = IcicleMorphotreeWidget::FixedColorGNodeFactory;
-  curNodeSelection_ = nullptr;
-  float unitHeight = unitHeightNode();
-  treeWidget_->removeGrayScaleBar();
+  using FixedColorGNodeFactory = IcicleMorphotreeWidget::FixedColorGNodeFactory;      
   treeWidget_->setGNodeFactory(std::make_unique<FixedColorGNodeFactory>());
-  treeWidget_->updateTreeRendering();
-  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, unitHeight);
+  treeWidget_->updateTreeRendering();  
   treeWidget_->grayscaleBar()->setShowBorders(true);
   gradientRenderStyle_ = false;
-
-  updateTransparencyOfTheNodes();
-}
-
-float TreeVisualiser::unitHeightNode() const
-{
-  using GrayScaleBasedHeightTreeLayout = IcicleMorphotreeWidget::GrayscaleBasedHeightTreeLayout;
-  using GrayScaleBasedHeightTreeLayoutPtr = std::shared_ptr<GrayScaleBasedHeightTreeLayout>;
-
-  GrayScaleBasedHeightTreeLayoutPtr treeLayout = 
-    std::dynamic_pointer_cast<GrayScaleBasedHeightTreeLayout>(treeWidget_->treeLayout());
-  
-  return treeLayout->uniHeight();
-}
-
-void TreeVisualiser::setUnitHeightNode(float val)
-{
-  using GrayScaleBasedHeightTreeLayout = IcicleMorphotreeWidget::GrayscaleBasedHeightTreeLayout;
-  using GrayScaleBasedHeightTreeLayoutPtr = std::shared_ptr<GrayScaleBasedHeightTreeLayout>;
-
-  curNodeSelection_ = nullptr;
-  GrayScaleBasedHeightTreeLayoutPtr treeLayout = 
-    std::dynamic_pointer_cast<GrayScaleBasedHeightTreeLayout>(treeWidget_->treeLayout());
-
-  treeLayout->setUniHeight(val);
-
-  if (treeWidget_->grayscaleBar() != nullptr) 
-    treeWidget_->grayscaleBar()->setUnitHeight(val);
-
-  treeWidget_->updateTreeRendering();
-  updateTransparencyOfTheNodes();
 }
 
 FIELD<float> *TreeVisualiser::SDMDReconstruction(unsigned int id)
@@ -253,16 +223,23 @@ void TreeVisualiser::selectNodesForRecBasedOnIntensities(
 void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 {  
   // namespace mw = MorphotreeWidget;
+  using AutoSizeTreeLayout = IcicleMorphotreeWidget::AutoSizeTreeLayout;
 
   if (treeWidget_->hasAttributes()) 
     clearAttributes();
 
   maxValue_ = static_cast<uint32>(*std::max_element(f.begin(), f.end()));
-  curNodeSelection_ = nullptr;  
+  curSelectedNodeIndex_ = InvalidNodeIndex;
+  
   treeWidget_->loadImage(domain, f);
 
+  std::shared_ptr<AutoSizeTreeLayout> treeLayout = 
+    dynamic_pointer_cast<AutoSizeTreeLayout>(treeWidget_->treeLayout());
+
   treeWidget_->removeGrayScaleBar();    
-  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, 10.f);
+  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, treeLayout->unitHeight());
+  
+  treeWidget_->updateTreeRendering();
   
   if (gradientRenderStyle_)
     treeWidget_->grayscaleBar()->setShowBorders(false);
@@ -287,6 +264,20 @@ std::vector<morphotree::uint8> TreeVisualiser::bool2UInt8(
   }
 
   return f;
+}
+
+IcicleMorphotreeWidget::GNode *TreeVisualiser::curSelectedNode()
+{
+  if (curSelectedNodeIndex_ == InvalidNodeIndex)
+    return nullptr;
+  return treeWidget_->gnodes()[curSelectedNodeIndex_];
+}
+
+IcicleMorphotreeWidget::GNode *TreeVisualiser::curSelectedNode() const
+{
+  if (curSelectedNodeIndex_ == InvalidNodeIndex)
+    return nullptr;
+  return treeWidget_->gnodes()[curSelectedNodeIndex_];
 }
 
 void TreeVisualiser::reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node)
@@ -520,32 +511,31 @@ void TreeVisualiser::clearAttributes()
 }
 
 std::vector<bool> TreeVisualiser::recSimpleNode() const 
-{
-  if (curNodeSelection_ != nullptr)
-    // return curNodeSelection_->simplifiedMTreeNode()->reconstruct(domain_);
-    return curNodeSelection_->mnode()->reconstruct(domain_);
+{  
+  if (hasNodeSelected())  
+    return curSelectedNode()->mnode()->reconstruct(domain_);  
   else
     return std::vector<bool>();
 }
 
 std::vector<bool> TreeVisualiser::recFullNode() const 
 {
-  if (curNodeSelection_ != nullptr)
-    //return curNodeSelection_->mtreeNode()->reconstruct(domain_);
-    return curNodeSelection_->mnode()->reconstruct(domain_);
+  if (hasNodeSelected()) {   
+    return curSelectedNode()->mnode()->reconstruct(domain_);
+  }
   else
     return std::vector<bool>();
 }
 
 void TreeVisualiser::binRecBtn_press()
 {  
-  if (curNodeSelection_ != nullptr) {
+  if (hasNodeSelected()) {
     SimpleImageViewer *iv = nullptr;
     if (binRecDock_ == nullptr) {
       iv = new SimpleImageViewer;
       binRecDock_ = mainWidget_->createDockWidget(
         tr("binary node reconstruction"), iv);
-      binRecDock_->setGNode(curNodeSelection_);
+      binRecDock_->setGNode(curSelectedNode());
       connect(binRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::binRecDock_onClose);
       binRecDock_->resize(domain_.width()+22, domain_.height()+84);    
     }
@@ -554,58 +544,13 @@ void TreeVisualiser::binRecBtn_press()
     }
     
     // reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());    
-    reconstructBinaryImage(iv, curNodeSelection_->mnode());
+    reconstructBinaryImage(iv, curSelectedNode()->mnode());
   }
-}
-
-void TreeVisualiser::binRecPlusBtn_press()
-{
-  SimpleImageViewer *iv = new SimpleImageViewer;
-  MyDockWidget *dock = mainWidget_->createDockWidget(
-    tr("binary node reconstruction"), iv);
-  dock->setGNode(curNodeSelection_);
-
-  dock->resize(domain_.width() + 22, domain_.height() + 84);
-  // reconstructBinaryImage(iv, curNodeSelection_->mtreeNode());  
-  reconstructBinaryImage(iv, curNodeSelection_->mnode());
-}
-
-void TreeVisualiser::greyRecBtn_press()
-{  
-  if (curNodeSelection_ != nullptr) {
-    SimpleImageViewer *iv = nullptr;
-    if (greyRecDock_ == nullptr) {
-      iv = new SimpleImageViewer;
-      greyRecDock_ = mainWidget_->createDockWidget(
-        tr("grey node reconstruction"), iv);      
-      greyRecDock_->setGNode(curNodeSelection_);
-      connect(greyRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::greyRecDock_onClose);
-      greyRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
-    }
-    else {
-      iv = qobject_cast<SimpleImageViewer *>(greyRecDock_->widget());
-    }
-    
-    // reconstructGreyImage(iv, curNodeSelection_->mtreeNode());    
-    reconstructGreyImage(iv, curNodeSelection_->mnode());
-  }
-}
-
-void TreeVisualiser::greyRecPlusBtn_press()
-{
-  SimpleImageViewer *iv = new SimpleImageViewer;
-  MyDockWidget *dock = mainWidget_->createDockWidget(
-    tr("greyscale node reconstruction"), iv);
-  dock->setGNode(curNodeSelection_);
-
-  dock->resize(domain_.width() + 22, domain_.height() + 84);
-  // reconstructGreyImage(iv, curNodeSelection_->mtreeNode());  
-  reconstructGreyImage(iv, curNodeSelection_->mnode());
 }
 
 void TreeVisualiser::SplineManipulateBtn_press()
 {
-  if (curNodeSelection_ != nullptr) {
+  if (hasNodeSelected()) {
     //CpViewer *cv = nullptr;
     if (SplineManipDock_ == nullptr) {
       
@@ -622,7 +567,7 @@ void TreeVisualiser::SplineManipulateBtn_press()
     }
  
     // NodePtr mnode = curNodeSelection_->mtreeNode();
-    NodePtr mnode = curNodeSelection_->mnode();
+    NodePtr mnode = curSelectedNode()->mnode();
     dmdrecon_->ReconstructIndexingImage(mnode->id());
   
    if(mnode->id() == 0){
@@ -709,17 +654,19 @@ void TreeVisualiser::removeSkelBtn_press()
 
 void TreeVisualiser::incNodeReconBtn_press()
 {
-  if (curNodeSelection_ != nullptr) {
-    selectedNodesForRec_[curNodeSelection_->mnode()->id()] = true;
-    curNodeSelection_->setOpacity(1.0f);
+  if (hasNodeSelected()) {
+    GNode *node = curSelectedNode();
+    selectedNodesForRec_[node->mnode()->id()] = true;
+    node->setOpacity(1.0f);
   }
 }
 
 void TreeVisualiser::remNodeReconBtn_press()
 {
-  if (curNodeSelection_ != nullptr) {
-    selectedNodesForRec_[curNodeSelection_->mnode()->id()] = false;
-    curNodeSelection_->setOpacity(0.35f);
+  if (hasNodeSelected()) {
+    GNode* node = curSelectedNode();
+    selectedNodesForRec_[node->mnode()->id()] = false;
+    node->setOpacity(0.35f);
   }
 }
 
@@ -727,20 +674,21 @@ void TreeVisualiser::nodeMousePress(GNode *node,
   QGraphicsSceneMouseEvent *e)
 {
   if (treeWidget_->dragMode() == QGraphicsView::NoDrag) {
-    if (curNodeSelection_ != nullptr) {
-      curNodeSelection_ ->setSelected(false);
-      curNodeSelection_->update();
+    if (hasNodeSelected()) {
+      GNode *selectedNode = curSelectedNode();
+      selectedNode->setSelected(false);
+      selectedNode->update();
     }
       
     if (node->isSelected()) {
       node->setSelected(false);
-      curNodeSelection_ = nullptr;
+      curSelectedNodeIndex_ = InvalidNodeIndex;
       emit nodeUnselected(node);
     }
     else {
       emit nodeSelected(node);
       node->setSelected(true);
-      curNodeSelection_ = node;
+      curSelectedNodeIndex_ = node->mnode()->id();
     }
 
     node->update();
@@ -752,10 +700,6 @@ void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)
   binRecDock_ = nullptr;  
 }
 
-void TreeVisualiser::greyRecDock_onClose(MyDockWidget *dock)
-{
-  greyRecDock_ = nullptr;
-}
 void TreeVisualiser::SplineManipDock_onClose(MyDockWidget *dock)
 {
   SplineManipDock_ = nullptr;
@@ -771,20 +715,43 @@ void TreeVisualiser::removeSkelDock_onClose(MyDockWidget *dock)
   removeSkelDock_ = nullptr;
 }
 
+void TreeVisualiser::fitToWindowBtn_press()
+{
+  treeWidget_->fitToWidget();
+}
+
+void TreeVisualiser::zoomInBtn_press()
+{
+  treeWidget_->visZoomIn();
+}
+
+void TreeVisualiser::zoomOutBtn_press()
+{
+  treeWidget_->visZoomOut();
+}
+
 void TreeVisualiser::selectNodeByPixel(int x, int y)
 {
   GNode *node = treeWidget_->gnode(x, y, selectedNodesForRec_);
 
-  if (curNodeSelection_ != node) {
-    if (curNodeSelection_ != nullptr) {
-      curNodeSelection_->setSelected(false);
-      curNodeSelection_->update();
+  if (curSelectedNodeIndex_ != node->mnode()->id()) {
+    if (hasNodeSelected()) {
+      GNode *selectedNode = curSelectedNode();
+      selectedNode->setSelected(false);
+      selectedNode->update();
     }
     
     node->setSelected(true);
     emit nodeSelected(node);
     node->update();
-    curNodeSelection_ = node;
+    curSelectedNodeIndex_ = node->mnode()->id();
     treeWidget_->centerOn(node);
   }
+}
+
+void TreeVisualiser::updateCustomTreeVisualisationWhenRedraw()
+{
+  updateTransparencyOfTheNodes();
+  if (hasNodeSelected())
+    curSelectedNode()->setSelected(true);
 }

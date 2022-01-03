@@ -126,6 +126,7 @@ void MainWidget::updateTreeVisualiser()
   mainWindow->statusBar()->showMessage(tr("Loading Skeleton (DMD)"));
   treeVis_->registerDMDSkeletons();  
   HasUpdatedTreeVisualiser = true;
+  reconMode_ = ReconMode::MorphoTree;
 }
 
 void MainWidget::zoomOut()

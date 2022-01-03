@@ -53,7 +53,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     removeSkelDock_{nullptr},
     curColorBar_{nullptr},
     maxValue_{0},
-    gradientRenderStyle_{true}
+    gradientRenderStyle_{true},
+    shouldUpdateCustomTreeRedraw_{false}
 {  
   using GNodeEventHandler = IcicleMorphotreeWidget::GNodeEventHandler;
   using FixedHeightTreeLayout = IcicleMorphotreeWidget::FixedHeightTreeLayout;    
@@ -232,14 +233,15 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 {  
   // namespace mw = MorphotreeWidget;
   using AutoSizeTreeLayout = IcicleMorphotreeWidget::AutoSizeTreeLayout;
-
+  
+  shouldUpdateCustomTreeRedraw_ = false;
   if (treeWidget_->hasAttributes()) 
     clearAttributes();
 
   maxValue_ = static_cast<uint32>(*std::max_element(f.begin(), f.end()));
   curSelectedNodeIndex_ = InvalidNodeIndex;
   
-  treeWidget_->loadImage(domain, f);
+  treeWidget_->loadImage(domain, f);  
 
   std::shared_ptr<AutoSizeTreeLayout> treeLayout = 
     dynamic_pointer_cast<AutoSizeTreeLayout>(treeWidget_->treeLayout());
@@ -247,16 +249,16 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
   treeWidget_->removeGrayScaleBar();    
   treeWidget_->addGrayScaleBar(maxValue_+1, 10.f);
   
-  treeWidget_->updateTreeRendering();
+  selectedNodesForRec_.clear();
+  selectedNodesForRec_.resize(treeWidget_->mtree().numberOfNodes());
+  selectedNodesForRec_.fill(true);
   
   if (gradientRenderStyle_)
     treeWidget_->grayscaleBar()->setShowBorders(false);
   else 
-    treeWidget_->grayscaleBar()->setShowBorders(true);
+    treeWidget_->grayscaleBar()->setShowBorders(true);  
 
-  selectedNodesForRec_.clear();
-  selectedNodesForRec_.resize(treeWidget_->mtree().numberOfNodes());
-  selectedNodesForRec_.fill(true);
+  shouldUpdateCustomTreeRedraw_ = true;
 
   domain_ = domain;
   dmd_.setProcessedImage(greyImageToField(f));  
@@ -769,7 +771,9 @@ void TreeVisualiser::selectNodeByPixel(int x, int y)
 
 void TreeVisualiser::updateCustomTreeVisualisationWhenRedraw()
 {
-  updateTransparencyOfTheNodes();
-  if (hasNodeSelected())
-    curSelectedNode()->setSelected(true);
+  if (shouldUpdateCustomTreeRedraw_) {
+    updateTransparencyOfTheNodes();
+    if (hasNodeSelected())
+      curSelectedNode()->setSelected(true);
+  }
 }

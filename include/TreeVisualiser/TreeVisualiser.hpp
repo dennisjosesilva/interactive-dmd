@@ -161,13 +161,11 @@ private:
   const uint32 InvalidNodeIndex = std::numeric_limits<uint32>::max();
 
   uint32 curSelectedNodeIndex_;
-  
+  bool shouldUpdateCustomTreeRedraw_;
+
   uint32 maxValue_;
   IcicleMorphotreeWidget::IcicleMorphotreeWidget *treeWidget_;
   morphotree::Box domain_;
-  
-
-
 
   MyDockWidget *binRecDock_;
   MyDockWidget *SplineManipDock_;

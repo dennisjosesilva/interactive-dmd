@@ -58,7 +58,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   using GNodeEventHandler = IcicleMorphotreeWidget::GNodeEventHandler;
   using FixedHeightTreeLayout = IcicleMorphotreeWidget::FixedHeightTreeLayout;    
   using GrayscaleBasedHeightTreeLayout = IcicleMorphotreeWidget::GrayscaleBasedHeightTreeLayout;
-  using GradientGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory;                                                       
+  using GradientGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory; 
+  using HGradientGNodeFactory = IcicleMorphotreeWidget::HGradientGNodeFactory;                                                      
   using AutoSizeTreeLayout = IcicleMorphotreeWidget::AutoSizeTreeLayout;
   using IcicleMorphotreeWidget = IcicleMorphotreeWidget::IcicleMorphotreeWidget;
   
@@ -75,7 +76,7 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
 
   treeWidget_ = new IcicleMorphotreeWidget{this, 
     std::make_unique<AutoSizeTreeLayout>(
-      std::make_unique<GradientGNodeFactory>(), 20.f, 20.f)};
+      std::make_unique<HGradientGNodeFactory>(), 20.f, 20.f)};
 
   controlsLayout->addWidget(treeWidget_);  
 
@@ -121,6 +122,12 @@ QLayout *TreeVisualiser::createButtons()
   zoomOutBtn->setIconSize(QSize{32, 32});
   connect(zoomOutBtn, &QPushButton::clicked, this, &TreeVisualiser::zoomOutBtn_press);
   btnLayout->addWidget(zoomOutBtn);
+  
+  // Rotate Widget button
+  QPushButton *rotateWidgetBtn = new QPushButton{ QIcon{":/images/rotate_icon.png"}, "", this};
+  rotateWidgetBtn->setIconSize(QSize{32, 32});
+  connect(rotateWidgetBtn, &QPushButton::clicked, this, &TreeVisualiser::rotateWidgetBtn_press);
+  btnLayout->addWidget(rotateWidgetBtn);
 
   // Node selection for reconstruction buttons
   // -----------------------------------------
@@ -167,7 +174,8 @@ void TreeVisualiser::updateTransparencyOfTheNodes()
 void TreeVisualiser::useGradientGNodeStyle()
 {  
   using GradientNodeGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory;   
-  treeWidget_->setGNodeFactory(std::make_unique<GradientNodeGNodeFactory>());
+  using HGradientNodeGNodeFactory = IcicleMorphotreeWidget::HGradientGNodeFactory;   
+  treeWidget_->setGNodeFactory(std::make_unique<HGradientNodeGNodeFactory>());
   treeWidget_->updateTreeRendering();
   treeWidget_->grayscaleBar()->setShowBorders(false);
   gradientRenderStyle_ = true;  
@@ -237,7 +245,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
     dynamic_pointer_cast<AutoSizeTreeLayout>(treeWidget_->treeLayout());
 
   treeWidget_->removeGrayScaleBar();    
-  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f, treeLayout->unitHeight());
+  treeWidget_->addGrayScaleBar(maxValue_+1, 10.f);
   
   treeWidget_->updateTreeRendering();
   
@@ -728,6 +736,16 @@ void TreeVisualiser::zoomInBtn_press()
 void TreeVisualiser::zoomOutBtn_press()
 {
   treeWidget_->visZoomOut();
+}
+
+void TreeVisualiser::rotateWidgetBtn_press()
+{
+  using TreeLayoutOrientation = IcicleMorphotreeWidget::TreeLayoutOrientation;
+
+  if (treeWidget_->orientation() == TreeLayoutOrientation::Vertical)
+    treeWidget_->setOrientation(TreeLayoutOrientation::Horizontal);
+  else 
+    treeWidget_->setOrientation(TreeLayoutOrientation::Vertical);
 }
 
 void TreeVisualiser::selectNodeByPixel(int x, int y)

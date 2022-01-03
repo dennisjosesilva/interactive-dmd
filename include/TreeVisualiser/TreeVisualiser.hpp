@@ -148,6 +148,7 @@ protected slots:
   void fitToWindowBtn_press();
   void zoomInBtn_press();
   void zoomOutBtn_press();
+  void rotateWidgetBtn_press();
   void SplineManipulateBtn_press();
   void skelRecBtn_press(); 
   void removeSkelBtn_press();

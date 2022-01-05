@@ -79,6 +79,7 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     std::make_unique<AutoSizeTreeLayout>(
       std::make_unique<HGradientGNodeFactory>(), 20.f, 20.f)};
 
+  treeWidget_->setNodeSelectionColor(Qt::red);
   controlsLayout->addWidget(treeWidget_);  
 
   connect(GNodeEventHandler::Singleton(), &GNodeEventHandler::mousePress, 

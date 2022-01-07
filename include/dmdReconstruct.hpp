@@ -24,6 +24,7 @@ class dmdReconstruct {
     //~dmdReconstruct();
 
     void openglSetup();
+    void initShader();
     void framebufferSetup();
     void renderLayer(int intensity_index);
     void renderMovedLayer(int intensity, vector<Vector3<float>> SampleForEachCC);
@@ -35,7 +36,7 @@ class dmdReconstruct {
     void readControlPoints(int width_, int height_, int clear_color, vector<int> gray_levels_);
     void readIndexingControlPoints(int width, int height, int clear_color, multimap<int,int> Inty_Node);
     
-    void ReconstructImage(bool interpolate);
+    QImage ReconstructImage(bool interpolate);
     void ReconstructIndexingImage(int nodeID);
     void ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action);
 
@@ -52,6 +53,9 @@ class dmdReconstruct {
     inline FIELD<float>* getOutput() { return output; }
     vector<vector<Vector3<float>>> GetCPs(int nodeID);
     void reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> CPlist);
+    QImage get_texture_data(); 
+    void DrawTheFirstLayer();
+ 
     
   private:
 
@@ -63,13 +67,15 @@ class dmdReconstruct {
     QSurfaceFormat surfaceFormat;
     QOpenGLContext openGLContext;
     QOffscreenSurface surface;
-    GLuint buffer, tex, depthbuffer;
+    GLuint buffer,buffer2, tex,tex2, depthbuffer;
     QOpenGLFunctions *contextFunc;
     QOpenGLShaderProgram program;
+    QOpenGLShaderProgram program2;
     bool RunOnce = true;
     vector<vector<Vector3<float>>> IndexingSample;
     vector<vector<vector<Vector3<float>>>> IndexingCP;
     vector<vector<Vector3<float>>> IndexingSample_interactive;
     multimap<int,int> Inty_node;
+    //QOpenGLTexture alpha;
 };
 

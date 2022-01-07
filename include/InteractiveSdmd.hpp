@@ -35,7 +35,7 @@ public:
  
 protected:  
   
-  QImage fieldToImage(FIELD<float> *field) const; 
+  //QImage fieldToImage(FIELD<float> *field) const; 
   FIELD<float> *imageToField(QImage img) const; 
 
   QLayout* createRunButtons();

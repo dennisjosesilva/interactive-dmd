@@ -23,7 +23,7 @@ protected:
   QLayout *createSaliencyThresholdLayout();
   QLayout *createHausdorffThresholdLayout();
   QLayout* createRunButtons();
-  QImage fieldToImage(FIELD<float> *field) const; 
+  //QImage fieldToImage(FIELD<float> *field) const; 
 
 public: 
 signals: 

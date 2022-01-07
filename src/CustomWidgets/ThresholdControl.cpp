@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QPushButton>
-
+#include <QTime>
 
 ThresholdControl::ThresholdControl(QWidget *parent)
   :QWidget{parent}
@@ -193,7 +193,7 @@ void ThresholdControl::DisplayOrigImg_onStateChanged(int state)
   //else //0-unchecked
 
 }
-
+/*
 QImage ThresholdControl::fieldToImage(FIELD<float> *fimg) const
 {
   QImage img{fimg->dimX(), fimg->dimY(), QImage::Format_Grayscale8};
@@ -206,7 +206,7 @@ QImage ThresholdControl::fieldToImage(FIELD<float> *fimg) const
  
   return img;
 }
-
+*/
 void ThresholdControl::RunBtn_press()
 {
   int CPnum;
@@ -224,11 +224,12 @@ void ThresholdControl::RunBtn_press()
   dmdRecon_.readControlPoints(dmdProcess_.getImgWidth(), dmdProcess_.getImgHeight(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
   //bar->showMessage(tr("Reconstruction..."));
   //cout<<"InterpState: "<<InterpState<<endl;
-  dmdRecon_.ReconstructImage(InterpState);
-  
+  QTime time;
+  time.start();
+  QImage img = dmdRecon_.ReconstructImage(InterpState);
   //bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
+  //QImage img = fieldToImage(dmdRecon_.getOutput());    
+  cout<<time.elapsed()<<" ms."<<endl;
 
-  QImage img = fieldToImage(dmdRecon_.getOutput());    
- 
   emit ImageHasBeenReconstructed(img);
 }

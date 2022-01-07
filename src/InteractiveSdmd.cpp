@@ -206,11 +206,11 @@ void InteractiveSdmd::RunBtn_press()
   dmdRecon_.readControlPoints(scribble_->image().width(), scribble_->image().height(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
   bar->showMessage(tr("Reconstruction..."));
   cout<<"InterpState: "<<InterpState<<endl;
-  dmdRecon_.ReconstructImage(InterpState);
+  QImage img = dmdRecon_.ReconstructImage(InterpState);
   
   bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
 
-  QImage img = fieldToImage(dmdRecon_.getOutput());    
+  //QImage img = fieldToImage(dmdRecon_.getOutput());    
   setImage(img);
   
 }
@@ -232,12 +232,11 @@ void InteractiveSdmd::saliencyBtn_press(){
   bar->showMessage(tr("Reading Control points..."));
   dmdRecon_.readControlPoints(scribble_->image().width(), scribble_->image().height(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
   bar->showMessage(tr("Reconstruction..."));
-  dmdRecon_.ReconstructImage(InterpState);
-  //dmdRecon_.ReconstructImage(false);
+  QImage img = dmdRecon_.ReconstructImage(InterpState);
   
   bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
 
-  QImage img = fieldToImage(dmdRecon_.getOutput());    
+  //QImage img = fieldToImage(dmdRecon_.getOutput());    
   setImage(img);
 }
 
@@ -292,19 +291,6 @@ void InteractiveSdmd::HDSlider_onValueChange(int val)
 {
   HDVal = val / 2000.0;
   HDLabel_->setText(QString::number(HDVal));
-}
-
-QImage InteractiveSdmd::fieldToImage(FIELD<float> *fimg) const
-{
-  QImage img{fimg->dimX(), fimg->dimY(), QImage::Format_Grayscale8};
-  float *fimg_data = fimg->data();
-  uchar *img_data = img.bits();
-
-  int N = fimg->dimX() * fimg->dimY();
-  for (int i = 0; i < N; ++i)
-    img_data[i] = static_cast<uchar>(fimg_data[i]);
- 
-  return img;
 }
 
 FIELD<float> *InteractiveSdmd::imageToField(QImage img) const

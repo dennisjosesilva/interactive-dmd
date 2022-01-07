@@ -7,7 +7,8 @@ FIELD<float>* prev_layer_dt;
 bool firstTime, DrawnTheLayer;
 int CurrNode;
 
-dmdReconstruct::dmdReconstruct() {
+dmdReconstruct::dmdReconstruct()
+{
     printf("dmdReconstruct....\n");
     //RunOnce = 1;
 }
@@ -37,7 +38,7 @@ void dmdReconstruct::reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> 
 
 void dmdReconstruct::renderMovedLayer(int intensity, vector<Vector3<float>> SampleForEachCC){
     
-    program.link();
+    //program.link();
     program.bind();
 //    ==============DRAWING TO THE FBO============
 
@@ -150,13 +151,15 @@ void dmdReconstruct::openglSetup(){
                                    "    gl_FragDepth = 1.0-alpha;\n"
                                    "}\n"
                                    );
-  
+    program.link();
 }
 
 
 void dmdReconstruct::framebufferSetup(){
 
     contextFunc =  openGLContext.functions();
+    //the first buffer.
+
     //generate Framebuffer;
     contextFunc->glGenFramebuffers(1, &buffer);
     contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
@@ -182,11 +185,33 @@ void dmdReconstruct::framebufferSetup(){
 
     contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);                                
   
+  //the second buffer.
+    
+    //generate Framebuffer;
+    contextFunc->glGenFramebuffers(1, &buffer2);
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer2);
+
+    //generate tex and bind to Framebuffer;
+    contextFunc->glGenTextures(1, &tex2);
+    contextFunc->glBindTexture(GL_TEXTURE_2D, tex2);
+    contextFunc->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+                    GL_RGBA, GL_UNSIGNED_BYTE, NULL); 
+    contextFunc->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    contextFunc->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+    contextFunc->glBindTexture(GL_TEXTURE_2D, 0);
+        
+    contextFunc->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                    GL_TEXTURE_2D, tex2, 0);
+
+    contextFunc->glViewport(0,0, width, height);
+
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);                                
+  
 }
 
 
 void dmdReconstruct::renderLayer(int intensity_index){
-    program.link();
+    //program.link();
     program.bind();
 
 //    ==============DRAWING TO THE FBO============
@@ -228,11 +253,10 @@ void dmdReconstruct::renderLayer(int intensity_index){
         (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
         };
 
-            
         vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
-        
+       
         program.enableAttributeArray("position");
-        program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
+        program.setAttributeBuffer("position", GL_FLOAT, 0, 2, 2*sizeof (float));
         
         program.setUniformValue("r", (GLfloat)r);
         
@@ -243,38 +267,91 @@ void dmdReconstruct::renderLayer(int intensity_index){
         contextFunc->glDrawArrays(GL_QUADS, 0, 4);
 
     }
-       cout<<gray_levels.at(intensity_index)<<"\t";
-    //========SAVE IMAGE===========
-        float *data = (float *) malloc(width * height * sizeof (float));
-        
-        contextFunc->glEnable(GL_TEXTURE_2D);
-        contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
-
-        // Altering range [0..1] -> [0 .. 255] 
-        contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
-
-
-        for (unsigned int x = 0; x < width; ++x) 
-            for (unsigned int y = 0; y < height; ++y)
-            {
-                unsigned int y_ = height - 1 -y;
-
-                if(*(data + y * width + x))
-                    output->set(x, y_, gray_levels.at(intensity_index));
-            }
-        
-        free(data);
-      
     program.release();
     vertexPositionBuffer.release();
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+    
+    // SECOND PASS: Draw in the default framebuffer - Render using alpha map
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer2); 
+    contextFunc->glDisable(GL_DEPTH_TEST);
+    contextFunc->glEnable(GL_BLEND);
+    contextFunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   
+   
+    //program2.link();
+    program2.bind();
 
+    QOpenGLBuffer vertexPositionBuffer2(QOpenGLBuffer::VertexBuffer);
+    vertexPositionBuffer2.create();
+    //vertexPositionBuffer2.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vertexPositionBuffer2.bind();
+    float vertexPositions2[] = {
+         -1.0f, -1.0f,  0.0f, 1.0f,
+         -1.0f,  1.0f,  0.0f, 0.0f,
+          1.0f,  1.0f,  1.0f, 0.0f,
+          1.0f, -1.0f,  1.0f, 1.0f
+    };
+
+    vertexPositionBuffer2.allocate(vertexPositions2, 16 * sizeof(float));
+    
+    program2.enableAttributeArray("Pos");
+    program2.setAttributeBuffer("Pos", GL_FLOAT, 0, 2, 4*sizeof (float));
+    program2.enableAttributeArray("texCoord");
+    program2.setAttributeBuffer("texCoord", GL_FLOAT, 2*sizeof (float), 2, 4*sizeof (float));
+    
+    
+    contextFunc->glActiveTexture(GL_TEXTURE0);
+    contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+    program2.setUniformValue("alpha", 0);
+
+    int inty = gray_levels.at(intensity_index);
+    //cout<<"inty: "<<inty<<endl;
+    program2.setUniformValue("layer", (GLfloat)(inty/255.0));
+    //program2.setUniformValue("layer", (GLfloat)(inty));
+
+    contextFunc->glDrawArrays(GL_QUADS, 0, 4);
+
+    //contextFunc->glBindTexture(GL_TEXTURE_2D, 0); 
+    contextFunc->glDisable(GL_BLEND);
+
+    program2.release();
+    vertexPositionBuffer2.release();
+
+    
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+   
+   
 }
 
+void dmdReconstruct::initShader()
+{
+/**/
+    program2.addShaderFromSourceCode(QOpenGLShader::Vertex,
+                                   "#version 330\r\n"
+                                   "in vec2 Pos;\n"
+                                   "in vec2 texCoord;\n"
+                                   "out vec2 outCoord;\n"
+                                   "void main() {\n"
+                                   "    gl_Position = vec4(Pos, 0.0, 1.0);\n"
+                                   "    outCoord = texCoord;\n"
+                                   "}\n"
+                                   );
+    program2.addShaderFromSourceCode(QOpenGLShader::Fragment,
+                                   "#version 330\r\n"
+                                   "in vec2 outCoord;\n"
+                                   "uniform sampler2D alpha;\n"
+                                   "uniform float layer;\n"
+                                   "void main() {\n"
+                                   "    float alpha_val = texture2D(alpha, outCoord).s;\n"
+                                   "    gl_FragColor=vec4(layer, layer, layer, alpha_val);\n"
+                                   "}\n"
+                                   );
+   
+    program2.link();                    
+}
 
 FIELD<float>* dmdReconstruct::renderLayer_interp(int i){
     
-    program.link();
+    //program.link();
     program.bind();
 
 //    ==============DRAWING TO THE FBO============
@@ -375,7 +452,8 @@ void dmdReconstruct::readControlPoints(int width_, int height_, int clear_color,
     height = height_;
     clearColor = clear_color;
     gray_levels = gray_levels_;
-    if (RunOnce) {openglSetup(); RunOnce = false;}
+    if (RunOnce) {openglSetup(); initShader(); RunOnce = false;}
+    
     framebufferSetup(); 
     initialize_skeletonization_recon(width, height);//initCUDA
     
@@ -413,8 +491,28 @@ FIELD<float>* dmdReconstruct::get_dt_of_alpha(FIELD<float>* alpha) {
     auto dt = computeCUDADT(alpha_dupe);
     return dt;
 }
-   
+
+QImage dmdReconstruct::get_texture_data() { 
+    float *data = (float *) malloc(width * height * sizeof (float));
+        
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer2);
+
+    contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
+
+    QImage img{width, height, QImage::Format_Grayscale8};
   
+    uchar *img_data = img.bits();
+
+    int N = width * height;
+    for (int i = 0; i < N; ++i)
+        img_data[i] = static_cast<uchar>(data[i]*255);
+    
+    free(data);
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    return img;
+} 
+
 void dmdReconstruct::get_interp_layer(int i, int SuperResolution, bool last_layer)
 {
     bool interp_firstLayer = 1;
@@ -524,13 +622,25 @@ void dmdReconstruct::get_interp_layer(int i, int SuperResolution, bool last_laye
     delete curr_dt;
 }
 
-void dmdReconstruct::ReconstructImage(bool interpolate){
+void dmdReconstruct::DrawTheFirstLayer()
+{
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer2);
+    float clear_color = clearColor / 255.0;
+    contextFunc->glClearColor(clear_color, clear_color, clear_color, 0);
+    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+QImage dmdReconstruct::ReconstructImage(bool interpolate){
+    QImage outImg;
     firstTime = true;
-    initOutput(clearColor);
+    
+    DrawTheFirstLayer();
     if(!gray_levels.empty())
     {
         for (int i = 0; i < gray_levels.size(); i++) {
             if(interpolate){
+                initOutput(clearColor);
                 bool last_layer = false;
                 int SuperResolution = 1;
                 int max_level = *std::max_element(gray_levels.begin(), gray_levels.begin() + gray_levels.size());
@@ -541,20 +651,21 @@ void dmdReconstruct::ReconstructImage(bool interpolate){
             }
             else{
                 renderLayer(i);
+                outImg = get_texture_data();
             } 
         }
 
-        output->NewwritePGM("output.pgm");
+        //output->NewwritePGM("output.pgm");
         printf("DMD finished!\n");
 
     }
     else printf("gray_levels is empty!");
-
+    return outImg;
 }
 
 FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> nodesID, bool action){
  
-    program.link();
+    //program.link();
     program.bind();
 
 //    ==============DRAWING TO THE FBO============
@@ -800,7 +911,7 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID){
     
     SampleForEachCC = IndexingSample.at(IndexingSample.size() - nodeID);
     if(!SampleForEachCC.empty()){
-        program.link();
+        //program.link();
         program.bind();
 
     //    ==============DRAWING TO THE FBO============

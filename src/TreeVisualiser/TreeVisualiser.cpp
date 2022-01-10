@@ -622,8 +622,8 @@ void TreeVisualiser::skelRecBtn_press()
       keptNodes.push_back(i);
   }
 
-  dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1);
-  QImage img = fieldToQImage(dmdrecon_->getOutput());   
+  QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1);
+  //QImage img = fieldToQImage(dmdrecon_->getOutput());   
   mainWidget_->setReconMode(ReconMode::SDMD);
   mainWidget_->setImage(img);
   // iv->setImage(img);    
@@ -656,8 +656,8 @@ void TreeVisualiser::removeSkelBtn_press()
       
   }
       
-  dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 0);
-  QImage img = fieldToQImage(dmdrecon_->getOutput());    
+  QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 0);
+  //QImage img = fieldToQImage(dmdrecon_->getOutput());    
   mainWidget_->setReconMode(ReconMode::SDMD);
   mainWidget_->setImage(img);
   // iv->setImage(img);  

@@ -244,11 +244,12 @@ void ManipulateCPs::changeCurrbranchDegree(int d)
 }
 void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, int intensity)
 {
-  //dmdReconstruct recon;
   recon->reconFromMovedCPs(intensity, CPlist);
+
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
   MultiCPsDelete.clear();//To avoid being deleted next.
   AllItemsUnselected = true;
+ 
   //cout<<"MultiCPsDelete---: "<<MultiCPsDelete.size()<<endl;
 }
 void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
@@ -256,6 +257,10 @@ void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
   vector<int> reconAll;
   reconAll.push_back(10000);//Just make sure reconstruct all nodes.
   recon->ReconstructMultiNode(false, reconAll, 0);
+
+  showBackgroundImg = recon->getOutQImage();
+  drawQImage = true;
+
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
 }
 
@@ -604,8 +609,16 @@ void ManipulateCPs::drawBackground(QPainter *painter, const QRectF &rect)
 //std::cout<<"drawBackground "<<std::endl;
 
   QRectF sceneRect = this->sceneRect();
-  QPixmap pixmap("../build/output.pgm");//A bit danger. Make sure that you run 'make' in build file.
-  painter->drawPixmap(sceneRect, pixmap, QRect());
+  
+  if(drawQImage) 
+  {
+    painter->drawImage(sceneRect, showBackgroundImg);
+    drawQImage = false;
+  }
+  else {
+    QPixmap pixmap("../build/output.pgm");//A bit danger. Make sure that you run 'make' in build file.
+    painter->drawPixmap(sceneRect, pixmap, QRect());
+  }
 
 }
 

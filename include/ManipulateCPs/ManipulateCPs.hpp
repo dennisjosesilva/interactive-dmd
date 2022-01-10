@@ -80,4 +80,6 @@ private:
   bool AllItemsUnselected = false;
   bool Key_Shift_pressed = false;
   bool Key_D_pressed = false;
+  QImage showBackgroundImg;
+  bool drawQImage = false;
 };

@@ -24,11 +24,9 @@ class dmdReconstruct {
     //~dmdReconstruct();
 
     void openglSetup();
-    void initShader();
     void framebufferSetup();
     void renderLayer(int intensity_index);
-    void renderMovedLayer(int intensity, vector<Vector3<float>> SampleForEachCC);
-    void renderLayer(int intensity, int nodeID);//for action = 1 situation.
+    bool renderLayer(int intensity, vector<Vector3<float>> SampleForEachCC, bool OpenGLRenderMethod);//for action = 1 situation.
     
     FIELD<float>* renderLayer_interp(int i);
 
@@ -38,7 +36,7 @@ class dmdReconstruct {
     
     QImage ReconstructImage(bool interpolate);
     void ReconstructIndexingImage(int nodeID);
-    void ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action);
+    QImage ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action);
 
 
     void get_interp_layer(int i, int SuperResolution, bool last_layer);
@@ -51,15 +49,20 @@ class dmdReconstruct {
 
 
     inline FIELD<float>* getOutput() { return output; }
+    inline QImage getOutQImage() { return OutImg; }
+    
     vector<vector<Vector3<float>>> GetCPs(int nodeID);
     void reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> CPlist);
     QImage get_texture_data(); 
-    void DrawTheFirstLayer();
+    void DrawTheFirstLayer(float ClearColor);
+    void RenderOutput(int inty, bool DrawAnything);
+    void renderLayerInit();
  
     
   private:
 
     int width, height, clearColor;
+    GLfloat width_2, height_2;
     vector<int> gray_levels;
     
     FIELD<float>* output;
@@ -67,7 +70,7 @@ class dmdReconstruct {
     QSurfaceFormat surfaceFormat;
     QOpenGLContext openGLContext;
     QOffscreenSurface surface;
-    GLuint buffer,buffer2, tex,tex2, depthbuffer;
+    GLuint buffer,buffer2, tex, tex2, depthbuffer;
     QOpenGLFunctions *contextFunc;
     QOpenGLShaderProgram program;
     QOpenGLShaderProgram program2;
@@ -76,6 +79,7 @@ class dmdReconstruct {
     vector<vector<vector<Vector3<float>>>> IndexingCP;
     vector<vector<Vector3<float>>> IndexingSample_interactive;
     multimap<int,int> Inty_node;
-    //QOpenGLTexture alpha;
+    QOpenGLBuffer vertexPositionBuffer;
+    QImage OutImg;
 };
 

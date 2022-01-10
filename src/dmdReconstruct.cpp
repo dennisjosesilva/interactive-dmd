@@ -1,5 +1,4 @@
 #include <sstream>
-//#include "ManipulateCPs/ManipulateCPs.hpp"
 #include "dmdReconstruct.hpp"
 
 FIELD<float>* prev_layer;
@@ -8,6 +7,7 @@ bool firstTime, DrawnTheLayer;
 int CurrNode;
 
 dmdReconstruct::dmdReconstruct()
+: vertexPositionBuffer(QOpenGLBuffer::VertexBuffer)
 {
     printf("dmdReconstruct....\n");
     //RunOnce = 1;
@@ -28,93 +28,15 @@ void dmdReconstruct::reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> 
     movedSample = movedSpline.ReadIndexingSpline(CPlist);//loadSample();
     
     initOutput(0);
-    renderMovedLayer(inty, movedSample);
+    
+    renderLayerInit();
+    renderLayer(inty, movedSample, false);
+    
  
     //update IndexingCP.
     IndexingCP[IndexingCP.size() - CurrNode] = CPlist;
     //update IndexingSample
     IndexingSample[IndexingSample.size() - CurrNode] = movedSample;
-}
-
-void dmdReconstruct::renderMovedLayer(int intensity, vector<Vector3<float>> SampleForEachCC){
-    
-    //program.link();
-    program.bind();
-//    ==============DRAWING TO THE FBO============
-
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
-
-    contextFunc->glEnable(GL_DEPTH_TEST);
-    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
-    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
-
-
-    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
-    vertexPositionBuffer.create();
-    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    vertexPositionBuffer.bind();
-
-    GLfloat width_2 = (GLfloat)width/2.0;
-    GLfloat height_2 = (GLfloat)height/2.0;
-
-    //read each skeleton point
-    float x, y, r;
-    Vector3<float> EachSample;
-    
-    for(auto it = SampleForEachCC.begin();it!=SampleForEachCC.end();it++){
-        EachSample = *it;
-        x = EachSample[0];
-        y = height - EachSample[1] - 1;
-        r = EachSample[2]; 
-
-        float vertexPositions[] = {
-        (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
-        (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
-        (x+r+1)/width_2 - 1, (y+r+1)/height_2 - 1,
-        (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
-        };
-
-            
-        vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
-        
-        program.enableAttributeArray("position");
-        program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
-        
-        program.setUniformValue("r", (GLfloat)r);
-        
-        program.setUniformValue("x0", (GLfloat)x);
-        
-        program.setUniformValue("y0", (GLfloat)y);
-
-        contextFunc->glDrawArrays(GL_QUADS, 0, 4);
-
-    }
-       
-    //========SAVE IMAGE===========
-        float *data = (float *) malloc(width * height * sizeof (float));
-        
-        contextFunc->glEnable(GL_TEXTURE_2D);
-        contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
-
-        // Altering range [0..1] -> [0 .. 255] 
-        contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
-
-
-        for (unsigned int x = 0; x < width; ++x) 
-            for (unsigned int y = 0; y < height; ++y)
-            {
-                unsigned int y_ = height - 1 -y;
-
-                if(*(data + y * width + x))
-                    output->set(x, y_, intensity);
-            }
-        
-        free(data);
-    output->NewwritePGM("output.pgm");  
-    program.release();
-    vertexPositionBuffer.release();
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 }
 
 void dmdReconstruct::openglSetup(){
@@ -152,6 +74,29 @@ void dmdReconstruct::openglSetup(){
                                    "}\n"
                                    );
     program.link();
+
+    program2.addShaderFromSourceCode(QOpenGLShader::Vertex,
+                                   "#version 330\r\n"
+                                   "in vec2 Pos;\n"
+                                   "in vec2 texCoord;\n"
+                                   "out vec2 outCoord;\n"
+                                   "void main() {\n"
+                                   "    gl_Position = vec4(Pos, 0.0, 1.0);\n"
+                                   "    outCoord = texCoord;\n"
+                                   "}\n"
+                                   );
+    program2.addShaderFromSourceCode(QOpenGLShader::Fragment,
+                                   "#version 330\r\n"
+                                   "in vec2 outCoord;\n"
+                                   "uniform sampler2D alpha;\n"
+                                   "uniform float layer;\n"
+                                   "void main() {\n"
+                                   "    float alpha_val = texture2D(alpha, outCoord).s;\n"
+                                   "    gl_FragColor=vec4(layer, layer, layer, alpha_val);\n"
+                                   "}\n"
+                                   );
+   
+    program2.link(); 
 }
 
 
@@ -211,37 +156,19 @@ void dmdReconstruct::framebufferSetup(){
 
 
 void dmdReconstruct::renderLayer(int intensity_index){
-    //program.link();
-    program.bind();
-
-//    ==============DRAWING TO THE FBO============
-
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
-
-    contextFunc->glEnable(GL_DEPTH_TEST);
-    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
-    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
-
-
-    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
-    vertexPositionBuffer.create();
-    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    vertexPositionBuffer.bind();
-
-    GLfloat width_2 = (GLfloat)width/2.0;
-    //program.setUniformValue("width_2", width_2);
-    GLfloat height_2 = (GLfloat)height/2.0;
-    //program.setUniformValue("height_2", height_2);
-
+    
+    renderLayerInit();
+    
     //read each skeleton point
     float x, y, r;
     vector<Vector3<float>> SampleForEachInty;
     Vector3<float> EachSample;
     
     SampleForEachInty = IndexingSample_interactive.at(intensity_index);
+    
     for(auto it = SampleForEachInty.begin();it!=SampleForEachInty.end();it++){
         EachSample = *it;
+       
         x = EachSample[0];
         y = height - EachSample[1] - 1;
         r = EachSample[2]; 
@@ -267,86 +194,65 @@ void dmdReconstruct::renderLayer(int intensity_index){
         contextFunc->glDrawArrays(GL_QUADS, 0, 4);
 
     }
-    program.release();
-    vertexPositionBuffer.release();
-    
-    // SECOND PASS: Draw in the default framebuffer - Render using alpha map
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer2); 
-    contextFunc->glDisable(GL_DEPTH_TEST);
-    contextFunc->glEnable(GL_BLEND);
-    contextFunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   
-   
-    //program2.link();
-    program2.bind();
-
-    QOpenGLBuffer vertexPositionBuffer2(QOpenGLBuffer::VertexBuffer);
-    vertexPositionBuffer2.create();
-    //vertexPositionBuffer2.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    vertexPositionBuffer2.bind();
-    float vertexPositions2[] = {
-         -1.0f, -1.0f,  0.0f, 1.0f,
-         -1.0f,  1.0f,  0.0f, 0.0f,
-          1.0f,  1.0f,  1.0f, 0.0f,
-          1.0f, -1.0f,  1.0f, 1.0f
-    };
-
-    vertexPositionBuffer2.allocate(vertexPositions2, 16 * sizeof(float));
-    
-    program2.enableAttributeArray("Pos");
-    program2.setAttributeBuffer("Pos", GL_FLOAT, 0, 2, 4*sizeof (float));
-    program2.enableAttributeArray("texCoord");
-    program2.setAttributeBuffer("texCoord", GL_FLOAT, 2*sizeof (float), 2, 4*sizeof (float));
-    
-    
-    contextFunc->glActiveTexture(GL_TEXTURE0);
-    contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
-    program2.setUniformValue("alpha", 0);
-
-    int inty = gray_levels.at(intensity_index);
-    //cout<<"inty: "<<inty<<endl;
-    program2.setUniformValue("layer", (GLfloat)(inty/255.0));
-    //program2.setUniformValue("layer", (GLfloat)(inty));
-
-    contextFunc->glDrawArrays(GL_QUADS, 0, 4);
-
-    //contextFunc->glBindTexture(GL_TEXTURE_2D, 0); 
-    contextFunc->glDisable(GL_BLEND);
-
-    program2.release();
-    vertexPositionBuffer2.release();
-
-    
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
-   
-   
 }
 
-void dmdReconstruct::initShader()
+void dmdReconstruct::RenderOutput(int inty, bool DrawAnything)
 {
-/**/
-    program2.addShaderFromSourceCode(QOpenGLShader::Vertex,
-                                   "#version 330\r\n"
-                                   "in vec2 Pos;\n"
-                                   "in vec2 texCoord;\n"
-                                   "out vec2 outCoord;\n"
-                                   "void main() {\n"
-                                   "    gl_Position = vec4(Pos, 0.0, 1.0);\n"
-                                   "    outCoord = texCoord;\n"
-                                   "}\n"
-                                   );
-    program2.addShaderFromSourceCode(QOpenGLShader::Fragment,
-                                   "#version 330\r\n"
-                                   "in vec2 outCoord;\n"
-                                   "uniform sampler2D alpha;\n"
-                                   "uniform float layer;\n"
-                                   "void main() {\n"
-                                   "    float alpha_val = texture2D(alpha, outCoord).s;\n"
-                                   "    gl_FragColor=vec4(layer, layer, layer, alpha_val);\n"
-                                   "}\n"
-                                   );
-   
-    program2.link();                    
+    program.release();
+    vertexPositionBuffer.release();
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+    if(DrawAnything)
+    {
+    // SECOND PASS: Draw in the default framebuffer - Render using alpha map
+        contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer2); 
+        contextFunc->glDisable(GL_DEPTH_TEST);
+        contextFunc->glEnable(GL_BLEND);
+        contextFunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+        //program2.link();
+        program2.bind();
+
+        QOpenGLBuffer vertexPositionBuffer2(QOpenGLBuffer::VertexBuffer);
+        vertexPositionBuffer2.create();
+        //vertexPositionBuffer2.setUsagePattern(QOpenGLBuffer::StaticDraw);
+        vertexPositionBuffer2.bind();
+        float vertexPositions2[] = {
+            -1.0f, -1.0f,  0.0f, 1.0f,
+            -1.0f,  1.0f,  0.0f, 0.0f,
+            1.0f,  1.0f,  1.0f, 0.0f,
+            1.0f, -1.0f,  1.0f, 1.0f
+        };
+
+        vertexPositionBuffer2.allocate(vertexPositions2, 16 * sizeof(float));
+        
+        program2.enableAttributeArray("Pos");
+        program2.setAttributeBuffer("Pos", GL_FLOAT, 0, 2, 4*sizeof (float));
+        program2.enableAttributeArray("texCoord");
+        program2.setAttributeBuffer("texCoord", GL_FLOAT, 2*sizeof (float), 2, 4*sizeof (float));
+        
+        
+        contextFunc->glActiveTexture(GL_TEXTURE0);
+        contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+        program2.setUniformValue("alpha", 0);
+
+        //int inty = gray_levels.at(intensity_index);
+        //cout<<"inty: "<<inty<<endl;
+        program2.setUniformValue("layer", (GLfloat)(inty/255.0));
+        //program2.setUniformValue("layer", (GLfloat)(inty));
+
+        contextFunc->glDrawArrays(GL_QUADS, 0, 4);
+
+        //contextFunc->glBindTexture(GL_TEXTURE_2D, 0); 
+        contextFunc->glDisable(GL_BLEND);
+
+        program2.release();
+        vertexPositionBuffer2.release();
+        
+        contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+    
+    }
+    
 }
 
 FIELD<float>* dmdReconstruct::renderLayer_interp(int i){
@@ -368,11 +274,6 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int i){
     vertexPositionBuffer.create();
     vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     vertexPositionBuffer.bind();
-
-    GLfloat width_2 = (GLfloat)width/2.0;
-    //program.setUniformValue("width_2", width_2);
-    GLfloat height_2 = (GLfloat)height/2.0;
-    //program.setUniformValue("height_2", height_2);
 
     //read each skeleton point
     float x, y, r;
@@ -450,9 +351,13 @@ void dmdReconstruct::readControlPoints(int width_, int height_, int clear_color,
     
     width = width_;
     height = height_;
+    
+    width_2 = (GLfloat)width/2.0;
+    height_2 = (GLfloat)height/2.0;
+
     clearColor = clear_color;
     gray_levels = gray_levels_;
-    if (RunOnce) {openglSetup(); initShader(); RunOnce = false;}
+    if (RunOnce) {openglSetup(); RunOnce = false;}
     
     framebufferSetup(); 
     initialize_skeletonization_recon(width, height);//initCUDA
@@ -465,6 +370,9 @@ void dmdReconstruct::readIndexingControlPoints(int width_, int height_, int clea
     IndexingCP = readCPs.get_indexingCP();
     width = width_;
     height = height_;
+    width_2 = (GLfloat)width/2.0;
+    height_2 = (GLfloat)height/2.0;
+
     clearColor = clear_color;
     Inty_node = Inty_Node;
     if (RunOnce) {openglSetup(); RunOnce = false;}
@@ -622,10 +530,10 @@ void dmdReconstruct::get_interp_layer(int i, int SuperResolution, bool last_laye
     delete curr_dt;
 }
 
-void dmdReconstruct::DrawTheFirstLayer()
+void dmdReconstruct::DrawTheFirstLayer(float ClearColor)
 {
     contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer2);
-    float clear_color = clearColor / 255.0;
+    float clear_color = ClearColor / 255.0;
     contextFunc->glClearColor(clear_color, clear_color, clear_color, 0);
     contextFunc->glClear(GL_COLOR_BUFFER_BIT);
     contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -635,26 +543,29 @@ QImage dmdReconstruct::ReconstructImage(bool interpolate){
     QImage outImg;
     firstTime = true;
     
-    DrawTheFirstLayer();
+    DrawTheFirstLayer(clearColor);
+    cout<<"here1"<<endl;
     if(!gray_levels.empty())
     {
         for (int i = 0; i < gray_levels.size(); i++) {
+            int inty = gray_levels.at(i);
             if(interpolate){
                 initOutput(clearColor);
                 bool last_layer = false;
                 int SuperResolution = 1;
                 int max_level = *std::max_element(gray_levels.begin(), gray_levels.begin() + gray_levels.size());
 
-                if(gray_levels.at(i) == max_level) last_layer = true;
+                if(inty == max_level) last_layer = true;
                 get_interp_layer(i, SuperResolution, last_layer);
 
             }
             else{
+                
                 renderLayer(i);
-                outImg = get_texture_data();
+                RenderOutput(inty, true);
             } 
         }
-
+        if(!interpolate) outImg = get_texture_data();
         //output->NewwritePGM("output.pgm");
         printf("DMD finished!\n");
 
@@ -682,11 +593,6 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> node
     vertexPositionBuffer.create();
     vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     vertexPositionBuffer.bind();
-
-    GLfloat width_2 = (GLfloat)width/2.0;
-    //program.setUniformValue("width_2", width_2);
-    GLfloat height_2 = (GLfloat)height/2.0;
-    //program.setUniformValue("height_2", height_2);
 
     //read each skeleton point
     float x, y, r;
@@ -903,37 +809,30 @@ void dmdReconstruct::get_interp_layer(int intensity, vector<int> nodesID, bool a
     //else the layer is blank, no need to update prev_realted.
 
 }
+void dmdReconstruct::renderLayerInit()
+{
+    program.bind();
 
-void dmdReconstruct::renderLayer(int intensity, int nodeID){
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+
+    contextFunc->glEnable(GL_DEPTH_TEST);
+    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
+    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
+    
+    vertexPositionBuffer.create();
+    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vertexPositionBuffer.bind();
+}
+
+bool dmdReconstruct::renderLayer(int intensity, vector<Vector3<float>> SampleForEachCC, bool OpenGLRenderMethod){
     //cout<<"nodeID: "<<nodeID<<endl;
-    vector<Vector3<float>> SampleForEachCC;
+    //vector<Vector3<float>> SampleForEachCC;
     Vector3<float> EachSample;
     
-    SampleForEachCC = IndexingSample.at(IndexingSample.size() - nodeID);
+    //SampleForEachCC = IndexingSample.at(IndexingSample.size() - nodeID);
     if(!SampleForEachCC.empty()){
-        //program.link();
-        program.bind();
-
-    //    ==============DRAWING TO THE FBO============
-
-        contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
-
-        contextFunc->glEnable(GL_DEPTH_TEST);
-        contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
-        contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        contextFunc->glClear(GL_COLOR_BUFFER_BIT);
-
-
-        QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
-        vertexPositionBuffer.create();
-        vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-        vertexPositionBuffer.bind();
-
-        GLfloat width_2 = (GLfloat)width/2.0;
-        //program.setUniformValue("width_2", width_2);
-        GLfloat height_2 = (GLfloat)height/2.0;
-        //program.setUniformValue("height_2", height_2);
-
+        
         //read each skeleton point
         float x, y, r;
         
@@ -965,8 +864,9 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID){
             contextFunc->glDrawArrays(GL_QUADS, 0, 4);
 
         }
-        
-        //========SAVE IMAGE===========
+         
+        if(!OpenGLRenderMethod){
+            //========SAVE IMAGE in the output.pgm ===========
             float *data = (float *) malloc(width * height * sizeof (float));
             
             contextFunc->glEnable(GL_TEXTURE_2D);
@@ -986,17 +886,25 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID){
                 }
             
             free(data);
-    
-        program.release();
-        vertexPositionBuffer.release();
-        contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+            output->NewwritePGM("output.pgm");
+            program.release();
+            vertexPositionBuffer.release();
+            contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+        }
+
+        return true;
     }
-    else cout<<"The component of Node-"<<nodeID<<" is too small to generate any skeletons."<<endl;
+    else 
+    {
+        cout<<"The component of the current node is too small to generate any skeletons."<<endl;
+        return false;
+    }
 }
 
 
 void dmdReconstruct::ReconstructIndexingImage(int nodeID){
     if(nodeID > 0) CurrNode = nodeID;
+    vector<Vector3<float>> SampleForEachCC;
     
     initOutput(0);
     if(!IndexingSample.empty()){
@@ -1014,7 +922,11 @@ void dmdReconstruct::ReconstructIndexingImage(int nodeID){
                     while(it1 != it2){//process all nodes for the current intensity
                         int node_id = it1->second;
                         if(node_id == nodeID){
-                            renderLayer(it.first, nodeID);
+                            renderLayerInit();
+                            SampleForEachCC = IndexingSample.at(IndexingSample.size() - nodeID);
+    
+                            renderLayer(it.first, SampleForEachCC, false);
+                           
                             found = true;
                             break;
                         }
@@ -1026,7 +938,7 @@ void dmdReconstruct::ReconstructIndexingImage(int nodeID){
             }
         }
         
-        output->NewwritePGM("output.pgm");
+        //output->NewwritePGM("output.pgm");
         printf("DMD finished!\n");
     }
 
@@ -1034,8 +946,10 @@ void dmdReconstruct::ReconstructIndexingImage(int nodeID){
 
 }
 
-void dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action){
+QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action){
     //sort(nodesID.begin(),nodesID.end());//sort it from small num to large num, i,e., from root to leaves
+    bool DrawAnything;
+    vector<Vector3<float>> SampleForEachCC;
     if(!nodesID.empty()){
 
         firstTime = true;//for interpolation process.
@@ -1044,16 +958,14 @@ void dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID,
         if(action)
         {
             if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
-                initOutput(clearColor);
-            else initOutput(0);
+                DrawTheFirstLayer(clearColor);
+            else DrawTheFirstLayer(0);
         } 
         else{
-            
-            if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
-                initOutput(0);
-            else  initOutput(clearColor); 
-        } 
-
+            if(std::find(nodesID.begin(), nodesID.end(), 0) == nodesID.end()) //if nodesID doesn't contains 0
+                DrawTheFirstLayer(clearColor); 
+            else DrawTheFirstLayer(0);
+        }
         if(!IndexingSample.empty()){
             
             int LastInty = 256;
@@ -1075,13 +987,18 @@ void dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID,
                         {
                             auto it1 = Inty_node.lower_bound(it.first);
                             auto it2 = Inty_node.upper_bound(it.first);
+                            DrawAnything = false;
+                            renderLayerInit();
                             while(it1 != it2){//process all nodes for the current intensity
                                 int node_id = it1->second;
+                                SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
+    
                                 if(std::find(nodesID.begin(), nodesID.end(), node_id) != nodesID.end()){//if nodesID contains node_id
-                                    renderLayer(it.first, node_id);  
+                                    if(renderLayer(it.first, SampleForEachCC, true)) DrawAnything = true;
                                 }
                                 ++it1;
                             } 
+                            RenderOutput(it.first, DrawAnything);
                         } 
                     }
                     else{//else recon without the selected nodes-CCs
@@ -1097,22 +1014,28 @@ void dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID,
                         else{
                             auto it1 = Inty_node.lower_bound(it.first);
                             auto it2 = Inty_node.upper_bound(it.first);
+                            DrawAnything = false;
+                            renderLayerInit();
                             while(it1 != it2){//process all nodes for the current intensity
                                 int node_id = it1->second;
+                                SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
                                 if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()){//if nodesID doesn't contain node_id
-                                    renderLayer(it.first, node_id);  
+                                    if(renderLayer(it.first, SampleForEachCC, true)) DrawAnything = true;  
                                 }
                                 ++it1;
                             } 
+                            RenderOutput(it.first, DrawAnything);
                         }
                     }
                 }
             }
-            
-            output->NewwritePGM("output.pgm");
+            OutImg = get_texture_data();
+           
+            //output->NewwritePGM("output.pgm");
             printf("DMD finished!\n");
         }
     }
     else printf("Nothing is selected!");
-
+    
+    return OutImg;
 }

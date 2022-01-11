@@ -1,5 +1,6 @@
 #include <sstream>
 #include "dmdReconstruct.hpp"
+#define SET_TEXTURE(arr, i, val) do { (arr)[(4 * (i))] = (arr)[(4 * (i) + 1)] = (arr)[(4 * (i) + 2)] = (val); (arr)[(4 * (i) + 3)] = 255.0; } while(0);
 
 FIELD<float>* prev_layer;
 FIELD<float>* prev_layer_dt;
@@ -32,7 +33,6 @@ void dmdReconstruct::reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> 
     renderLayerInit();
     renderLayer(inty, movedSample, false);
     
- 
     //update IndexingCP.
     IndexingCP[IndexingCP.size() - CurrNode] = CPlist;
     //update IndexingSample
@@ -99,7 +99,6 @@ void dmdReconstruct::openglSetup(){
     program2.link(); 
 }
 
-
 void dmdReconstruct::framebufferSetup(){
 
     contextFunc =  openGLContext.functions();
@@ -153,7 +152,6 @@ void dmdReconstruct::framebufferSetup(){
     contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);                                
   
 }
-
 
 void dmdReconstruct::renderLayer(int intensity_index){
     
@@ -257,24 +255,7 @@ void dmdReconstruct::RenderOutput(int inty, bool DrawAnything)
 
 FIELD<float>* dmdReconstruct::renderLayer_interp(int i){
     
-    //program.link();
-    program.bind();
-
-//    ==============DRAWING TO THE FBO============
-
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
-
-    contextFunc->glEnable(GL_DEPTH_TEST);
-    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
-    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
-
-
-    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
-    vertexPositionBuffer.create();
-    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    vertexPositionBuffer.bind();
-
+    renderLayerInit();
     //read each skeleton point
     float x, y, r;
     vector<Vector3<float>> SampleForEachInty;
@@ -321,19 +302,17 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int i){
     contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
 
     FIELD<float>* CrtLayer = new FIELD<float>(width, height);
-    
+    //change to setAll();
     for (unsigned int x = 0; x < width; ++x) 
         for (unsigned int y = 0; y < height; ++y)
         {
-            unsigned int y_ = height - 1 -y;
-
-            CrtLayer->set(x, y_, 0); //ensure that the init value is 0 everywhere.
+            //unsigned int y_ = height - 1 -y;
 
             if(*(data + y * width + x))
-                CrtLayer->set(x, y_, 1);
+                CrtLayer->set(x, y, 1);
+            else CrtLayer->set(x, y, 0); 
         
         }
-
     
     free(data);
     program.release();
@@ -341,7 +320,6 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int i){
     contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 
     return CrtLayer;
-
 }
 
 void dmdReconstruct::readControlPoints(int width_, int height_, int clear_color, vector<int> gray_levels_){
@@ -383,10 +361,9 @@ void dmdReconstruct::readIndexingControlPoints(int width_, int height_, int clea
 
 void dmdReconstruct::initOutput(int clear_color) {
     output = new FIELD<float>(width, height);
-    prev_layer = new FIELD<float>(width, height);
-    prev_layer_dt = new FIELD<float>(width, height);
+    // prev_layer = new FIELD<float>(width, height);
+    // prev_layer_dt = new FIELD<float>(width, height);
    
-    
     for (unsigned int x = 0; x < width; x++) 
         for (unsigned int y = 0; y < height; y++)
             output->set(x, y, clear_color);
@@ -421,92 +398,77 @@ QImage dmdReconstruct::get_texture_data() {
     return img;
 } 
 
-void dmdReconstruct::get_interp_layer(int i, int SuperResolution, bool last_layer)
+void dmdReconstruct::get_interp_layer(int i, bool last_layer)
 {
-    bool interp_firstLayer = 1;
-    int prev_intensity, prev_bound_value, curr_bound_value;
+    unsigned char *texdata = (unsigned char *) calloc(width * height * 4, sizeof (char));
+    
+    bool interp_firstLayer = true;
+    int prev_intensity;
     unsigned int x, y;
     
     int intensity = gray_levels.at(i);
     FIELD<float>* curr_layer = renderLayer_interp(i);
+    
     //debug
-     if(firstTime || last_layer){
+    /* if(firstTime || last_layer){
     stringstream skel;
     skel<<"out/s"<<intensity<<".pgm";
     curr_layer->writePGM(skel.str().c_str());
     }
-    /**/
+    */
     FIELD<float>* curr_dt = get_dt_of_alpha(curr_layer);
-    
-
- if(interp_firstLayer) {
+    float* curr_alpha_data = curr_layer->data();
+    float* curr_dt_data = curr_dt->data();
+    float* prev_alpha_data = nullptr;
+    float* prev_dt_data = nullptr;
 
     if(firstTime){//first layer
-        FIELD<float>* first_layer_forDT = new FIELD<float>(width, height);
         firstTime = false;
-        prev_intensity = clearColor;
-        prev_bound_value = clearColor;
-        for (int i = 0; i < width; ++i) 
-            for (int j = 0; j < height; ++j){
-                if(i==0 || j==0 || i==width-1 || j==height-1)    first_layer_forDT -> set(i, j, 0); 
-                else first_layer_forDT -> set(i, j, 1); 
-                prev_layer -> set(i, j, 1);
-            }
+        if(interp_firstLayer){
+            FIELD<float>* first_layer_forDT = new FIELD<float>(width, height);
+            prev_intensity = clearColor;
+            
+            for (int i = 0; i < width; ++i) 
+                for (int j = 0; j < height; ++j){
+                    if(i==0 || j==0 || i==width-1 || j==height-1)    first_layer_forDT -> set(i, j, 0); 
+                    else first_layer_forDT -> set(i, j, 1); 
+                    prev_layer -> set(i, j, 1);
+                }
 
-        prev_layer_dt = get_dt_of_alpha(first_layer_forDT);
-    }
-    
-    curr_bound_value = (prev_intensity + intensity)/2;
-
-    for (x = 0; x < width; ++x) 
-        for (y = 0; y < height; ++y)
-        {
-            if(!curr_layer->value(x, y) && prev_layer->value(x, y))
-            {// If there are pixels active between boundaries we smoothly interpolate them
-
-                    float prev_dt_val = prev_layer_dt->value(x, y);
-                    float curr_dt_val = curr_dt->value(x, y);
-
-                    float interp_alpha = prev_dt_val / ( prev_dt_val + curr_dt_val);
-                    float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
-
-                    output->set(x, y, interp_color);
-
-            }
+            prev_layer_dt = get_dt_of_alpha(first_layer_forDT);
         }
+        else{
+            for (int i = 0; i < width * height; ++i) {
+                SET_TEXTURE(texdata, i, 255);
+            }
+        }  
+    }
+
+    prev_alpha_data = prev_layer->data();
+    prev_dt_data = prev_layer_dt->data();
 
     //CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, 0);
+    for (int i = 0; i < width * height; ++i) {
+            // If the current foreground is set we set it to that
+            if (curr_alpha_data[i]) {
+                SET_TEXTURE(texdata, i, 255);
+            } else {
+                // If there are pixels active between boundaries we smoothly interpolate them
+                if (prev_alpha_data[i]) {
+                    float prev_dt_val = prev_dt_data[i];
+                    float curr_dt_val = curr_dt_data[i];
 
-     }
-    else{
-          if(firstTime){ 
-              firstTime = false; 
-              //CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, clearColor, true, 0);//draw clear_color
-             
-              curr_bound_value = (clearColor + intensity)/2;
-          }
-          else{
-            curr_bound_value = (prev_intensity + intensity)/2;
-            //CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, 0);
-            for (x = 0; x < width; ++x) 
-                for (y = 0; y < height; ++y)
-                {
-                    if(!curr_layer->value(x, y) && prev_layer->value(x, y))// If there are pixels active between boundaries we smoothly interpolate them
-                    { 
-                        float prev_dt_val = prev_layer_dt->value(x, y);
-                        float curr_dt_val = curr_dt->value(x, y);
-
-                        float interp_alpha = prev_dt_val / ( prev_dt_val + curr_dt_val);
-                        float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
-
-                        output->set(x, y, interp_color);
-                    }
+                    //float interp_color = 0.5 * (min(1, prev_dt_val / curr_dt_val) * prev_intensity + max(1 - curr_dt_val / prev_dt_val, 0) * intensity);
+                   
+                    float B = prev_dt_val / (prev_dt_val + curr_dt_val);
+                    float interp_color = B * 255;
+                    SET_TEXTURE(texdata, i, interp_color);
                 }
-        }   
-     }
-
-    prev_bound_value = curr_bound_value;
-
+            }
+            // Otherwise we keep the previous set value
+        }
+  
+    /*
     if(last_layer){
         //output = CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, intensity);
         
@@ -520,12 +482,20 @@ void dmdReconstruct::get_interp_layer(int i, int SuperResolution, bool last_laye
 
                 }
             }
-    }
+    }*/
 
     prev_intensity = intensity;
     prev_layer = curr_layer->dupe();
     prev_layer_dt = curr_dt->dupe();
 
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+    contextFunc->glEnable(GL_TEXTURE_2D);
+    contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+    contextFunc->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, texdata);
+    //contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+    free(texdata);
     delete curr_layer;
     delete curr_dt;
 }
@@ -539,60 +509,8 @@ void dmdReconstruct::DrawTheFirstLayer(float ClearColor)
     contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-QImage dmdReconstruct::ReconstructImage(bool interpolate){
-    QImage outImg;
-    firstTime = true;
-    
-    DrawTheFirstLayer(clearColor);
-    cout<<"here1"<<endl;
-    if(!gray_levels.empty())
-    {
-        for (int i = 0; i < gray_levels.size(); i++) {
-            int inty = gray_levels.at(i);
-            if(interpolate){
-                initOutput(clearColor);
-                bool last_layer = false;
-                int SuperResolution = 1;
-                int max_level = *std::max_element(gray_levels.begin(), gray_levels.begin() + gray_levels.size());
-
-                if(inty == max_level) last_layer = true;
-                get_interp_layer(i, SuperResolution, last_layer);
-
-            }
-            else{
-                
-                renderLayer(i);
-                RenderOutput(inty, true);
-            } 
-        }
-        if(!interpolate) outImg = get_texture_data();
-        //output->NewwritePGM("output.pgm");
-        printf("DMD finished!\n");
-
-    }
-    else printf("gray_levels is empty!");
-    return outImg;
-}
-
 FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> nodesID, bool action){
- 
-    //program.link();
-    program.bind();
-
-//    ==============DRAWING TO THE FBO============
-
-    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
-
-    contextFunc->glEnable(GL_DEPTH_TEST);
-    contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
-    contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    contextFunc->glClear(GL_COLOR_BUFFER_BIT);
-
-
-    QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
-    vertexPositionBuffer.create();
-    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    vertexPositionBuffer.bind();
+    renderLayerInit();
 
     //read each skeleton point
     float x, y, r;
@@ -683,16 +601,13 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> node
     for (unsigned int x = 0; x < width; ++x) 
         for (unsigned int y = 0; y < height; ++y)
         {
-            unsigned int y_ = height - 1 -y;
-
-            CrtLayer->set(x, y_, 0); //ensure that the init value is 0 everywhere.
+           // unsigned int y_ = height - 1 -y;
 
             if(*(data + y * width + x))
-                CrtLayer->set(x, y_, 1);
-        
+                CrtLayer->set(x, y, 1);
+            else CrtLayer->set(x, y, 0); 
         }
 
-    
     free(data);
     program.release();
     vertexPositionBuffer.release();
@@ -700,93 +615,86 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> node
 
     return CrtLayer;
 
-
 }
 
-
-void dmdReconstruct::get_interp_layer(int intensity, vector<int> nodesID, bool action, bool last_layer)
+bool dmdReconstruct::get_interp_layer(int intensity, vector<int> nodesID, bool action, bool last_layer)
 {
-    bool interp_firstLayer = 1;
-    int prev_intensity, prev_bound_value, curr_bound_value;
+    unsigned char *texdata = (unsigned char *) calloc(width * height * 4, sizeof (char));
+    
+    bool interp_firstLayer = true;
+    int prev_intensity;
     unsigned int x, y;
     
     FIELD<float>* curr_layer = renderLayer_interp(intensity, nodesID, action);
-    
-    if(DrawnTheLayer || last_layer){
-    FIELD<float>* curr_dt = get_dt_of_alpha(curr_layer);
-   if(firstTime || last_layer){
-    stringstream layer;
-    layer<<"out/l"<<intensity<<".pgm";
-    curr_layer->writePGM(layer.str().c_str());}
-     /**/
-    
- if(interp_firstLayer) {
-    if(firstTime){//first layer
-    FIELD<float>* first_layer_forDT = new FIELD<float>(width, height);
-        firstTime = false;
-        prev_intensity = clearColor;
-        prev_bound_value = clearColor;
-        for (int i = 0; i < width; ++i) 
-            for (int j = 0; j < height; ++j){
-                if(i==0 || j==0 || i==width-1 || j==height-1)    first_layer_forDT -> set(i, j, 0); 
-                else first_layer_forDT -> set(i, j, 1); 
-                prev_layer -> set(i, j, 1);
-            }
-
-        prev_layer_dt = get_dt_of_alpha(first_layer_forDT);
+    if(!DrawnTheLayer)
+    {
+        cout<<"This layer is empty."<<endl;;
+        return false;
     }
     
-    curr_bound_value = (prev_intensity + intensity)/2;
-    for (x = 0; x < width; ++x) 
-        for (y = 0; y < height; ++y)
-        {
-            if(!curr_layer->value(x, y) && prev_layer->value(x, y))
-            {// If there are pixels active between boundaries we smoothly interpolate them
+    //debug
+    /* if(firstTime || last_layer){
+    stringstream skel;
+    skel<<"out/s"<<intensity<<".pgm";
+    curr_layer->writePGM(skel.str().c_str());
+    }
+    */
+    FIELD<float>* curr_dt = get_dt_of_alpha(curr_layer);
+    float* curr_alpha_data = curr_layer->data();
+    float* curr_dt_data = curr_dt->data();
+    float* prev_alpha_data = nullptr;
+    float* prev_dt_data = nullptr;
 
-                float prev_dt_val = prev_layer_dt->value(x, y);
-                float curr_dt_val = curr_dt->value(x, y);
+    if(firstTime){//first layer
+        firstTime = false;
+        if(interp_firstLayer){
+            FIELD<float>* first_layer_forDT = new FIELD<float>(width, height);
+            prev_intensity = clearColor;
+            
+            for (int i = 0; i < width; ++i) 
+                for (int j = 0; j < height; ++j){
+                    if(i==0 || j==0 || i==width-1 || j==height-1)    first_layer_forDT -> set(i, j, 0); 
+                    else first_layer_forDT -> set(i, j, 1); 
+                    prev_layer -> set(i, j, 1);
+                }
 
-                float interp_alpha = prev_dt_val / ( prev_dt_val + curr_dt_val);
-                float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
-
-                output->set(x, y, interp_color);
-            }
+            prev_layer_dt = get_dt_of_alpha(first_layer_forDT);
         }
+        else{
+            for (int i = 0; i < width * height; ++i) {
+                SET_TEXTURE(texdata, i, 255);
+            }
+        }  
+    }
+
+    prev_alpha_data = prev_layer->data();
+    prev_dt_data = prev_layer_dt->data();
 
     //CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, 0);
+    for (int i = 0; i < width * height; ++i) {
+            // If the current foreground is set we set it to that
+            if (curr_alpha_data[i]) {
+                SET_TEXTURE(texdata, i, 255);
+            } else {
+                // If there are pixels active between boundaries we smoothly interpolate them
+                if (prev_alpha_data[i]) {
+                    float prev_dt_val = prev_dt_data[i];
+                    float curr_dt_val = curr_dt_data[i];
 
-     }
-     else{
-          if(firstTime){ 
-              firstTime = false;
-              //CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, clearColor, true, 0);//draw clear_color
-              
-              curr_bound_value = (clearColor + intensity)/2;
-          }
-          else{
-            curr_bound_value = (prev_intensity + intensity)/2;
-            //CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, 0);
-            for (x = 0; x < width; ++x) 
-                for (y = 0; y < height; ++y)
-                {
-                    if(!curr_layer->value(x, y) && prev_layer->value(x, y))// If there are pixels active between boundaries we smoothly interpolate them
-                    { 
-                        float prev_dt_val = prev_layer_dt->value(x, y);
-                        float curr_dt_val = curr_dt->value(x, y);
-
-                        float interp_alpha = prev_dt_val / ( prev_dt_val + curr_dt_val);
-                        float interp_color = curr_bound_value * interp_alpha + prev_bound_value *  (1 - interp_alpha);
-
-                        output->set(x, y, interp_color);
-                    }
+                    //float interp_color = 0.5 * (min(1, prev_dt_val / curr_dt_val) * prev_intensity + max(1 - curr_dt_val / prev_dt_val, 0) * intensity);
+                   
+                    float B = prev_dt_val / (prev_dt_val + curr_dt_val);
+                    float interp_color = B * 255;
+                    SET_TEXTURE(texdata, i, interp_color);
                 }
-        }   
-     }
-
-    prev_bound_value = curr_bound_value;
-
+            }
+            // Otherwise we keep the previous set value
+        }
+  
+    /*
     if(last_layer){
-       // output = CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, intensity);
+        //output = CUDA_interp(curr_layer, prev_layer, prev_layer_dt, curr_dt, curr_bound_value, prev_bound_value, false, intensity);
+        
         for (x = 0; x < width; ++x) 
             for (y = 0; y < height; ++y){
                 if(curr_layer->value(x, y))
@@ -797,17 +705,24 @@ void dmdReconstruct::get_interp_layer(int intensity, vector<int> nodesID, bool a
 
                 }
             }
-    }
+    }*/
 
     prev_intensity = intensity;
     prev_layer = curr_layer->dupe();
     prev_layer_dt = curr_dt->dupe();
 
+    contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+    contextFunc->glEnable(GL_TEXTURE_2D);
+    contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+    contextFunc->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, texdata);
+    //contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+    free(texdata);
     delete curr_layer;
     delete curr_dt;
-    }
-    //else the layer is blank, no need to update prev_realted.
-
+    return true;
+    
 }
 void dmdReconstruct::renderLayerInit()
 {
@@ -901,7 +816,6 @@ bool dmdReconstruct::renderLayer(int intensity, vector<Vector3<float>> SampleFor
     }
 }
 
-
 void dmdReconstruct::ReconstructIndexingImage(int nodeID){
     if(nodeID > 0) CurrNode = nodeID;
     vector<Vector3<float>> SampleForEachCC;
@@ -946,14 +860,60 @@ void dmdReconstruct::ReconstructIndexingImage(int nodeID){
 
 }
 
+
+QImage dmdReconstruct::ReconstructImage(bool interpolate){
+    QImage outImg;
+    
+    if(interpolate){
+        firstTime = true;
+        prev_layer = new FIELD<float>(width, height);
+        prev_layer_dt = new FIELD<float>(width, height);
+    }
+
+    DrawTheFirstLayer(clearColor);
+    
+    if(!gray_levels.empty())
+    {
+        for (int i = 0; i < gray_levels.size(); i++) {
+            int inty = gray_levels.at(i);
+            if(interpolate){
+                
+                bool last_layer = false;
+                
+                int max_level = *std::max_element(gray_levels.begin(), gray_levels.begin() + gray_levels.size());
+
+                if(inty == max_level) last_layer = true;
+                get_interp_layer(i, last_layer);
+                
+            }
+            else{
+                renderLayer(i);
+            } 
+
+            RenderOutput(inty, true);
+        }
+        outImg = get_texture_data();
+
+        //output->NewwritePGM("output.pgm");
+        printf("DMD finished!\n");
+
+    }
+    else printf("gray_levels is empty!");
+    return outImg;
+}
+
 QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action){
     //sort(nodesID.begin(),nodesID.end());//sort it from small num to large num, i,e., from root to leaves
     bool DrawAnything;
     vector<Vector3<float>> SampleForEachCC;
+    
     if(!nodesID.empty()){
 
-        firstTime = true;//for interpolation process.
-
+        if(interpolate){
+            firstTime = true;//for interpolation process.
+            prev_layer = new FIELD<float>(width, height);
+            prev_layer_dt = new FIELD<float>(width, height);
+        }
         //process the background color
         if(action)
         {
@@ -972,16 +932,14 @@ QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesI
             for (auto const& it : Inty_node) { //for each graylevel(from small num to large num).
                 if(LastInty != it.first){//for each graylevel, only enter once.
                     LastInty = it.first;
-                    //cout<<"LastInty "<<LastInty<<"\t";
+                    //cout<<"LastInty "<<LastInty<<endl;
                     if(action){//highlight
                         if(interpolate){
                             bool last_layer = false; 
                             auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
-                            //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());
                             
                             if(it.first == (int)max_level) last_layer = true;
-                            get_interp_layer(it.first, nodesID, 1, last_layer);
-                    
+                            DrawAnything = get_interp_layer(it.first, nodesID, 1, last_layer);
                         }
                         else 
                         {
@@ -998,8 +956,8 @@ QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesI
                                 }
                                 ++it1;
                             } 
-                            RenderOutput(it.first, DrawAnything);
                         } 
+                        RenderOutput(it.first, DrawAnything);
                     }
                     else{//else recon without the selected nodes-CCs
                         if(interpolate){//Add interpolate later
@@ -1008,7 +966,7 @@ QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesI
                             //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());
                             
                             if(it.first == (int)max_level) last_layer = true;
-                            get_interp_layer(it.first, nodesID, 0, last_layer);
+                            DrawAnything = get_interp_layer(it.first, nodesID, 0, last_layer);
                     
                         }
                         else{
@@ -1024,8 +982,8 @@ QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesI
                                 }
                                 ++it1;
                             } 
-                            RenderOutput(it.first, DrawAnything);
                         }
+                        RenderOutput(it.first, DrawAnything);
                     }
                 }
             }

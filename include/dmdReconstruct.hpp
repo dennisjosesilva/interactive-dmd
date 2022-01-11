@@ -39,8 +39,8 @@ class dmdReconstruct {
     QImage ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action);
 
 
-    void get_interp_layer(int i, int SuperResolution, bool last_layer);
-    void get_interp_layer(int intensity, vector<int> nodesID, bool action, bool last_layer);
+    void get_interp_layer(int i, bool last_layer);
+    bool get_interp_layer(int intensity, vector<int> nodesID, bool action, bool last_layer);
     FIELD<float>* get_dt_of_alpha(FIELD<float>* alpha);
  
     FIELD<float>* renderLayer_interp(int intensity, vector<int> nodesID, bool action);

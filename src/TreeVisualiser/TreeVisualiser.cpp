@@ -20,7 +20,7 @@
 #include <QSlider>
 #include <QSpacerItem>
 #include <QSizePolicy>
-
+#include <QTime>
 #include <QDebug>
 #include <QMessageBox>
 #include <QPushButton>
@@ -622,7 +622,12 @@ void TreeVisualiser::skelRecBtn_press()
       keptNodes.push_back(i);
   }
 
+  QTime time;
+  time.start();
+    
   QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1);
+
+  cout<<time.elapsed()<<" ms."<<endl;
   //QImage img = fieldToQImage(dmdrecon_->getOutput());   
   mainWidget_->setReconMode(ReconMode::SDMD);
   mainWidget_->setImage(img);

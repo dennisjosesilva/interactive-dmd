@@ -193,7 +193,7 @@ void ThresholdControl::DisplayOrigImg_onStateChanged(int state)
   //else //0-unchecked
 
 }
-/*
+
 QImage ThresholdControl::fieldToImage(FIELD<float> *fimg) const
 {
   QImage img{fimg->dimX(), fimg->dimY(), QImage::Format_Grayscale8};
@@ -206,7 +206,7 @@ QImage ThresholdControl::fieldToImage(FIELD<float> *fimg) const
  
   return img;
 }
-*/
+
 void ThresholdControl::RunBtn_press()
 {
   int CPnum;
@@ -227,6 +227,7 @@ void ThresholdControl::RunBtn_press()
   QTime time;
   time.start();
   QImage img = dmdRecon_.ReconstructImage(InterpState);
+  //dmdRecon_.ReconstructImage(InterpState);
   //bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
   //QImage img = fieldToImage(dmdRecon_.getOutput());    
   cout<<time.elapsed()<<" ms."<<endl;

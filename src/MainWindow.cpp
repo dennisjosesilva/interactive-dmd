@@ -31,6 +31,7 @@ MainWindow::MainWindow()
   const QString filename = "../images/art1-line.pgm";
   
   mainWidget_ = new MainWidget{this};
+ 
   mainWidget_->loadImage(filename);
   setCentralWidget(mainWidget_);
 
@@ -53,8 +54,17 @@ MainWindow::MainWindow()
   });
       
   statusBar()->showMessage(tr("Ready"), 3000);
+
+  connect(mainWidget_->getTreeVis(), &TreeVisualiser::ChangeCentralWidget,
+    this, &MainWindow::ChangeCentralWidget_);
 }
 
+void MainWindow::ChangeCentralWidget_(CpViewer *cv)
+{
+   if(cv == nullptr) {takeCentralWidget(); setCentralWidget(mainWidget_);}
+   else {takeCentralWidget(); setCentralWidget(cv);}
+  
+}
 void MainWindow::setMinMaxProgressBar(int min, int max)
 {
   progressBar_->setProgressBarRange(min, max);  

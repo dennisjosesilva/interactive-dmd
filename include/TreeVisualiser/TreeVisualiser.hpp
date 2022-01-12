@@ -133,6 +133,7 @@ signals:
   void associateNodeToSkeleton(int numberOfNodes);
   void nodeSelected(GNode *node);
   void nodeUnselected(GNode *node);
+  void ChangeCentralWidget(CpViewer *cv);
  
 
 protected slots:
@@ -140,10 +141,6 @@ protected slots:
 
   void binRecDock_onClose(MyDockWidget *dock);
   
-  void SplineManipDock_onClose(MyDockWidget *dock);
-  void skelRecDock_onClose(MyDockWidget *dock);
-  void removeSkelDock_onClose(MyDockWidget *dock);
-
   void binRecBtn_press();
   void fitToWindowBtn_press();
   void zoomInBtn_press();
@@ -168,10 +165,7 @@ private:
   morphotree::Box domain_;
 
   MyDockWidget *binRecDock_;
-  MyDockWidget *SplineManipDock_;
-  MyDockWidget *skelRecDock_;
-  MyDockWidget *removeSkelDock_;
-
+  
   MainWidget *mainWidget_;
     
   dmdProcess dmd_;
@@ -183,4 +177,5 @@ private:
 
   QVector<bool> selectedNodesForRec_;
   bool gradientRenderStyle_;
+  bool FirstCreateCpviewer = true;
 };

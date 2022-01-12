@@ -49,6 +49,7 @@ public:
   ReconMode reconMode() const { return reconMode_; }
   void setReconMode(ReconMode reconMode) { reconMode_ = reconMode; }
   inline bool GetInterpState(){return ThresCtl->getInterpState();}
+  inline TreeVisualiser *getTreeVis() {return treeVis_;};
 
 protected slots:
   void imageMousePress(const QPointF &p);

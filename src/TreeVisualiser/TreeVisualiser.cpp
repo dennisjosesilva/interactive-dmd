@@ -48,9 +48,6 @@ QSize MyDockWidget::sizeHint() const
 TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   : mainWidget_{mainWidget},    
     binRecDock_{nullptr},
-    SplineManipDock_{nullptr},
-    skelRecDock_{nullptr},
-    removeSkelDock_{nullptr},
     curColorBar_{nullptr},
     maxValue_{0},
     gradientRenderStyle_{true},
@@ -573,21 +570,18 @@ void TreeVisualiser::binRecBtn_press()
 void TreeVisualiser::SplineManipulateBtn_press()
 {
   if (hasNodeSelected()) {
-    //CpViewer *cv = nullptr;
-    if (SplineManipDock_ == nullptr) {
-      
+    if (FirstCreateCpviewer) {
+      FirstCreateCpviewer = false;
       cv = new CpViewer(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
       
-      SplineManipDock_ = mainWidget_->createDockWidget(tr("Spline-based shape manipulation"), cv);
-      
-      connect(SplineManipDock_, &MyDockWidget::closed, this, &TreeVisualiser::SplineManipDock_onClose);
-      SplineManipDock_->resize(domain_.width() + 32, domain_.height() + 100);
     }
     else {
-      cv = qobject_cast<CpViewer *>(SplineManipDock_->widget());
+      //cv = qobject_cast<CpViewer *>(SplineManipDock_->widget());
       cv->Update();
     }
- 
+    
+    emit ChangeCentralWidget(cv);
+
     // NodePtr mnode = curNodeSelection_->mtreeNode();
     NodePtr mnode = curSelectedNode()->mnode();
     dmdrecon_->ReconstructIndexingImage(mnode->id());
@@ -615,18 +609,10 @@ void TreeVisualiser::SplineManipulateBtn_press()
 }
 void TreeVisualiser::skelRecBtn_press()
 {
-  // SimpleImageViewer *iv = nullptr;
-  // if (skelRecDock_ == nullptr) {
-  //   iv = new SimpleImageViewer;
-  //   skelRecDock_ = mainWidget_->createDockWidget(tr("SDMD reconstruction of the selected nodes"), iv);
-  //   skelRecDock_->setGNode(curNodeSelection_);//?
-  //   connect(skelRecDock_, &MyDockWidget::closed, this, &TreeVisualiser::skelRecDock_onClose);
-  //   skelRecDock_->resize(domain_.width() + 22, domain_.height() + 84);
-  // }
-  // else {
-  //   iv = qobject_cast<SimpleImageViewer *>(skelRecDock_->widget());
-  // }
-
+  
+  emit ChangeCentralWidget(nullptr);
+  FirstCreateCpviewer = true;
+  
   vector<int> keptNodes;
   for (int i = 0; i < selectedNodesForRec_.size(); ++i) {
     if (selectedNodesForRec_[i]) 
@@ -635,36 +621,23 @@ void TreeVisualiser::skelRecBtn_press()
 
   QTime time;
   time.start();
-    
+   
   QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1);
 
   cout<<time.elapsed()<<" ms."<<endl;
   //QImage img = fieldToQImage(dmdrecon_->getOutput());   
   mainWidget_->setReconMode(ReconMode::SDMD);
   mainWidget_->setImage(img);
+  
   // iv->setImage(img);    
 }
 
 void TreeVisualiser::removeSkelBtn_press()
 {
   
-  //SimpleImageViewer *iv = nullptr;
-  // if (removeSkelDock_ == nullptr) {
-  //   iv = new SimpleImageViewer;
-  //   removeSkelDock_ = mainWidget_->createDockWidget(tr("SDMD remove skeleton reconstruction"), iv);
-  //   removeSkelDock_->setGNode(curNodeSelection_);
-  //   connect(removeSkelDock_, &MyDockWidget::closed, this, &TreeVisualiser::removeSkelDock_onClose);
-  //   removeSkelDock_->resize(domain_.width() + 22, domain_.height() + 84);
-  // }
-  // else {
-  //   iv = qobject_cast<SimpleImageViewer *>(removeSkelDock_->widget());
-  // }
-
-  // NodePtr mnode = curNodeSelection_->mtreeNode();
-  //NodePtr mnode = curNodeSelection_->mnode();
-  //dmdrecon_->ReconstructIndexingImage(false, mnode->id(), 0);
+  emit ChangeCentralWidget(nullptr);
+  FirstCreateCpviewer = true;
   
-  // collect nodes that should be used in the reconstruction
   vector<int> keptNodes;
   for (int i=0; i < selectedNodesForRec_.size(); ++i) {
     if (selectedNodesForRec_[i])
@@ -720,20 +693,20 @@ void TreeVisualiser::binRecDock_onClose(MyDockWidget *dock)
   binRecDock_ = nullptr;  
 }
 
-void TreeVisualiser::SplineManipDock_onClose(MyDockWidget *dock)
-{
-  SplineManipDock_ = nullptr;
-}
+// void TreeVisualiser::SplineManipDock_onClose(MyDockWidget *dock)
+// {
+//   SplineManipDock_ = nullptr;
+// }
 
-void TreeVisualiser::skelRecDock_onClose(MyDockWidget *dock)
-{
-  skelRecDock_ = nullptr;
-}
+// void TreeVisualiser::skelRecDock_onClose(MyDockWidget *dock)
+// {
+//   skelRecDock_ = nullptr;
+// }
 
-void TreeVisualiser::removeSkelDock_onClose(MyDockWidget *dock)
-{
-  removeSkelDock_ = nullptr;
-}
+// void TreeVisualiser::removeSkelDock_onClose(MyDockWidget *dock)
+// {
+//   removeSkelDock_ = nullptr;
+// }
 
 void TreeVisualiser::fitToWindowBtn_press()
 {

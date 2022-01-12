@@ -173,6 +173,17 @@ void TreeVisualiser::updateTransparencyOfTheNodes()
   }
 }
 
+void TreeVisualiser::clearNodeSelection()
+{
+  QVector<GNode *> &nodes = treeWidget_->gnodes();
+  for (GNode *n : nodes) {
+    n->setSelected(false);
+    n->update();
+  }
+
+  curSelectedNodeIndex_ = InvalidNodeIndex;
+}
+
 void TreeVisualiser::useGradientGNodeStyle()
 {  
   using GradientNodeGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory;   
@@ -689,25 +700,18 @@ void TreeVisualiser::remNodeReconBtn_press()
 void TreeVisualiser::nodeMousePress(GNode *node, 
   QGraphicsSceneMouseEvent *e)
 {
-  if (treeWidget_->dragMode() == QGraphicsView::NoDrag) {
-    if (hasNodeSelected()) {
-      GNode *selectedNode = curSelectedNode();
-      selectedNode->setSelected(false);
-      selectedNode->update();
+  if (treeWidget_->dragMode() == QGraphicsView::NoDrag) {        
+    if (e->modifiers() & Qt::ControlModifier){
+      node->setSelected(!node->isSelected());
     }
-      
-    if (node->isSelected()) {
-      node->setSelected(false);
-      curSelectedNodeIndex_ = InvalidNodeIndex;
-      emit nodeUnselected(node);
-    }
-    else {
-      emit nodeSelected(node);
-      node->setSelected(true);
-      curSelectedNodeIndex_ = node->mnode()->id();
+    else {      
+      bool isNodeSelected = node->isSelected();
+      clearNodeSelection();
+      if (!isNodeSelected)
+        node->setSelected(true);
     }
 
-    node->update();
+    node->update();        
   }
 }
 

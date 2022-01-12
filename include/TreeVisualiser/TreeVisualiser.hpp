@@ -128,6 +128,8 @@ protected:
 
   void updateTransparencyOfTheNodes();
 
+  void clearNodeSelection();
+
 public: 
 signals: 
   void associateNodeToSkeleton(int numberOfNodes);

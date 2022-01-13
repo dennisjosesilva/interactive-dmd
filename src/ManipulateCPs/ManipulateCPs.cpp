@@ -3,6 +3,8 @@
 #include <QMessageBox>
 #include <cmath>
 #include <QKeyEvent>
+#include <QList>
+#include <QtMath>
 //#include <QRandomGenerator>          
              
 ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
@@ -169,6 +171,11 @@ void ManipulateCPs::deleteCurrCp(){
   }
 }
 
+void ManipulateCPs::rotateCPsBtnPressed()
+{
+  rotateCPs = true;
+  
+}
 void ManipulateCPs::deleteMultiCp()
 {
   //cout<<"MultiCPsDelete: "<<MultiCPsDelete.size()<<endl;
@@ -249,7 +256,13 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, int intensity)
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
   MultiCPsDelete.clear();//To avoid being deleted next.
   AllItemsUnselected = true;
- 
+  
+  if(HoriLine != nullptr)
+  {
+    scene->removeItem(HoriLine);
+    scene->removeItem(VerLine);
+  }
+      
   //cout<<"MultiCPsDelete---: "<<MultiCPsDelete.size()<<endl;
 }
 void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
@@ -280,6 +293,9 @@ void ManipulateCPs::keyPressEvent(QKeyEvent *event)
   case Qt::Key_D:
     Key_D_pressed = true;
     break;
+  case Qt::Key_R:
+    Key_R_pressed = true;
+    break;
   default:
     QGraphicsView::keyPressEvent(event);
   }
@@ -294,6 +310,9 @@ void ManipulateCPs::keyReleaseEvent(QKeyEvent *event)
       break;
     case Qt::Key_D:
       Key_D_pressed = false;
+      break;
+    case Qt::Key_R:
+      Key_R_pressed = false;
       break;
   }
 
@@ -333,6 +352,26 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
       backwardNode = backwardNode->getNextNode();
     }
   }
+    else if(Key_R_pressed)
+    {
+      QList<QGraphicsItem*> selectedList =	scene->selectedItems();
+      if(!selectedList.empty()){
+        Node_ * selectedNode;
+        QPointF StartPos, rotatedPos;
+        float angle = M_PI/180 * (event->angleDelta().y() / 120.0);
+        for (auto& selectedItem : selectedList) {
+          if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
+              StartPos = selectedNode->getPos();
+              rotatedPos.rx() = (StartPos.rx() - crossPoint.rx())*qCos(angle) - (StartPos.ry() - crossPoint.ry())*qSin(angle) + crossPoint.rx();
+              rotatedPos.ry() = (StartPos.rx() - crossPoint.rx())*qSin(angle) + (StartPos.ry() - crossPoint.ry())*qCos(angle) + crossPoint.ry();
+              
+              selectedNode->setPos(rotatedPos);
+
+          }
+        }
+
+      }
+    }
     else scaleView(pow(2.0, -event->angleDelta().y() / 240.0));
 }
 
@@ -576,8 +615,8 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
 void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
   //const QPoint& point = event->pos(); 
   //cout<<"view: mousePressEvent"<<endl;
-  if(AddCPbuttonPressed == true){
-    QPointF scenePoint = mapToScene(event->pos());
+  QPointF scenePoint = mapToScene(event->pos());
+  if(AddCPbuttonPressed){
     //std::cout<< scenePoint.x() <<"---/"<<scenePoint.y()<<endl;
     if(!isBranchSelected){//Didn't select a branch
       AddNewBranch(scenePoint);
@@ -592,16 +631,31 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
     
     AddCPbuttonPressed = false;
   }
+  else if (rotateCPs)
+    {
+      HoriLine = new QGraphicsLineItem(scenePoint.x()-5, scenePoint.y(), scenePoint.x()+5, scenePoint.y());
+      HoriLine->setPen(QPen(Qt::red, 2));
+      scene->addItem(HoriLine);
+
+      VerLine = new QGraphicsLineItem(scenePoint.x(), scenePoint.y()-5, scenePoint.x(), scenePoint.y()+5);
+      VerLine->setPen(QPen(Qt::red, 2));
+      scene->addItem(VerLine);
+      crossPoint = scenePoint;
+      rotateCPs = false;
+    }
+    
+
   AllItemsUnselected = false;
   QGraphicsView::mousePressEvent(event);
 }
 
-// void ManipulateCPs::mouseReleaseEvent(QMouseEvent *event) {
-//   QPointF releasePoint = mapToScene(event->pos());
-//    std::cout<< releasePoint.x() <<"---/"<<releasePoint.y()<<endl;
+void ManipulateCPs::mouseReleaseEvent(QMouseEvent *event) {
+  //QPointF releasePoint = mapToScene(event->pos());
+   //std::cout<< releasePoint.x() <<"---/"<<releasePoint.y()<<endl;
+  //rotateCPs = false;
 
-//   QGraphicsView::mouseReleaseEvent(event);
-// }
+  QGraphicsView::mouseReleaseEvent(event);
+}
 
 void ManipulateCPs::drawBackground(QPainter *painter, const QRectF &rect)
 {

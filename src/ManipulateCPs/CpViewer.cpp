@@ -39,6 +39,11 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   DeleteMultiCPsBtn->setIconSize(QSize{32, 32}); 
   connect(DeleteMultiCPsBtn, &QPushButton::clicked, this, &CpViewer::DeleteMultiCPsBtn_press);
 
+  QPushButton *rotateCPsBtn = new QPushButton { QIcon{":/images/rotate_CPs.png"}, tr(""), this};
+  rotateCPsBtn->setIconSize(QSize{32, 32}); 
+  connect(rotateCPsBtn, &QPushButton::clicked, this, &CpViewer::rotateCPsBtn_press);
+
+
   QPushButton *skelRecBtn = new QPushButton();
   skelRecBtn->setText("Reconstruct\n CC");
   //QPushButton *skelRecBtn = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
@@ -57,6 +62,7 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   btnLayout->addWidget(AddCPsBtn);
   btnLayout->addWidget(DeleteCPsBtn);
   btnLayout->addWidget(DeleteMultiCPsBtn);
+  btnLayout->addWidget(rotateCPsBtn);
   btnLayout->addWidget(skelRecBtn);
   btnLayout->addWidget(skelRecBtn_);
 
@@ -135,4 +141,8 @@ void CpViewer::DeleteCPsBtn_press()
 void CpViewer::DeleteMultiCPsBtn_press()
 {
   manipulate_CPs->deleteMultiCp();
+}
+void CpViewer::rotateCPsBtn_press()
+{
+  manipulate_CPs->rotateCPsBtnPressed();
 }

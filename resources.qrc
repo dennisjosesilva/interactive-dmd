@@ -32,5 +32,6 @@
   <file>images/icicle_node_removal_icon.png</file>
   <file>images/fit_to_widget_icon.png</file>
   <file>images/rotate_icon.png</file>
+  <file>images/rotate_CPs.png</file>
 </qresource>
 </RCC>

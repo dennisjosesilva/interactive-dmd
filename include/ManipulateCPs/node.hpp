@@ -39,6 +39,7 @@ public:
   inline int getRadius() {return radius_;}
   inline int getDegree() {return degree;}
   inline int getMaxDegree() {return maxDegree;}
+  inline QPointF getPos() {return pos();}
 
 protected:
   QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;

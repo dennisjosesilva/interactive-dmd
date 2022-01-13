@@ -926,8 +926,7 @@ QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesI
                 DrawTheFirstLayer(clearColor); 
             else DrawTheFirstLayer(0);
         }
-         printf("DMD -finished!\n");
-
+        
         if(!IndexingSample.empty()){
             
             int LastInty = 256;

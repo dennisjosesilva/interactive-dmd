@@ -54,7 +54,7 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     curColorBar_{nullptr},
     maxValue_{0},
     gradientRenderStyle_{true},
-    shouldUpdateCustomTreeRedraw_{false}
+    shouldUpdateCustomTreeRedraw_{false}    
 {  
   using GNodeEventHandler = IcicleMorphotreeWidget::GNodeEventHandler;
   using FixedHeightTreeLayout = IcicleMorphotreeWidget::FixedHeightTreeLayout;    
@@ -182,6 +182,7 @@ void TreeVisualiser::clearNodeSelection()
   }
 
   curSelectedNodeIndex_ = InvalidNodeIndex;
+  selectedNodes_.clear();
 }
 
 void TreeVisualiser::useGradientGNodeStyle()
@@ -304,7 +305,13 @@ IcicleMorphotreeWidget::GNode *TreeVisualiser::curSelectedNode() const
 
 void TreeVisualiser::reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node)
 {  
-  std::vector<uint8> bimg = bool2UInt8(node->reconstruct(domain_));  
+  const QVector<GNode *> &gnodes = treeWidget_->gnodes();
+  const MTree &mtree = treeWidget_->mtree();
+  std::vector<bool> nodeImg = mtree.reconstructNodes([&gnodes](NodePtr mnode){
+    return gnodes[mnode->id()]->isSelected();
+  }, domain_);
+
+  std::vector<uint8> bimg = bool2UInt8(nodeImg);  
 
   QImage img{bimg.data(), static_cast<int>(domain_.width()), static_cast<int>(domain_.height()),
       QImage::Format::Format_Grayscale8};
@@ -701,15 +708,38 @@ void TreeVisualiser::nodeMousePress(GNode *node,
   QGraphicsSceneMouseEvent *e)
 {
   if (treeWidget_->dragMode() == QGraphicsView::NoDrag) {        
-    if (e->modifiers() & Qt::ControlModifier){
-      node->setSelected(!node->isSelected());
+    if (e->modifiers() & Qt::ControlModifier) {
+      if (selectedNodes_.count() == 0) {
+        curSelectedNodeIndex_ = node->mnode()->id();
+        selectedNodes_.insert(node->mnode()->id(), node);
+      }
+      else {
+        if (node->isSelected()) {
+          node->setSelected(false);
+          selectedNodes_.remove(node->mnode()->id());          
+        }
+        else {
+          node->setSelected(true);
+          selectedNodes_.insert(node->mnode()->id(), node);
+        }
+      }      
     }
-    else {      
-      bool isNodeSelected = node->isSelected();
+    else {
+      bool isSelected = node->isSelected();
       clearNodeSelection();
-      if (!isNodeSelected)
+      if (isSelected) {
+        node->setSelected(false);        
+      }
+      else {
         node->setSelected(true);
+        selectedNodes_.insert(node->mnode()->id(), node);
+      }
     }
+
+    if (selectedNodes_.count() == 1)
+      curSelectedNodeIndex_ = node->mnode()->id();
+    else 
+      curSelectedNodeIndex_ = InvalidNodeIndex;
 
     node->update();        
   }

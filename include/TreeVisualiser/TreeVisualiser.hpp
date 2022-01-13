@@ -60,6 +60,14 @@ class TreeVisualiser : public QWidget
 {
 Q_OBJECT
 
+private:
+  enum NodeSelectionMode 
+  {
+    NoNodeSelected,
+    OneNodeSelected,
+    MoreThanOneNodeSelected
+  };
+
 public:
   using MTree = morphotree::MorphologicalTree<morphotree::uint8>;
   using Box = morphotree::Box;
@@ -165,6 +173,7 @@ private:
   uint32 curSelectedNodeIndex_;
   bool shouldUpdateCustomTreeRedraw_;
 
+
   uint32 maxValue_;
   IcicleMorphotreeWidget::IcicleMorphotreeWidget *treeWidget_;
   morphotree::Box domain_;
@@ -185,4 +194,5 @@ private:
 
   QVector<bool> selectedNodesForRec_;
   bool gradientRenderStyle_;
+  QMap<uint32, GNode *> selectedNodes_;
 };

@@ -687,20 +687,24 @@ void TreeVisualiser::removeSkelBtn_press()
 
 void TreeVisualiser::incNodeReconBtn_press()
 {
-  if (hasNodeSelected()) {
-    GNode *node = curSelectedNode();
-    selectedNodesForRec_[node->mnode()->id()] = true;
-    node->setOpacity(1.0f);
+  QList<uint32> nodeIds = selectedNodes_.keys();
+
+  for (uint32 id : nodeIds) {
+    GNode *gnode = selectedNodes_[id];
+    gnode->setOpacity(1.0f);
+    selectedNodesForRec_[id] = true;
   }
 }
 
 void TreeVisualiser::remNodeReconBtn_press()
 {
-  if (hasNodeSelected()) {
-    GNode* node = curSelectedNode();
-    selectedNodesForRec_[node->mnode()->id()] = false;
-    node->setOpacity(0.35f);
-  }
+  QList<uint32> nodeIds = selectedNodes_.keys();
+
+  for (uint32 id : nodeIds) {
+    GNode *gnode = selectedNodes_[id];
+    gnode->setOpacity(0.35f);
+    selectedNodesForRec_[id] = false;
+  }  
 }
 
 void TreeVisualiser::nodeMousePress(GNode *node, 

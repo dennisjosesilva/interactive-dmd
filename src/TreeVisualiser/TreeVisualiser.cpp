@@ -175,8 +175,7 @@ void TreeVisualiser::updateTransparencyOfTheNodes()
 
 void TreeVisualiser::clearNodeSelection()
 {
-  QVector<GNode *> &nodes = treeWidget_->gnodes();
-  for (GNode *n : nodes) {
+  for (GNode *n : selectedNodes_.values()) {
     n->setSelected(false);
     n->update();
   }
@@ -788,6 +787,16 @@ void TreeVisualiser::rotateWidgetBtn_press()
     treeWidget_->setOrientation(TreeLayoutOrientation::Horizontal);
   else 
     treeWidget_->setOrientation(TreeLayoutOrientation::Vertical);
+
+  QList<uint32> selectedNodeIds = selectedNodes_.keys();
+  QVector<GNode *> &gnodes  = treeWidget_->gnodes();
+  selectedNodes_.clear();
+  for (uint32 nid : selectedNodeIds) {
+    GNode *node = gnodes[nid];
+    node->setSelected(true);
+    node->update();
+    selectedNodes_.insert(node->mnode()->id(), node);
+  }
 }
 
 void TreeVisualiser::selectNodeByPixel(int x, int y)

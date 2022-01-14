@@ -40,11 +40,13 @@ public:
   inline void setCPs(vector<vector<Vector3<float>>> CPs) {CPlist = CPs;}
   void deleteCurrCp();
   void deleteMultiCp();
+  void deleteABranch();
   void rotateCPsBtnPressed();
   void AddOneCp();
-  void DeleteLastTwoCPs(Node_ *CurrNode);
+  void DeleteTheBranch(Node_ *CurrPressedNode);
   inline bool getItemsUnselectionState() {return AllItemsUnselected;}
   inline bool getRotateCPsState() {return rotateCPs;}
+  void removeTwoEdgeOfNode (Node_ *CurrNode);
 
 public: 
 signals: 

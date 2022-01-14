@@ -730,8 +730,9 @@ int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, FIEL
 }
 
 
-void dmdProcess::Init_indexingSkeletons(){
-    
+void dmdProcess::Init_indexingSkeletons(float SalVal, float HDval){
+    SalValForTree = SalVal;
+    HDvalForTree = HDval;
     float *c = OriginalImage->data();
     float *end = OriginalImage->data() + nPix;
     int min_elem = 1e5;
@@ -764,7 +765,7 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
     int seq = 0, x, y; 
     int SkelPoints = 0;
     
-    skelImp = computeSkeleton(intensity, CC, 0.5);//salThres needs to be improved, set by users.
+    skelImp = computeSkeleton(intensity, CC, SalValForTree);//salThres needs to be improved, set by users.
     
     //skel importance map or saliency map transforms to skel.
     skelCurr = new FIELD<float>(skelImp->dimX(), skelImp->dimY());
@@ -812,10 +813,9 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
         //IntensityOfNode.push_back(intensity);
         Inty_node.insert(make_pair(intensity, index));
         ////fit with spline///
-        float hausdorff = 0.002; //spline fitting error threshold
         //if(BranchSet.size()>0){
         //BSplineCurveFitterWindow3 spline;
-        spline.indexingSpline(BranchSet, hausdorff, diagonal, intensity, index);//
+        spline.indexingSpline(BranchSet, HDvalForTree, diagonal, intensity, index);//
         
         BranchSet.clear();//important.
         connection.clear();

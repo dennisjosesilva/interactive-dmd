@@ -933,7 +933,7 @@ QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesI
             for (auto const& it : Inty_node) { //for each graylevel(from small num to large num).
                 if(LastInty != it.first){//for each graylevel, only enter once.
                     LastInty = it.first;
-                    //cout<<"LastInty "<<LastInty<<endl;
+                    //cout<<"it.first "<<it.first<<endl;
                     if(action){//highlight
                         if(interpolate){
                             bool last_layer = false; 

@@ -69,7 +69,10 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 
   // Draw the line itself
   //painter->setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-  QColor qc = QColor::fromRgb(80*(colorI%3),50*(colorI/10),200*(colorI%2));//note: colorI should smaller than 60.
+  //QColor qc = QColor::fromRgb(80*(colorI%3),50*(colorI/10),200*(colorI%2));//note: colorI should smaller than 60.
+  
+  QColor qc = QColor(qrand()%255, qrand()%255, qrand()%255);
+
   if(thickerEdge)  painter->setPen(QPen(qc, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   else painter->setPen(QPen(qc, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   painter->drawLine(line);

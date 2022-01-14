@@ -39,6 +39,11 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   DeleteMultiCPsBtn->setIconSize(QSize{32, 32}); 
   connect(DeleteMultiCPsBtn, &QPushButton::clicked, this, &CpViewer::DeleteMultiCPsBtn_press);
 
+  QPushButton *DeleteABranchBtn = new QPushButton { QIcon{":/images/DeleteABranch_icon.png"}, tr(""), this};
+  DeleteABranchBtn->setIconSize(QSize{32, 32}); 
+  connect(DeleteABranchBtn, &QPushButton::clicked, this, &CpViewer::DeleteABranchBtn_press);
+
+
   QPushButton *rotateCPsBtn = new QPushButton { QIcon{":/images/rotate_CPs.png"}, tr(""), this};
   rotateCPsBtn->setIconSize(QSize{32, 32}); 
   connect(rotateCPsBtn, &QPushButton::clicked, this, &CpViewer::rotateCPsBtn_press);
@@ -47,14 +52,14 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   QPushButton *skelRecBtn = new QPushButton();
   skelRecBtn->setText("Reconstruct\n CC");
   //QPushButton *skelRecBtn = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
-  skelRecBtn->setFixedSize(QSize{100, 38});//?
+  skelRecBtn->setFixedSize(QSize{95, 38});//?
   connect(skelRecBtn, &QPushButton::clicked, this, &CpViewer::ReconBtn_press);
   
 
   QPushButton *skelRecBtn_ = new QPushButton();
   skelRecBtn_->setText("Reconstruct\n Image");
   //QPushButton *skelRecBtn_ = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
-  skelRecBtn_->setFixedSize(QSize{100, 38});//?
+  skelRecBtn_->setFixedSize(QSize{95, 38});//?
   connect(skelRecBtn_, &QPushButton::clicked, this, &CpViewer::ReconImageBtn_press);
 
   btnLayout->addWidget(showCPsBtn);
@@ -62,6 +67,7 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   btnLayout->addWidget(AddCPsBtn);
   btnLayout->addWidget(DeleteCPsBtn);
   btnLayout->addWidget(DeleteMultiCPsBtn);
+  btnLayout->addWidget(DeleteABranchBtn);
   btnLayout->addWidget(rotateCPsBtn);
   btnLayout->addWidget(skelRecBtn);
   btnLayout->addWidget(skelRecBtn_);
@@ -141,6 +147,10 @@ void CpViewer::DeleteCPsBtn_press()
 void CpViewer::DeleteMultiCPsBtn_press()
 {
   manipulate_CPs->deleteMultiCp();
+}
+void CpViewer::DeleteABranchBtn_press()
+{
+  manipulate_CPs->deleteABranch();
 }
 void CpViewer::rotateCPsBtn_press()
 {

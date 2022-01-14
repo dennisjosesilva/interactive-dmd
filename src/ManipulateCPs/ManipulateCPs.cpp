@@ -74,11 +74,27 @@ void ManipulateCPs::AddOneCp(){
 
 }
 
-void ManipulateCPs::DeleteLastTwoCPs(Node_ *CurrNode)
+void ManipulateCPs::DeleteTheBranch(Node_ *CurrPressedNode)
 {
-  int CurrNodeIndex_m = CurrNode->getIndexM();
+  // int CurrNodeIndex_m = CurrNode->getIndexM();
+  // //1. update CPlist - erase the branch
+  // //CPlist.erase(CPlist.begin() + CurrNodeIndex_m);//The size will decrease
+  // vector<Vector3<float>> *changedBranch;
+  // changedBranch = &(CPlist[CurrNodeIndex_m]);
+  // changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
+
+  // //2. change sliders
+  // emit PressNode(0, 0); 
+
+  // //3.remove two points in the scene.
+  // scene->removeItem(CurrNode);
+  // Node_ *forewardNode = CurrNode->getPrevNode();
+  // if (forewardNode != nullptr) scene->removeItem(forewardNode);
+  // Node_ *backwardNode = CurrNode->getNextNode();
+  // if (backwardNode != nullptr) scene->removeItem(backwardNode);
+
+  int CurrNodeIndex_m = CurrPressedNode->getIndexM();
   //1. update CPlist - erase the branch
-  //CPlist.erase(CPlist.begin() + CurrNodeIndex_m);//The size will decrease
   vector<Vector3<float>> *changedBranch;
   changedBranch = &(CPlist[CurrNodeIndex_m]);
   changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
@@ -86,37 +102,29 @@ void ManipulateCPs::DeleteLastTwoCPs(Node_ *CurrNode)
   //2. change sliders
   emit PressNode(0, 0); 
 
-  //3.remove two points in the scene.
-  scene->removeItem(CurrNode);
-  Node_ *forewardNode = CurrNode->getPrevNode();
-  if (forewardNode != nullptr) scene->removeItem(forewardNode);
-  Node_ *backwardNode = CurrNode->getNextNode();
-  if (backwardNode != nullptr) scene->removeItem(backwardNode);
+  //3.remove all points and edges in the branch.
+  scene->removeItem(CurrPressedNode);
+  removeTwoEdgeOfNode(CurrPressedNode);
 
-  //4.remove edges of CurrNode
-  QVector<Edge*> EdgeList = CurrNode->getEdgeList();
-  for (Edge *edge : qAsConst(EdgeList)){
-    scene->removeItem(edge);
-    //does WholeEdgeList need remove edge? Seems doesn't.
+  Node_ *forewardNode = CurrPressedNode->getPrevNode();
+  while(forewardNode != nullptr){
+    scene->removeItem(forewardNode);
+    removeTwoEdgeOfNode(forewardNode);
+    forewardNode = forewardNode->getPrevNode();
   }
-
+  Node_ *backwardNode = CurrPressedNode->getNextNode();
+  while(backwardNode != nullptr){
+    scene->removeItem(backwardNode);
+    removeTwoEdgeOfNode(backwardNode);
+    backwardNode = backwardNode->getNextNode();
+  }
 }
 
 void ManipulateCPs::deleteCurrCp(){
   //update CPlist
   int CurrCPNum = CPlist[CurrNodeIndex_m][0][0] - 1;
-  /*if(CurrCPNum < 2){
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "For your information", 
-    "There are only two CPs for this branch, Do you want to delete both of them?",
-                                  QMessageBox::Yes|QMessageBox::No);
-    if (reply == QMessageBox::Yes) {
-      //delete both of the two CPs, i.e., delete this branch
-      DeleteLastTwoCPs(CurrPressedNode);
-    } 
-    //else do nothing.
-  }*/
-  if(CurrCPNum == 0) DeleteLastTwoCPs(CurrPressedNode);
+ 
+  if(CurrCPNum == 0) DeleteTheBranch(CurrPressedNode);//only has one CP
   else
   {
     CPlist[CurrNodeIndex_m][0][0] = CurrCPNum;
@@ -146,12 +154,7 @@ void ManipulateCPs::deleteCurrCp(){
     emit PressNode(0, CPlist[CurrNodeIndex_m][0][1]); 
 
     scene->removeItem(CurrPressedNode);
-    //remove two edges of CurrPressedNode
-    QVector<Edge*> EdgeList = CurrPressedNode->getEdgeList();
-    for (Edge *edge : qAsConst(EdgeList)){
-      scene->removeItem(edge);
-      //does WholeEdgeList need remove edge? Seems doesn't.
-    }
+    removeTwoEdgeOfNode(CurrPressedNode);
     //add new edge and update prev/next node.
     Node_ *CurrPrevN = CurrPressedNode->getPrevNode();
     Node_ *CurrNextN = CurrPressedNode->getNextNode();
@@ -189,7 +192,7 @@ void ManipulateCPs::deleteMultiCp()
         int CurrCPNum = CPlist[CurrNodeIndex_m][0][0];
       
         if(CurrCPNum < 3)
-          DeleteLastTwoCPs(CurrPoint); //delete both of the two CPs, i.e., delete this branch
+          DeleteTheBranch(CurrPoint); //delete both of the two CPs, i.e., delete this branch
       
       }
         
@@ -201,6 +204,18 @@ void ManipulateCPs::deleteMultiCp()
   
 }
 
+void ManipulateCPs::deleteABranch()
+{
+  DeleteTheBranch(CurrPressedNode);
+}
+void ManipulateCPs::removeTwoEdgeOfNode (Node_ *CurrNode)
+{
+  QVector<Edge*> EdgeList = CurrNode->getEdgeList();
+  for (Edge *edge : qAsConst(EdgeList)){
+    scene->removeItem(edge);
+    //does WholeEdgeList need remove edge? Seems doesn't.
+  }
+}
 void ManipulateCPs::TranspCurrPoint(Node_ *node){
   
   MultiCPsDelete.push_back(node);

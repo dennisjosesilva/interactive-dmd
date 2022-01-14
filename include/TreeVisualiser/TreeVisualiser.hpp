@@ -80,7 +80,7 @@ public:
   TreeVisualiser(MainWidget *mainWidget);
 
   void loadImage(Box domain, const std::vector<morphotree::uint8> &f);
-  void selectNodeByPixel(int x, int y);  
+  void selectNodeByPixel(int x, int y, bool isCtrlDown=false);  
   inline uint32 numberOfNodesOfTree() { return treeWidget_->mtree().numberOfNodes(); }  
   void registerDMDSkeletons();
   

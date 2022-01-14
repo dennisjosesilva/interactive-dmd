@@ -711,7 +711,7 @@ void TreeVisualiser::nodeMousePress(GNode *node,
   QGraphicsSceneMouseEvent *e)
 {
   if (treeWidget_->dragMode() == QGraphicsView::NoDrag) {        
-    if (e->modifiers() & Qt::ControlModifier) {
+    if (e->modifiers() & Qt::ShiftModifier) {
       if (selectedNodes_.count() == 0) {
         curSelectedNodeIndex_ = node->mnode()->id();
         selectedNodes_.insert(node->mnode()->id(), node);
@@ -803,23 +803,73 @@ void TreeVisualiser::rotateWidgetBtn_press()
   }
 }
 
-void TreeVisualiser::selectNodeByPixel(int x, int y)
+void TreeVisualiser::selectNodeByPixel(int x, int y, bool isCtrlDown)
 {
   GNode *node = treeWidget_->gnode(x, y, selectedNodesForRec_);
 
-  if (curSelectedNodeIndex_ != node->mnode()->id()) {
-    if (hasNodeSelected()) {
-      GNode *selectedNode = curSelectedNode();
-      selectedNode->setSelected(false);
-      selectedNode->update();
-    }
-    
+  if (selectedNodes_.count() == 0) {
     node->setSelected(true);
-    emit nodeSelected(node);
-    node->update();
+    selectedNodes_.insert(node->mnode()->id(), node);
     curSelectedNodeIndex_ = node->mnode()->id();
-    treeWidget_->centerOn(node);
   }
+  else if (selectedNodes_.count() == 1) {
+    if (node->isSelected()) {
+      node->setSelected(false);
+      selectedNodes_.remove(node->mnode()->id());
+      curSelectedNodeIndex_ = InvalidNodeIndex;
+    }
+    else {
+      if (!isCtrlDown) {
+        clearNodeSelection();
+        curSelectedNodeIndex_ = node->mnode()->id();
+      }
+      else {
+        curSelectedNodeIndex_ = InvalidNodeIndex;
+      }        
+      node->setSelected(true);
+      selectedNodes_.insert(node->mnode()->id(), node);            
+    }
+  }
+  else {  
+    bool isSelected = node->isSelected();  
+    if (!isCtrlDown) {
+      clearNodeSelection();
+      if (isSelected) {
+        curSelectedNodeIndex_ = node->mnode()->id();
+        selectedNodes_.insert(node->mnode()->id(), node);
+      }
+      else {
+        curSelectedNodeIndex_ = InvalidNodeIndex;        
+      }      
+    } 
+    else {
+      if (isSelected) {
+        node->setSelected(false);
+        selectedNodes_.remove(node->mnode()->id());
+      }
+      else {
+        node->setSelected(true);
+        selectedNodes_.insert(node->mnode()->id(), node);
+      }
+    }
+  }
+    
+  node->update();
+
+
+  // if (curSelectedNodeIndex_ != node->mnode()->id()) {
+  //   if (hasNodeSelected()) {
+  //     GNode *selectedNode = curSelectedNode();
+  //     selectedNode->setSelected(false);
+  //     selectedNode->update();
+  //   }
+    
+  //   node->setSelected(true);
+  //   emit nodeSelected(node);
+  //   node->update();
+  //   curSelectedNodeIndex_ = node->mnode()->id();
+  //   treeWidget_->centerOn(node);
+  // }
 }
 
 void TreeVisualiser::updateCustomTreeVisualisationWhenRedraw()

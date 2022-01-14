@@ -245,10 +245,13 @@ MyDockWidget *MainWidget::createDockWidget(const QString &title, QWidget *widget
   return dock;
 }
 
-void MainWidget::imageMousePress(const QPointF &p)
-{
+void MainWidget::imageMousePress(const QPointF &p, QMouseEvent *e)
+{   
   if (nodeSelectionByClickActivated_) {
-    treeVis_->selectNodeByPixel(static_cast<int>(p.x()), static_cast<int>(p.y()));
+    if (e->modifiers() & Qt::ShiftModifier)    
+      treeVis_->selectNodeByPixel(static_cast<int>(p.x()), static_cast<int>(p.y()), true);
+    else 
+      treeVis_->selectNodeByPixel(static_cast<int>(p.x()), static_cast<int>(p.y()), false);
   }
 }
 

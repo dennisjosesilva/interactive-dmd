@@ -51,7 +51,7 @@ public:
   inline bool GetInterpState(){return ThresCtl->getInterpState();}
 
 protected slots:
-  void imageMousePress(const QPointF &p);
+  void imageMousePress(const QPointF &p, QMouseEvent *e);
   void ChangeDisplayImg(QImage img);
   void DisplaySelectedNodes(vector<int> selectedIntensity);
   void DisplayOrigImg();

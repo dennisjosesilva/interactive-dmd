@@ -64,14 +64,14 @@ protected:
   void keyReleaseEvent(QKeyEvent *e);
 
   bool eventFilter(QObject *obj, QEvent *evt);
-  void treeVis_NodeSelected(GNode *node);
-  void treeVis_NodeUnselected(GNode *node);
+  void treeVis_NodeSelected();
+  void treeVis_NodeUnselected();
 
 private:
   void createDockTreeVisualiser();
   void createDockWidgetSdmd();
   
-  void highlightNode(GNode *node);
+  void highlightNodes();
 
 private:
   ReconMode reconMode_;

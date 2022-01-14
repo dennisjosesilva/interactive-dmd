@@ -24,6 +24,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QStack>
 
 #include "CustomWidgets/CollapsableWidget.hpp"
 #include "TreeVisualiser/TreeVisualiserStylePanel.hpp"
@@ -207,6 +208,39 @@ FIELD<float> *TreeVisualiser::SDMDReconstruction(unsigned int id)
 {
   dmdrecon_->ReconstructIndexingImage(id);
   return dmdrecon_->getOutput();
+}
+
+std::vector<bool> TreeVisualiser::SDMDRecontructionSelectedNodes()
+{
+  std::vector<bool> frec(domain_.numberOfPoints(), false);
+  const QVector<GNode *> &gnodes = treeWidget_->gnodes();
+  QStack<NodePtr> s;
+  NodePtr r = treeWidget_->mtree().root();
+
+  s.push(r);
+
+  while (!s.isEmpty()) {
+    NodePtr n = s.pop();
+
+    if (gnodes[n->id()]->isSelected()) {
+      dmdrecon_->ReconstructIndexingImage(n->id());
+      FIELD<float> *bimg = dmdrecon_->getOutput();
+
+      for (int y = 0; y < bimg->dimY(); y++) {
+        for (int x = 0; x < bimg->dimX(); x++) {
+          if (bimg->value(x, y)) 
+            frec[domain_.width() * y + x] = true;
+        }
+      }      
+    } 
+    else {
+      for (NodePtr c : n->children()) {
+        s.push(c);
+      }
+    }
+  }
+
+  return frec;
 }
 
 void TreeVisualiser::selectNodesForRecBasedOnIntensities(
@@ -555,6 +589,16 @@ std::vector<bool> TreeVisualiser::recFullNode() const
     return std::vector<bool>();
 }
 
+std::vector<bool> TreeVisualiser::morphoRecSelectedNodes() const
+{
+  const MTree &mtree = treeWidget_->mtree();
+  const QVector<GNode *> &gnodes = treeWidget_->gnodes();
+
+  return mtree.reconstructNodes([&gnodes](NodePtr node){
+    return gnodes[node->id()]->isSelected();
+  }, domain_);
+}
+
 void TreeVisualiser::binRecBtn_press()
 {  
   if (hasNodeSelected()) {
@@ -644,6 +688,9 @@ void TreeVisualiser::skelRecBtn_press()
     
   QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1);
 
+  clearNodeSelection();
+  emit nodeSelectionChanged();
+
   cout<<time.elapsed()<<" ms."<<endl;
   //QImage img = fieldToQImage(dmdrecon_->getOutput());   
   mainWidget_->setReconMode(ReconMode::SDMD);
@@ -680,6 +727,10 @@ void TreeVisualiser::removeSkelBtn_press()
       
   QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 0);
   //QImage img = fieldToQImage(dmdrecon_->getOutput());    
+
+  clearNodeSelection();
+  emit nodeSelectionChanged();
+
   mainWidget_->setReconMode(ReconMode::SDMD);
   mainWidget_->setImage(img);
   // iv->setImage(img);  
@@ -744,7 +795,9 @@ void TreeVisualiser::nodeMousePress(GNode *node,
     else 
       curSelectedNodeIndex_ = InvalidNodeIndex;
 
-    node->update();        
+    node->update();            
+
+    emit nodeSelectionChanged();
   }
 }
 
@@ -853,8 +906,10 @@ void TreeVisualiser::selectNodeByPixel(int x, int y, bool isCtrlDown)
       }
     }
   }
-    
+  
   node->update();
+
+  emit nodeSelectionChanged();
 
 
   // if (curSelectedNodeIndex_ != node->mnode()->id()) {
@@ -876,7 +931,13 @@ void TreeVisualiser::updateCustomTreeVisualisationWhenRedraw()
 {
   if (shouldUpdateCustomTreeRedraw_) {
     updateTransparencyOfTheNodes();
-    if (hasNodeSelected())
-      curSelectedNode()->setSelected(true);
+    
+    QList<uint32> selectedNodesIds = selectedNodes_.keys();
+    QVector<GNode *> &gnodes = treeWidget_->gnodes();
+    selectedNodes_.clear();
+    for (uint32 id : selectedNodesIds) {
+      gnodes[id]->setSelected(true);
+      selectedNodes_.insert(id, gnodes[id]);
+    }
   }
 }

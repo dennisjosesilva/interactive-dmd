@@ -51,8 +51,8 @@ MainWidget::MainWidget(QWidget *parent)
   connect(imageViewer_, &iv::ImageViewerWidget::imageMousePress, 
     this, &MainWidget::imageMousePress);
 
-  connect(treeVis_, &TreeVisualiser::nodeSelected, this, &MainWidget::treeVis_NodeSelected);
-  connect(treeVis_, &TreeVisualiser::nodeUnselected, this, &MainWidget::treeVis_NodeUnselected);
+  connect(treeVis_, &TreeVisualiser::nodeSelectionChanged, this, &MainWidget::treeVis_NodeSelected);
+  // connect(treeVis_, &TreeVisualiser::nodeUnselected, this, &MainWidget::treeVis_NodeUnselected);
   
   connect(ThresCtl, &ThresholdControl::ImageHasBeenReconstructed, this, &MainWidget::ChangeDisplayImg);
   connect(ThresCtl, &ThresholdControl::LayerHasBeenSelected, this, &MainWidget::DisplaySelectedNodes);
@@ -144,8 +144,8 @@ void MainWidget::setHighlightNodeActivated(bool checked)
   using Box = morphotree::Box;
   highlightNode_ = checked;
 
-  if (highlightNode_ && treeVis_->hasNodeSelected()) {
-    highlightNode(treeVis_->curSelectedNode());
+  if (highlightNode_ && treeVis_->numberOfSelectedNodes() > 0) {
+    highlightNodes();
   }
   else {    
     imageViewer_->removeOverlay();
@@ -183,44 +183,48 @@ void MainWidget::createDockWidgetSdmd()
  
 }
 
-void MainWidget::highlightNode(GNode *node)
+void MainWidget::highlightNodes()
 {
   using morphotree::Box;
 
-  if (reconMode_ == ReconMode::MorphoTree) {
-    Box domain = treeVis_->domain();
-    //std::vector<bool> nodeImg = node->simplifiedMTreeNode()->reconstruct(domain);
-    std::vector<bool> nodeImg = node->mnode()->reconstruct(domain);
-    QImage bimg{ static_cast<int>(domain.width()), static_cast<int>(domain.height()), 
+  if (treeVis_->numberOfSelectedNodes() > 0) {
+    if (reconMode_ == ReconMode::MorphoTree) {
+      Box domain = treeVis_->domain();
+      //std::vector<bool> nodeImg = node->simplifiedMTreeNode()->reconstruct(domain);
+      std::vector<bool> nodeImg =  treeVis_->morphoRecSelectedNodes(); //node->mnode()->reconstruct(domain);
+      QImage bimg{ static_cast<int>(domain.width()), static_cast<int>(domain.height()), 
+        QImage::Format_ARGB32 };
+      
+      for (int l = 0; l < domain.height(); l++) {
+        QRgb *line = reinterpret_cast<QRgb*>(bimg.scanLine(l));
+        for (int c = 0; c < domain.width(); c++) {
+          if (nodeImg[domain.pointToIndex(c, l)])
+            line[c] = qRgba(255, 0, 0, 200);
+          else 
+            line[c] = qRgba(0, 0, 0, 0);
+        }
+      }
+
+      imageViewer_->setOverlayImage(bimg);
+    }
+    else if (reconMode_ == ReconMode::SDMD) {
+      Box domain = treeVis_->domain();
+      std::vector<bool> nodeImg = //treeVis_->SDMDReconstruction(node->mnode()->id());
+        treeVis_->SDMDRecontructionSelectedNodes();
+      QImage bimg{ static_cast<int>(domain.width()), static_cast<int>(domain.height()), 
       QImage::Format_ARGB32 };
-    
-    for (int l = 0; l < domain.height(); l++) {
-      QRgb *line = reinterpret_cast<QRgb*>(bimg.scanLine(l));
-      for (int c = 0; c < domain.width(); c++) {
-        if (nodeImg[domain.pointToIndex(c, l)])
-          line[c] = qRgba(255, 0, 0, 200);
-        else 
-          line[c] = qRgba(0, 0, 0, 0);
+      
+      for (int l = 0; l < domain.height(); l++) {
+        QRgb *line = reinterpret_cast<QRgb*>(bimg.scanLine(l));
+        for (int c = 0; c < domain.width(); c++) {
+          if (nodeImg[domain.pointToIndex(c, l)])
+            line[c] = qRgba(255, 0, 0, 200);
+          else 
+            line[c] = qRgba(0, 0, 0, 0);
+        }
       }
+      imageViewer_->setOverlayImage(bimg);
     }
-
-    imageViewer_->setOverlayImage(bimg);
-  }
-  else if (reconMode_ == ReconMode::SDMD) {
-    FIELD<float> *nodeImg = treeVis_->SDMDReconstruction(node->mnode()->id());
-    QImage bimg { nodeImg->dimX(), nodeImg->dimY(), QImage::Format_ARGB32 };
-
-    for (int l = 0; l < nodeImg->dimY(); l++) {
-      QRgb *line = reinterpret_cast<QRgb*>(bimg.scanLine(l));
-      for (int c = 0; c < nodeImg->dimX(); c++) {
-        if ((*nodeImg)(c, l) > 0) 
-          line[c] = qRgba(255, 0, 0, 200);
-        else 
-          line[c] = qRgba(0, 0, 0, 0);
-      }
-    }
-
-    imageViewer_->setOverlayImage(bimg);
   }
 }
 
@@ -287,13 +291,13 @@ bool MainWidget::eventFilter(QObject *obj, QEvent *evt)
   }
 }
 
-void MainWidget::treeVis_NodeSelected(GNode *node)
+void MainWidget::treeVis_NodeSelected()
 {
   if (highlightNode_)
-    highlightNode(node);
+    highlightNodes();
 }
 
-void MainWidget::treeVis_NodeUnselected(GNode *node) 
+void MainWidget::treeVis_NodeUnselected() 
 {
   imageViewer_->removeOverlay();
 }

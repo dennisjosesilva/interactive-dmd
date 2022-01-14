@@ -100,6 +100,7 @@ public:
   inline bool hasNodeSelected() const { return curSelectedNodeIndex_ != InvalidNodeIndex; }
   std::vector<bool> recSimpleNode() const;
   std::vector<bool> recFullNode() const;
+  std::vector<bool> morphoRecSelectedNodes() const;
 
   void useGradientGNodeStyle();
   void useFixedColorGNodeStyle();
@@ -107,7 +108,10 @@ public:
   inline void resetCache() { treeWidget_->resetCachedContent(); }
   inline void updateTreeRendering() { treeWidget_->updateTreeRendering(); }
   
+  inline uint numberOfSelectedNodes() const { return selectedNodes_.count(); }
+
   FIELD<float>* SDMDReconstruction(unsigned int id);
+  std::vector<bool> SDMDRecontructionSelectedNodes();
 
   bool isNodeSelectedForReconstruction(unsigned int id) const { return selectedNodesForRec_[id]; }
   bool &isNodeSelectedForReconstruction(unsigned int id) { return selectedNodesForRec_[id]; }
@@ -127,7 +131,7 @@ protected:
   QImage fieldToQImage(FIELD<float> *field) const; 
 
   void reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node);
-  void reconstructGreyImage(SimpleImageViewer *iv, NodePtr node);
+  void reconstructGreyImage(SimpleImageViewer *iv, NodePtr node);  
 
   QLayout* createButtons();  
 
@@ -141,8 +145,8 @@ protected:
 public: 
 signals: 
   void associateNodeToSkeleton(int numberOfNodes);
-  void nodeSelected(GNode *node);
-  void nodeUnselected(GNode *node);
+  void nodeSelectionChanged();
+  // void nodeUnselected();
  
 
 protected slots:

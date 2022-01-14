@@ -3,6 +3,8 @@
 #include <QMessageBox>
 #include <cmath>
 #include <QKeyEvent>
+#include <QList>
+#include <QtMath>
 //#include <QRandomGenerator>          
              
 ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
@@ -72,11 +74,27 @@ void ManipulateCPs::AddOneCp(){
 
 }
 
-void ManipulateCPs::DeleteLastTwoCPs(Node_ *CurrNode)
+void ManipulateCPs::DeleteTheBranch(Node_ *CurrPressedNode)
 {
-  int CurrNodeIndex_m = CurrNode->getIndexM();
+  // int CurrNodeIndex_m = CurrNode->getIndexM();
+  // //1. update CPlist - erase the branch
+  // //CPlist.erase(CPlist.begin() + CurrNodeIndex_m);//The size will decrease
+  // vector<Vector3<float>> *changedBranch;
+  // changedBranch = &(CPlist[CurrNodeIndex_m]);
+  // changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
+
+  // //2. change sliders
+  // emit PressNode(0, 0); 
+
+  // //3.remove two points in the scene.
+  // scene->removeItem(CurrNode);
+  // Node_ *forewardNode = CurrNode->getPrevNode();
+  // if (forewardNode != nullptr) scene->removeItem(forewardNode);
+  // Node_ *backwardNode = CurrNode->getNextNode();
+  // if (backwardNode != nullptr) scene->removeItem(backwardNode);
+
+  int CurrNodeIndex_m = CurrPressedNode->getIndexM();
   //1. update CPlist - erase the branch
-  //CPlist.erase(CPlist.begin() + CurrNodeIndex_m);//The size will decrease
   vector<Vector3<float>> *changedBranch;
   changedBranch = &(CPlist[CurrNodeIndex_m]);
   changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
@@ -84,37 +102,29 @@ void ManipulateCPs::DeleteLastTwoCPs(Node_ *CurrNode)
   //2. change sliders
   emit PressNode(0, 0); 
 
-  //3.remove two points in the scene.
-  scene->removeItem(CurrNode);
-  Node_ *forewardNode = CurrNode->getPrevNode();
-  if (forewardNode != nullptr) scene->removeItem(forewardNode);
-  Node_ *backwardNode = CurrNode->getNextNode();
-  if (backwardNode != nullptr) scene->removeItem(backwardNode);
+  //3.remove all points and edges in the branch.
+  scene->removeItem(CurrPressedNode);
+  removeTwoEdgeOfNode(CurrPressedNode);
 
-  //4.remove edges of CurrNode
-  QVector<Edge*> EdgeList = CurrNode->getEdgeList();
-  for (Edge *edge : qAsConst(EdgeList)){
-    scene->removeItem(edge);
-    //does WholeEdgeList need remove edge? Seems doesn't.
+  Node_ *forewardNode = CurrPressedNode->getPrevNode();
+  while(forewardNode != nullptr){
+    scene->removeItem(forewardNode);
+    removeTwoEdgeOfNode(forewardNode);
+    forewardNode = forewardNode->getPrevNode();
   }
-
+  Node_ *backwardNode = CurrPressedNode->getNextNode();
+  while(backwardNode != nullptr){
+    scene->removeItem(backwardNode);
+    removeTwoEdgeOfNode(backwardNode);
+    backwardNode = backwardNode->getNextNode();
+  }
 }
 
 void ManipulateCPs::deleteCurrCp(){
   //update CPlist
   int CurrCPNum = CPlist[CurrNodeIndex_m][0][0] - 1;
-  /*if(CurrCPNum < 2){
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "For your information", 
-    "There are only two CPs for this branch, Do you want to delete both of them?",
-                                  QMessageBox::Yes|QMessageBox::No);
-    if (reply == QMessageBox::Yes) {
-      //delete both of the two CPs, i.e., delete this branch
-      DeleteLastTwoCPs(CurrPressedNode);
-    } 
-    //else do nothing.
-  }*/
-  if(CurrCPNum == 0) DeleteLastTwoCPs(CurrPressedNode);
+ 
+  if(CurrCPNum == 0) DeleteTheBranch(CurrPressedNode);//only has one CP
   else
   {
     CPlist[CurrNodeIndex_m][0][0] = CurrCPNum;
@@ -144,12 +154,7 @@ void ManipulateCPs::deleteCurrCp(){
     emit PressNode(0, CPlist[CurrNodeIndex_m][0][1]); 
 
     scene->removeItem(CurrPressedNode);
-    //remove two edges of CurrPressedNode
-    QVector<Edge*> EdgeList = CurrPressedNode->getEdgeList();
-    for (Edge *edge : qAsConst(EdgeList)){
-      scene->removeItem(edge);
-      //does WholeEdgeList need remove edge? Seems doesn't.
-    }
+    removeTwoEdgeOfNode(CurrPressedNode);
     //add new edge and update prev/next node.
     Node_ *CurrPrevN = CurrPressedNode->getPrevNode();
     Node_ *CurrNextN = CurrPressedNode->getNextNode();
@@ -169,6 +174,11 @@ void ManipulateCPs::deleteCurrCp(){
   }
 }
 
+void ManipulateCPs::rotateCPsBtnPressed()
+{
+  rotateCPs = true;
+  
+}
 void ManipulateCPs::deleteMultiCp()
 {
   //cout<<"MultiCPsDelete: "<<MultiCPsDelete.size()<<endl;
@@ -182,7 +192,7 @@ void ManipulateCPs::deleteMultiCp()
         int CurrCPNum = CPlist[CurrNodeIndex_m][0][0];
       
         if(CurrCPNum < 3)
-          DeleteLastTwoCPs(CurrPoint); //delete both of the two CPs, i.e., delete this branch
+          DeleteTheBranch(CurrPoint); //delete both of the two CPs, i.e., delete this branch
       
       }
         
@@ -194,6 +204,18 @@ void ManipulateCPs::deleteMultiCp()
   
 }
 
+void ManipulateCPs::deleteABranch()
+{
+  DeleteTheBranch(CurrPressedNode);
+}
+void ManipulateCPs::removeTwoEdgeOfNode (Node_ *CurrNode)
+{
+  QVector<Edge*> EdgeList = CurrNode->getEdgeList();
+  for (Edge *edge : qAsConst(EdgeList)){
+    scene->removeItem(edge);
+    //does WholeEdgeList need remove edge? Seems doesn't.
+  }
+}
 void ManipulateCPs::TranspCurrPoint(Node_ *node){
   
   MultiCPsDelete.push_back(node);
@@ -249,7 +271,13 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, int intensity)
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
   MultiCPsDelete.clear();//To avoid being deleted next.
   AllItemsUnselected = true;
- 
+  
+  if(HoriLine != nullptr)
+  {
+    scene->removeItem(HoriLine);
+    scene->removeItem(VerLine);
+  }
+      
   //cout<<"MultiCPsDelete---: "<<MultiCPsDelete.size()<<endl;
 }
 void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
@@ -280,6 +308,9 @@ void ManipulateCPs::keyPressEvent(QKeyEvent *event)
   case Qt::Key_D:
     Key_D_pressed = true;
     break;
+  case Qt::Key_R:
+    Key_R_pressed = true;
+    break;
   default:
     QGraphicsView::keyPressEvent(event);
   }
@@ -294,6 +325,9 @@ void ManipulateCPs::keyReleaseEvent(QKeyEvent *event)
       break;
     case Qt::Key_D:
       Key_D_pressed = false;
+      break;
+    case Qt::Key_R:
+      Key_R_pressed = false;
       break;
   }
 
@@ -333,6 +367,26 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
       backwardNode = backwardNode->getNextNode();
     }
   }
+    else if(Key_R_pressed)
+    {
+      QList<QGraphicsItem*> selectedList =	scene->selectedItems();
+      if(!selectedList.empty()){
+        Node_ * selectedNode;
+        QPointF StartPos, rotatedPos;
+        float angle = M_PI/180 * (event->angleDelta().y() / 120.0);
+        for (auto& selectedItem : selectedList) {
+          if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
+              StartPos = selectedNode->getPos();
+              rotatedPos.rx() = (StartPos.rx() - crossPoint.rx())*qCos(angle) - (StartPos.ry() - crossPoint.ry())*qSin(angle) + crossPoint.rx();
+              rotatedPos.ry() = (StartPos.rx() - crossPoint.rx())*qSin(angle) + (StartPos.ry() - crossPoint.ry())*qCos(angle) + crossPoint.ry();
+              
+              selectedNode->setPos(rotatedPos);
+
+          }
+        }
+
+      }
+    }
     else scaleView(pow(2.0, -event->angleDelta().y() / 240.0));
 }
 
@@ -576,8 +630,8 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
 void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
   //const QPoint& point = event->pos(); 
   //cout<<"view: mousePressEvent"<<endl;
-  if(AddCPbuttonPressed == true){
-    QPointF scenePoint = mapToScene(event->pos());
+  QPointF scenePoint = mapToScene(event->pos());
+  if(AddCPbuttonPressed){
     //std::cout<< scenePoint.x() <<"---/"<<scenePoint.y()<<endl;
     if(!isBranchSelected){//Didn't select a branch
       AddNewBranch(scenePoint);
@@ -592,16 +646,31 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
     
     AddCPbuttonPressed = false;
   }
+  else if (rotateCPs)
+    {
+      HoriLine = new QGraphicsLineItem(scenePoint.x()-5, scenePoint.y(), scenePoint.x()+5, scenePoint.y());
+      HoriLine->setPen(QPen(Qt::red, 2));
+      scene->addItem(HoriLine);
+
+      VerLine = new QGraphicsLineItem(scenePoint.x(), scenePoint.y()-5, scenePoint.x(), scenePoint.y()+5);
+      VerLine->setPen(QPen(Qt::red, 2));
+      scene->addItem(VerLine);
+      crossPoint = scenePoint;
+      rotateCPs = false;
+    }
+    
+
   AllItemsUnselected = false;
   QGraphicsView::mousePressEvent(event);
 }
 
-// void ManipulateCPs::mouseReleaseEvent(QMouseEvent *event) {
-//   QPointF releasePoint = mapToScene(event->pos());
-//    std::cout<< releasePoint.x() <<"---/"<<releasePoint.y()<<endl;
+void ManipulateCPs::mouseReleaseEvent(QMouseEvent *event) {
+  //QPointF releasePoint = mapToScene(event->pos());
+   //std::cout<< releasePoint.x() <<"---/"<<releasePoint.y()<<endl;
+  //rotateCPs = false;
 
-//   QGraphicsView::mouseReleaseEvent(event);
-// }
+  QGraphicsView::mouseReleaseEvent(event);
+}
 
 void ManipulateCPs::drawBackground(QPainter *painter, const QRectF &rect)
 {

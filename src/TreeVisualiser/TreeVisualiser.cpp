@@ -366,16 +366,23 @@ void TreeVisualiser::registerDMDSkeletons()
 {
   // const MTree &tree = treeWidget_->tree();
   const MTree &tree = treeWidget_->mtree();
-  
-  dmd_.Init_indexingSkeletons();
+
+  float salVal = mainWidget_->getSaliencyValue(); 
+  float HDval = mainWidget_->getHDValue(); 
+  dmd_.Init_indexingSkeletons(salVal, HDval);
   NumberOfSkeletonPointCache nskelCache;
   
   FIELD<float> *fnode = nullptr;
   uint32 nodeSequence = 0;
   
   nskelCache.openFile();
+ 
+  QTime time;
+  time.start();
+   
   tree.tranverse([&fnode, &nodeSequence, &nskelCache, this](NodePtr node) {
-    fnode = binImageToField(node->reconstruct(domain_));    
+    fnode = binImageToField(node->reconstruct(domain_));
+     
     int nskelPt = dmd_.indexingSkeletons(fnode, node->level(), node->id());
     nskelCache.store(node->id(), nskelPt);
 
@@ -384,6 +391,8 @@ void TreeVisualiser::registerDMDSkeletons()
         
     delete fnode;
   });
+  cout<<time.elapsed()<<" ms."<<endl;
+
   nskelCache.closeFile();
   dmdrecon_->readIndexingControlPoints(domain_.width(), domain_.height(), 
     dmd_.clear_color, dmd_.getInty_Node()); // pre-upload
@@ -618,7 +627,7 @@ void TreeVisualiser::skelRecBtn_press()
     if (selectedNodesForRec_[i]) 
       keptNodes.push_back(i);
   }
-
+  cout<<keptNodes.size()<<" keptNodes.size() "<<endl;
   QTime time;
   time.start();
    

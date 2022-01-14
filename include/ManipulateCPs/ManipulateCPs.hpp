@@ -6,6 +6,7 @@
 #include <QGraphicsView>
 #include <dmdReconstruct.hpp>
 #include <iostream>
+#include <QGraphicsLineItem>
 
 //class Edge;
 
@@ -39,9 +40,13 @@ public:
   inline void setCPs(vector<vector<Vector3<float>>> CPs) {CPlist = CPs;}
   void deleteCurrCp();
   void deleteMultiCp();
+  void deleteABranch();
+  void rotateCPsBtnPressed();
   void AddOneCp();
-  void DeleteLastTwoCPs(Node_ *CurrNode);
+  void DeleteTheBranch(Node_ *CurrPressedNode);
   inline bool getItemsUnselectionState() {return AllItemsUnselected;}
+  inline bool getRotateCPsState() {return rotateCPs;}
+  void removeTwoEdgeOfNode (Node_ *CurrNode);
 
 public: 
 signals: 
@@ -56,7 +61,7 @@ protected:
   void keyReleaseEvent(QKeyEvent *event) override;
   void wheelEvent(QWheelEvent *event) override;
   void mousePressEvent(QMouseEvent *event) override;
-  //void mouseReleaseEvent(QMouseEvent *event) override;
+  void mouseReleaseEvent(QMouseEvent *event) override;
 
   void drawBackground(QPainter *painter, const QRectF &rect) override;
   void scaleView(qreal scaleFactor);
@@ -80,6 +85,11 @@ private:
   bool AllItemsUnselected = false;
   bool Key_Shift_pressed = false;
   bool Key_D_pressed = false;
+  bool Key_R_pressed = false;
   QImage showBackgroundImg;
   bool drawQImage = false;
+  bool rotateCPs = false;
+  QPointF crossPoint;
+  QGraphicsLineItem* HoriLine;
+  QGraphicsLineItem* VerLine;
 };

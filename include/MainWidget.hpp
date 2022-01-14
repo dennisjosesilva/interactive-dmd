@@ -49,6 +49,9 @@ public:
   ReconMode reconMode() const { return reconMode_; }
   void setReconMode(ReconMode reconMode) { reconMode_ = reconMode; }
   inline bool GetInterpState(){return ThresCtl->getInterpState();}
+  inline float getSaliencyValue() {return ThresCtl->getSaliencyVal();}
+  inline float getHDValue() {return ThresCtl->getHDVal();}
+   
   inline TreeVisualiser *getTreeVis() {return treeVis_;};
 
 protected slots:

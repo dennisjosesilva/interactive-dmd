@@ -162,9 +162,11 @@ protected slots:
   void rotateWidgetBtn_press();
   void SplineManipulateBtn_press();
   void skelRecBtn_press(); 
+  void selectDescendantNodes_press();
   void removeSkelBtn_press();
   void incNodeReconBtn_press();
   void remNodeReconBtn_press();
+  
   
   void updateCustomTreeVisualisationWhenRedraw();
 

@@ -34,5 +34,6 @@
   <file>images/fit_to_widget_icon.png</file>
   <file>images/rotate_icon.png</file>
   <file>images/rotate_CPs.png</file>
+  <file>images/select_descendants_icon.png</file>
 </qresource>
 </RCC>

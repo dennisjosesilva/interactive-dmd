@@ -106,6 +106,13 @@ QLayout *TreeVisualiser::createButtons()
   connect(binRecBtn, &QPushButton::clicked, this, &TreeVisualiser::binRecBtn_press);
   btnLayout->addWidget(binRecBtn);
 
+  QPushButton *selectDescendantNodesBtn = new QPushButton{
+    QIcon{":/images/select_descendants_icon.png"}, tr(""), this};
+  selectDescendantNodesBtn->setIconSize(QSize{32, 32});
+  connect(selectDescendantNodesBtn, &QPushButton::clicked, this, 
+    &TreeVisualiser::selectDescendantNodes_press);
+  btnLayout->addWidget(selectDescendantNodesBtn);
+
   // Zoom Controls buttons
   // ----------------------
   QPushButton *fitToWindowBtn = new QPushButton{ QIcon{":/images/fit_to_widget_icon.png"}, "", this};
@@ -692,6 +699,25 @@ void TreeVisualiser::skelRecBtn_press()
   mainWidget_->setImage(img);
   
   // iv->setImage(img);    
+}
+
+void TreeVisualiser::selectDescendantNodes_press()
+{  
+  const MTree &tree = treeWidget_->mtree();
+  const QVector<GNode *> &gnodes = treeWidget_->gnodes();
+
+  tree.traverseByLevel([&gnodes, this](NodePtr node) {
+    if (node->parent() != nullptr) {
+
+      if (gnodes[node->parent()->id()]->isSelected()) {
+        if (!gnodes[node->id()]->isSelected()) {
+          gnodes[node->id()]->setSelected(true);
+          selectedNodes_.insert(node->id(), gnodes[node->id()]);
+          gnodes[node->id()]->update();
+        }
+      }
+    }
+  });
 }
 
 void TreeVisualiser::removeSkelBtn_press()

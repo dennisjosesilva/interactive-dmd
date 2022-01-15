@@ -41,6 +41,7 @@ private slots:
   void nskelptAct_onTriggered(bool checked);
 
   void nodeHighlightAct_onTriggered(bool checked);
+  void ChangeCentralWidget_(CpViewer *cv);
   
 private:
   void createMenus();  

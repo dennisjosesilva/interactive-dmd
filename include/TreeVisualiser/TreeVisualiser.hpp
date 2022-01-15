@@ -146,6 +146,7 @@ public:
 signals: 
   void associateNodeToSkeleton(int numberOfNodes);
   void nodeSelectionChanged();
+  void ChangeCentralWidget(CpViewer *cv);
   // void nodeUnselected();
  
 
@@ -153,10 +154,6 @@ protected slots:
   void nodeMousePress(GNode *node, QGraphicsSceneMouseEvent *e);
 
   void binRecDock_onClose(MyDockWidget *dock);
-  
-  void SplineManipDock_onClose(MyDockWidget *dock);
-  void skelRecDock_onClose(MyDockWidget *dock);
-  void removeSkelDock_onClose(MyDockWidget *dock);
 
   void binRecBtn_press();
   void fitToWindowBtn_press();
@@ -199,4 +196,5 @@ private:
   QVector<bool> selectedNodesForRec_;
   bool gradientRenderStyle_;
   QMap<uint32, GNode *> selectedNodes_;
+  bool FirstCreateCpviewer = true;
 };

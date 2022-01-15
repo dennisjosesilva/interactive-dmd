@@ -20,6 +20,7 @@
   <file>images/AddCP_icon.png</file>
   <file>images/DeleteCP_icon.png</file>
   <file>images/DeleteMultiCP_icon.png</file>
+  <file>images/DeleteABranch_icon.png</file>
   <file>images/saliency_icon.png</file>
   <file>images/color_icon.png</file>  
   <file>images/width_icon.png</file>
@@ -32,5 +33,6 @@
   <file>images/icicle_node_removal_icon.png</file>
   <file>images/fit_to_widget_icon.png</file>
   <file>images/rotate_icon.png</file>
+  <file>images/rotate_CPs.png</file>
 </qresource>
 </RCC>

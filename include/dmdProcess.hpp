@@ -33,7 +33,7 @@ class dmdProcess {
     void removeIslands(float islandThreshold, FIELD<float> *sm);
     void LayerSelection(bool cumulative, int num_layers);
     int computeSkeletons(float saliency_threshold, float hausdorff, FIELD<float> *sm);
-    void Init_indexingSkeletons();
+    void Init_indexingSkeletons(float SalVal, float HDval);
     int indexingSkeletons(FIELD<float> * CC, int intensity, int index);
     //vector<int> getIntensityOfNode(){return IntensityOfNode;}
     multimap<int,int> getInty_Node(){return Inty_node;}
@@ -57,6 +57,7 @@ class dmdProcess {
     vector<int> gray_levels;
     multimap<int,int> Inty_node;
     vector<int> selectedIntensity;
+    float SalValForTree, HDvalForTree;
     //stringstream ofBuffer;
 };
 

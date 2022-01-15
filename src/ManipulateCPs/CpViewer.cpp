@@ -48,18 +48,22 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   rotateCPsBtn->setIconSize(QSize{32, 32}); 
   connect(rotateCPsBtn, &QPushButton::clicked, this, &CpViewer::rotateCPsBtn_press);
 
+  QPushButton *ZoomInOutBtn = new QPushButton { QIcon{":/images/zoom_in_out.png"}, tr(""), this};
+  ZoomInOutBtn->setIconSize(QSize{32, 32}); 
+  connect(ZoomInOutBtn, &QPushButton::clicked, this, &CpViewer::ZoomInOutBtn_press);
+
 
   QPushButton *skelRecBtn = new QPushButton();
   skelRecBtn->setText("Reconstruct\n CC");
   //QPushButton *skelRecBtn = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
-  skelRecBtn->setFixedSize(QSize{95, 38});//?
+  skelRecBtn->setFixedSize(QSize{90, 38});//?
   connect(skelRecBtn, &QPushButton::clicked, this, &CpViewer::ReconBtn_press);
   
 
   QPushButton *skelRecBtn_ = new QPushButton();
   skelRecBtn_->setText("Reconstruct\n Image");
   //QPushButton *skelRecBtn_ = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
-  skelRecBtn_->setFixedSize(QSize{95, 38});//?
+  skelRecBtn_->setFixedSize(QSize{90, 38});//?
   connect(skelRecBtn_, &QPushButton::clicked, this, &CpViewer::ReconImageBtn_press);
 
   btnLayout->addWidget(showCPsBtn);
@@ -69,6 +73,7 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   btnLayout->addWidget(DeleteMultiCPsBtn);
   btnLayout->addWidget(DeleteABranchBtn);
   btnLayout->addWidget(rotateCPsBtn);
+  btnLayout->addWidget(ZoomInOutBtn);
   btnLayout->addWidget(skelRecBtn);
   btnLayout->addWidget(skelRecBtn_);
 
@@ -155,4 +160,8 @@ void CpViewer::DeleteABranchBtn_press()
 void CpViewer::rotateCPsBtn_press()
 {
   manipulate_CPs->rotateCPsBtnPressed();
+}
+void CpViewer::ZoomInOutBtn_press()
+{
+  manipulate_CPs->ZoomInOutBtn_pressed();
 }

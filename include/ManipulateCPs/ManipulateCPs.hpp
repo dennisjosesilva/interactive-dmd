@@ -42,6 +42,7 @@ public:
   void deleteMultiCp();
   void deleteABranch();
   void rotateCPsBtnPressed();
+  void ZoomInOutBtn_pressed();
   void AddOneCp();
   void DeleteTheBranch(Node_ *CurrPressedNode);
   inline bool getItemsUnselectionState() {return AllItemsUnselected;}
@@ -86,10 +87,12 @@ private:
   bool Key_Shift_pressed = false;
   bool Key_D_pressed = false;
   bool Key_R_pressed = false;
+  bool Key_Z_pressed = false;
   QImage showBackgroundImg;
   bool drawQImage = false;
-  bool rotateCPs = false;
+  bool rotateCPs = false, ZoomInOut=false;
   QPointF crossPoint;
   QGraphicsLineItem* HoriLine;
   QGraphicsLineItem* VerLine;
+  float ZoomFactor = 1.0;
 };

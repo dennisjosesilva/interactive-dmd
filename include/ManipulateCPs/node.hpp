@@ -30,6 +30,7 @@ public:
   inline void setPrevNode(Node_ *pn) {prev_node = pn;}
   inline void setNextNode(Node_ *nn) {next_node = nn;}
   inline void setPaintRadius(bool state) {paintRadius = state;}
+  inline void setComponentId(unsigned int id) {component_id = id;}
 
   inline QVector<Edge*> getEdgeList() {return edgeList;}
   inline Node_ * getPrevNode() {return prev_node;}
@@ -40,6 +41,7 @@ public:
   inline int getDegree() {return degree;}
   inline int getMaxDegree() {return maxDegree;}
   inline QPointF getPos() {return pos();}
+  inline unsigned int getComponentId() {return component_id;}
 
 protected:
   QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
@@ -57,4 +59,5 @@ private:
   int maxDegree, degree;
   Node_ *prev_node, *next_node;
   bool paintRadius = false;
+  unsigned int component_id;
 };

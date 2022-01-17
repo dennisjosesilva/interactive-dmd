@@ -5,7 +5,7 @@
 FIELD<float>* prev_layer;
 FIELD<float>* prev_layer_dt;
 bool firstTime, DrawnTheLayer;
-int CurrNode;
+//int CurrNode;
 
 dmdReconstruct::dmdReconstruct()
 : vertexPositionBuffer(QOpenGLBuffer::VertexBuffer)
@@ -18,25 +18,46 @@ dmdReconstruct::~dmdReconstruct() {
     deallocateCudaMem_recon();
 }*/
 
-vector<vector<Vector3<float>>> dmdReconstruct::GetCPs(int nodeID){
-    auto Cps = IndexingCP.at(IndexingCP.size() - nodeID);
-    return Cps;
+void dmdReconstruct::GetCPs(QVector<unsigned int> nodesID){
+    if(!SelectedNodesCPlistMap.empty()) SelectedNodesCPlistMap.clear();
+    QVector<unsigned int>::iterator it;
+    for(it = nodesID.begin();it!=nodesID.end();it++){
+        //SelectedNodesCPlistMap.insert(pair <unsigned int, vector<vector<Vector3<float>>> > (*it, IndexingCP.at(IndexingCP.size() - *it)));
+        SelectedNodesCPlistMap.insert(*it, IndexingCP.at(IndexingCP.size() - *it) );
+    }
+    //cout<<"SelectedNodesCPlistMap "<<SelectedNodesCPlistMap.size();
 }
-void dmdReconstruct::reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> CPlist)
+
+void dmdReconstruct::reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<float>>>> CPlistMap)
 {
     vector<Vector3<float>> movedSample;
     BSplineCurveFitterWindow3 movedSpline;
-    movedSample = movedSpline.ReadIndexingSpline(CPlist);//loadSample();
-    
+    int inty;
     initOutput(0);
-    
     renderLayerInit();
-    renderLayer(inty, movedSample, false);
+
+    for(auto it = CPlistMap.begin(); it != CPlistMap.end(); ++it)
+    {
+        unsigned int NodeId = it.key();
+        vector<vector<Vector3<float>>> CPlist = it.value();
     
-    //update IndexingCP.
-    IndexingCP[IndexingCP.size() - CurrNode] = CPlist;
-    //update IndexingSample
-    IndexingSample[IndexingSample.size() - CurrNode] = movedSample;
+        movedSample = movedSpline.ReadIndexingSpline(CPlist);//loadSample();
+        //find intendity.
+        for (auto const& it_ : Inty_node) { 
+            if(it_.second == (int)NodeId)
+                inty = it_.first;
+        }
+
+        renderLayerInit();
+        renderLayer(inty, movedSample, false);
+        
+        //update IndexingCP.
+        IndexingCP[IndexingCP.size() - NodeId] = CPlist;///
+        //update IndexingSample
+        IndexingSample[IndexingSample.size() - NodeId] = movedSample;
+    }
+    delete output;
+ 
 }
 
 void dmdReconstruct::openglSetup(){
@@ -802,6 +823,7 @@ bool dmdReconstruct::renderLayer(int intensity, vector<Vector3<float>> SampleFor
             
             free(data);
             output->NewwritePGM("output.pgm");
+            
             program.release();
             vertexPositionBuffer.release();
             contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
@@ -817,7 +839,7 @@ bool dmdReconstruct::renderLayer(int intensity, vector<Vector3<float>> SampleFor
 }
 
 void dmdReconstruct::ReconstructIndexingImage(int nodeID){
-    if(nodeID > 0) CurrNode = nodeID;
+    //if(nodeID > 0) CurrNode = nodeID;
     vector<Vector3<float>> SampleForEachCC;
     
     initOutput(0);
@@ -853,6 +875,7 @@ void dmdReconstruct::ReconstructIndexingImage(int nodeID){
         }
         
         //output->NewwritePGM("output.pgm");
+        delete output;
         printf("DMD finished!\n");
     }
 
@@ -860,6 +883,132 @@ void dmdReconstruct::ReconstructIndexingImage(int nodeID){
 
 }
 
+
+void dmdReconstruct::renderLayer(int intensity, int nodeID){
+    //cout<<"nodeID: "<<nodeID<<endl;
+    vector<Vector3<float>> SampleForEachCC;
+    Vector3<float> EachSample;
+    
+    SampleForEachCC = IndexingSample.at(IndexingSample.size() - nodeID);
+    if(!SampleForEachCC.empty()){
+        program.link();
+        program.bind();
+
+    //    ==============DRAWING TO THE FBO============
+
+        contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+
+        contextFunc->glEnable(GL_DEPTH_TEST);
+        contextFunc->glClear(GL_DEPTH_BUFFER_BIT);
+        contextFunc->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        contextFunc->glClear(GL_COLOR_BUFFER_BIT);
+
+
+        QOpenGLBuffer vertexPositionBuffer(QOpenGLBuffer::VertexBuffer);
+        vertexPositionBuffer.create();
+        vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+        vertexPositionBuffer.bind();
+
+        GLfloat width_2 = (GLfloat)width/2.0;
+        //program.setUniformValue("width_2", width_2);
+        GLfloat height_2 = (GLfloat)height/2.0;
+        //program.setUniformValue("height_2", height_2);
+
+        //read each skeleton point
+        float x, y, r;
+        
+        for(auto it = SampleForEachCC.begin();it!=SampleForEachCC.end();it++){
+            EachSample = *it;
+            x = EachSample[0];
+            y = height - EachSample[1] - 1;
+            r = EachSample[2]; 
+
+            float vertexPositions[] = {
+            (x-r)/width_2 - 1,   (y-r)/height_2 - 1,
+            (x-r)/width_2 - 1,   (y+r+1)/height_2 - 1,
+            (x+r+1)/width_2 - 1, (y+r+1)/height_2 - 1,
+            (x+r+1)/width_2 - 1, (y-r)/height_2 - 1,
+            };
+
+                
+            vertexPositionBuffer.allocate(vertexPositions, 8 * sizeof(float));
+            
+            program.enableAttributeArray("position");
+            program.setAttributeBuffer("position", GL_FLOAT, 0, 2);
+            
+            program.setUniformValue("r", (GLfloat)r);
+            
+            program.setUniformValue("x0", (GLfloat)x);
+            
+            program.setUniformValue("y0", (GLfloat)y);
+
+            contextFunc->glDrawArrays(GL_QUADS, 0, 4);
+
+        }
+        
+        //========SAVE IMAGE===========
+            float *data = (float *) malloc(width * height * sizeof (float));
+            
+            contextFunc->glEnable(GL_TEXTURE_2D);
+            contextFunc->glBindTexture(GL_TEXTURE_2D, tex);
+
+            // Altering range [0..1] -> [0 .. 255] 
+            contextFunc->glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, data);
+
+
+            for (unsigned int x = 0; x < width; ++x) 
+                for (unsigned int y = 0; y < height; ++y)
+                {
+                    unsigned int y_ = height - 1 -y;
+
+                    if(*(data + y * width + x))
+                        output->set(x, y_, intensity);
+                }
+            
+            free(data);
+    
+        program.release();
+        vertexPositionBuffer.release();
+        contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+    }
+    else cout<<"The component of Node-"<<nodeID<<" is too small to generate any skeletons."<<endl;
+}
+
+void dmdReconstruct::ReconstructIndexingImage_multi(QVector<unsigned int> nodesID){
+
+    if(!nodesID.empty()){
+        //process the background color
+        if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
+            initOutput(clearColor);
+        else initOutput(0);
+        
+        
+        if(!IndexingSample.empty()){
+            
+            int LastInty = 256;
+            for (auto const& it : Inty_node) { //for each graylevel(from small num to large num).
+                if(LastInty != it.first){//for each graylevel, only enter once.
+                    LastInty = it.first;
+                   
+                    auto it1 = Inty_node.lower_bound(it.first);
+                    auto it2 = Inty_node.upper_bound(it.first);
+                    while(it1 != it2){//process all nodes for the current intensity
+                        int node_id = it1->second;
+                        if(std::find(nodesID.begin(), nodesID.end(), node_id) != nodesID.end()){//if nodesID contains node_id
+                            renderLayer(it.first, node_id);  
+                        }
+                        ++it1;
+                    } 
+                }
+            }
+            
+            output->NewwritePGM("output.pgm");
+            delete output;
+            printf("DMD finished!\n");
+        }
+    }
+    else printf("Nothing is selected!");
+}
 
 QImage dmdReconstruct::ReconstructImage(bool interpolate){
     QImage outImg;
@@ -979,7 +1128,8 @@ QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesI
                                 int node_id = it1->second;
                                 SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
                                 if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()){//if nodesID doesn't contain node_id
-                                    if(renderLayer(it.first, SampleForEachCC, true)) DrawAnything = true;  
+                                    if(renderLayer(it.first, SampleForEachCC, true)) DrawAnything = true;
+                                    //cout<< "node_id: "<<node_id<<endl;
                                 }
                                 ++it1;
                             } 

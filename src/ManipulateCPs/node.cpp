@@ -46,10 +46,12 @@ void Node_::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
   QRadialGradient gradient(-3, -3, 10);
   if(graph->getItemsUnselectionState())//unselected
     setSelected(false);
+  if(graph->getItemsSelectionState())
+    setSelected(true);
   if(isSelected()){
     gradient.setColorAt(0, Qt::blue);
     gradient.setColorAt(1, Qt::darkBlue);
-    graph->TranspCurrPoint(this);
+    //graph->TranspCurrPoint(this);
   }
   else{
     gradient.setColorAt(0, Qt::yellow);
@@ -110,7 +112,7 @@ void Node_::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
   //std::cout<<"mouseReleaseEvent"<<std::endl;
   newPos = pos();
   //cout<<"index_m "<<newPos.rx()<<" index_m "<<newPos.ry()<<endl;
-  graph->itemMoved(newPos); 
+  graph->itemMoved(this, newPos); 
    
   update();
   QGraphicsItem::mouseReleaseEvent(event);

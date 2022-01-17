@@ -5,6 +5,7 @@
 #include <QSlider>
 #include <QLabel>
 #include <QDoubleSpinBox>
+#include <QStatusBar>
 
 class QPushButton;
 
@@ -18,8 +19,10 @@ public:
   inline void setImage(const QImage &newImage) { manipulate_CPs->setImage(newImage); }
   inline void UpdateWH(int width, int height) {manipulate_CPs-> UpdateWH(width, height);}
   inline void Update() {manipulate_CPs-> Update();}
-  inline void transData(int intensity, vector<vector<Vector3<float>>> Cps, dmdReconstruct* recon) 
-  {inty = intensity; manipulate_CPs->setCPs(Cps); recon_ = recon;}
+  inline void transData(dmdReconstruct* recon) 
+  {recon_ = recon; getCPsMap(); }
+  void getCPsMap();
+  void show_message(int WhichMessage);
 
 protected:
   QLayout *createTextLayout();
@@ -45,9 +48,15 @@ private:
   int degree;
   ManipulateCPs *manipulate_CPs;
   int w, h;
-  int inty;
+  //int inty;
   dmdReconstruct *recon_;
+  QStatusBar *bar;
   //QDoubleSpinBox *CPradiusSpinBox_;
   QDoubleSpinBox *DegreeSpinBox_;
+
+  QPushButton *AddCPsBtn;
+  QPushButton *DeleteCPsBtn;
+  QPushButton *DeleteMultiCPsBtn;
+  QPushButton *DeleteABranchBtn;
 };
 

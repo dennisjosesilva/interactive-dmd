@@ -7,6 +7,7 @@
 #include <dmdReconstruct.hpp>
 #include <iostream>
 #include <QGraphicsLineItem>
+#include <fstream>
 
 //class Edge;
 
@@ -26,18 +27,19 @@ public:
 
   inline void UpdateWH(int width, int height) { w = width; h = height; }
   void Update();
+  void UpdateBackground();
   void ShowingCPs();
   
-  void itemMoved(QPointF Pos);
+  void itemMoved(Node_ *node, QPointF Pos);
   void changeCurrNodeRInCplist(int r);
   void changeCurrbranchDegree(int d);
-  void ReconFromMovedCPs(dmdReconstruct *recon, int intensity);
+  void ReconFromMovedCPs(dmdReconstruct *recon);
   void ReconImageFromMovedCPs(dmdReconstruct *recon);
   void Press_node(Node_ *node, int radius, int maxDegree, int degree);
   //inline void setCurrentNodeIndex(int m, int n) {CurrNodeIndex_m = m; CurrNodeIndex_n = n;}
-  void TranspCurrPoint(Node_ *node);
+  //void TranspCurrPoint(Node_ *node);
   void MoveMultiPoint(Node_ *node, QPointF newPos);
-  inline void setCPs(vector<vector<Vector3<float>>> CPs) {CPlist = CPs;}
+  inline void getCPmap(QMap<unsigned int, vector<vector<Vector3<float>>>> CPmap) {CPlistMap = CPmap;}
   void deleteCurrCp();
   void deleteMultiCp();
   void deleteABranch();
@@ -46,7 +48,10 @@ public:
   void AddOneCp();
   void DeleteTheBranch(Node_ *CurrPressedNode);
   inline bool getItemsUnselectionState() {return AllItemsUnselected;}
+  inline bool getItemsSelectionState() {return AllItemsSelected;}
+  
   inline bool getRotateCPsState() {return rotateCPs;}
+  //inline void closeLogFile() {OutLog.close();}
   void removeTwoEdgeOfNode (Node_ *CurrNode);
 
 public: 
@@ -76,23 +81,28 @@ private:
   int CurrNodeIndex_m, CurrNodeIndex_n;
   //QPixmap pixmap;
   QGraphicsScene *scene;
-  vector<vector<Vector3<float>>> CPlist;
+  QMap<unsigned int, vector<vector<Vector3<float>>>> CPlistMap;
+  vector<vector<Vector3<float>>> CPlistForOneNode;
+  unsigned int nodeIdForOneNode;
   QVector<Edge*> WholeEdgeList;
   Node_ *CurrPressedNode;
   Node_ *CurrPrevNode, *CurrNextNode;
   bool isBranchSelected = false;
   bool AddCPbuttonPressed = false;
-  vector<Node_ *> MultiCPsDelete;
+  //vector<Node_ *> MultiCPsDelete;
   bool AllItemsUnselected = false;
+  bool AllItemsSelected = false;
   bool Key_Shift_pressed = false;
   bool Key_D_pressed = false;
   bool Key_R_pressed = false;
   bool Key_Z_pressed = false;
+  //bool Key_A_pressed = false;
   QImage showBackgroundImg;
   bool drawQImage = false;
   bool rotateCPs = false, ZoomInOut=false;
   QPointF crossPoint;
-  QGraphicsLineItem* HoriLine;
-  QGraphicsLineItem* VerLine;
+  QGraphicsLineItem* HoriLine = nullptr;
+  QGraphicsLineItem* VerLine = nullptr;
   float ZoomFactor = 1.0;
+  ofstream OutLog;
 };

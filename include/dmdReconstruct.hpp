@@ -4,6 +4,7 @@
 #include <skeleton_cuda_recon.hpp>
 #include <BSplineCurveFitterWindow3.h>
 
+#include <QMap>
 #include <QDebug>
 #include <QOffscreenSurface>
 #include <QOpenGLFunctions>
@@ -26,6 +27,7 @@ class dmdReconstruct {
     void openglSetup();
     void framebufferSetup();
     void renderLayer(int intensity_index);
+    void renderLayer(int intensity, int nodeID);
     bool renderLayer(int intensity, vector<Vector3<float>> SampleForEachCC, bool OpenGLRenderMethod);//for action = 1 situation.
     
     FIELD<float>* renderLayer_interp(int i);
@@ -36,6 +38,7 @@ class dmdReconstruct {
     
     QImage ReconstructImage(bool interpolate);
     void ReconstructIndexingImage(int nodeID);
+    void ReconstructIndexingImage_multi(QVector<unsigned int> nodesID);
     QImage ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action);
 
 
@@ -51,12 +54,14 @@ class dmdReconstruct {
     inline FIELD<float>* getOutput() { return output; }
     inline QImage getOutQImage() { return OutImg; }
     
-    vector<vector<Vector3<float>>> GetCPs(int nodeID);
-    void reconFromMovedCPs(int inty, vector<vector<Vector3<float>>> CPlist);
+    void GetCPs(QVector<unsigned int> nodesID);
+    void reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<float>>>> CPlistMap);
     QImage get_texture_data(); 
     void DrawTheFirstLayer(float ClearColor);
     void RenderOutput(int inty, bool DrawAnything);
     void renderLayerInit();
+    inline QMap<unsigned int, vector<vector<Vector3<float>>>> getCplistMap() 
+    { return SelectedNodesCPlistMap;}
  
     
   private:
@@ -81,5 +86,6 @@ class dmdReconstruct {
     multimap<int,int> Inty_node;
     QOpenGLBuffer vertexPositionBuffer;
     QImage OutImg;
+    QMap<unsigned int, vector<vector<Vector3<float>>>> SelectedNodesCPlistMap;
 };
 

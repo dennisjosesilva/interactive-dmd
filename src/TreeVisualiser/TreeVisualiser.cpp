@@ -635,7 +635,9 @@ void TreeVisualiser::binRecBtn_press()
 
 void TreeVisualiser::SplineManipulateBtn_press()
 {
-  if (hasNodeSelected()) {
+  QVector<unsigned int> selectedNodesID = selectedNodes_.keys().toVector();
+  
+  if (!selectedNodesID.empty()) {
     if (FirstCreateCpviewer) {
       FirstCreateCpviewer = false;
       cv = new CpViewer(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
@@ -648,23 +650,26 @@ void TreeVisualiser::SplineManipulateBtn_press()
     
     emit ChangeCentralWidget(cv);
 
-    // NodePtr mnode = curNodeSelection_->mtreeNode();
-    NodePtr mnode = curSelectedNode()->mnode();
-    dmdrecon_->ReconstructIndexingImage(mnode->id());
+    //NodePtr mnode = curSelectedNode()->mnode();
+    
+    //dmdrecon_->ReconstructIndexingImage(mnode->id());
+    dmdrecon_->ReconstructIndexingImage_multi(selectedNodesID);
   
-   if(mnode->id() == 0){
-     QMessageBox::information(0, "For your information",
-        "Node_0 corresponds to the background layer, if you \n"
-        "want to manipulate CPs, please select other nodes.");
-   }
-   else{
-     vector<vector<Vector3<float>>> storeCPs = dmdrecon_->GetCPs(mnode->id());
-     if(storeCPs.empty()){
-       QMessageBox::information(0, "For your information",
-        "The node is too small to generate any control points.");
-     }
-     else cv->transData(mnode->level(), storeCPs, dmdrecon_);
-   }
+  //  if(mnode->id() == 0){
+  //    QMessageBox::information(0, "For your information",
+  //       "Node_0 corresponds to the background layer, if you \n"
+  //       "want to manipulate CPs, please select other nodes.");
+  //  }
+  //  else{
+     dmdrecon_->GetCPs(selectedNodesID);
+    //  if(storeCPs.empty()){
+    //    QMessageBox::information(0, "For your information",
+    //     "The node is too small to generate any control points.");
+    //  }
+    //  else 
+     //cv->transData(mnode->level(), dmdrecon_);
+     cv->transData(dmdrecon_);
+   //}
     
   }
   else{
@@ -684,7 +689,7 @@ void TreeVisualiser::skelRecBtn_press()
     if (selectedNodesForRec_[i]) 
       keptNodes.push_back(i);
   }
-  cout<<keptNodes.size()<<" keptNodes.size() "<<endl;
+  //cout<<keptNodes.size()<<" keptNodes.size() "<<endl;
   QTime time;
   time.start();
    

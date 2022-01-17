@@ -66,33 +66,13 @@ void ManipulateCPs::ShowingCPs(){
 
 }
 void ManipulateCPs::AddOneCp(){
-  // if(!isBranchSelected){//
-  //   QMessageBox::information(0, "For your information",
-  //       "Please select a branch/point first!");
-  // }
+  
   AddCPbuttonPressed = true;
 
 }
 
 void ManipulateCPs::DeleteTheBranch(Node_ *CurrPressedNode)
 {
-  // int CurrNodeIndex_m = CurrNode->getIndexM();
-  // //1. update CPlist - erase the branch
-  // //CPlist.erase(CPlist.begin() + CurrNodeIndex_m);//The size will decrease
-  // vector<Vector3<float>> *changedBranch;
-  // changedBranch = &(CPlist[CurrNodeIndex_m]);
-  // changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
-
-  // //2. change sliders
-  // emit PressNode(0, 0); 
-
-  // //3.remove two points in the scene.
-  // scene->removeItem(CurrNode);
-  // Node_ *forewardNode = CurrNode->getPrevNode();
-  // if (forewardNode != nullptr) scene->removeItem(forewardNode);
-  // Node_ *backwardNode = CurrNode->getNextNode();
-  // if (backwardNode != nullptr) scene->removeItem(backwardNode);
-
   int CurrNodeIndex_m = CurrPressedNode->getIndexM();
   //1. update CPlist - erase the branch
   vector<Vector3<float>> *changedBranch;
@@ -177,7 +157,10 @@ void ManipulateCPs::deleteCurrCp(){
 void ManipulateCPs::rotateCPsBtnPressed()
 {
   rotateCPs = true;
-  
+}
+void ManipulateCPs::ZoomInOutBtn_pressed()
+{
+  ZoomInOut = true;
 }
 void ManipulateCPs::deleteMultiCp()
 {
@@ -227,6 +210,7 @@ void ManipulateCPs::MoveMultiPoint(Node_ *node, QPointF newPos){
   
   CPlist[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
   CPlist[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
+  CPlist[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
 }
 
 void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degree){
@@ -271,6 +255,7 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, int intensity)
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
   MultiCPsDelete.clear();//To avoid being deleted next.
   AllItemsUnselected = true;
+  ZoomFactor = 1.0;
   
   if(HoriLine != nullptr)
   {
@@ -311,6 +296,9 @@ void ManipulateCPs::keyPressEvent(QKeyEvent *event)
   case Qt::Key_R:
     Key_R_pressed = true;
     break;
+  case Qt::Key_Z:
+    Key_Z_pressed = true;
+    break;
   default:
     QGraphicsView::keyPressEvent(event);
   }
@@ -329,6 +317,9 @@ void ManipulateCPs::keyReleaseEvent(QKeyEvent *event)
     case Qt::Key_R:
       Key_R_pressed = false;
       break;
+    case Qt::Key_Z:
+      Key_Z_pressed = false;
+      break;  
   }
 
 }
@@ -387,7 +378,29 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
 
       }
     }
-    else scaleView(pow(2.0, -event->angleDelta().y() / 240.0));
+    else if(Key_Z_pressed)
+      {
+        QList<QGraphicsItem*> selectedList =	scene->selectedItems();
+        if(!selectedList.empty()){
+          Node_ * selectedNode;
+          QPointF StartPos, changedPos;
+          ZoomFactor = (event->angleDelta().y() / 120.0) * 0.1 + 1.0;
+          //cout<<"ZoomFactor: "<<ZoomFactor<<endl;
+          for (auto& selectedItem : selectedList) {
+            if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
+                StartPos = selectedNode->getPos();
+                changedPos.rx() = crossPoint.rx() + (StartPos.rx() - crossPoint.rx()) * ZoomFactor;
+                changedPos.ry() = crossPoint.ry() + (StartPos.ry() - crossPoint.ry()) * ZoomFactor;
+                
+                selectedNode->setPos(changedPos);
+
+            }
+          }
+
+        }
+        
+      }
+      else scaleView(pow(2.0, -event->angleDelta().y() / 240.0));
 }
 
 
@@ -646,7 +659,7 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
     
     AddCPbuttonPressed = false;
   }
-  else if (rotateCPs)
+  else if (rotateCPs || ZoomInOut)
     {
       HoriLine = new QGraphicsLineItem(scenePoint.x()-5, scenePoint.y(), scenePoint.x()+5, scenePoint.y());
       HoriLine->setPen(QPen(Qt::red, 2));
@@ -656,9 +669,8 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
       VerLine->setPen(QPen(Qt::red, 2));
       scene->addItem(VerLine);
       crossPoint = scenePoint;
-      rotateCPs = false;
+      //rotateCPs = false;
     }
-    
 
   AllItemsUnselected = false;
   QGraphicsView::mousePressEvent(event);
@@ -667,7 +679,8 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
 void ManipulateCPs::mouseReleaseEvent(QMouseEvent *event) {
   //QPointF releasePoint = mapToScene(event->pos());
    //std::cout<< releasePoint.x() <<"---/"<<releasePoint.y()<<endl;
-  //rotateCPs = false;
+  rotateCPs = false;
+  ZoomInOut = false;
 
   QGraphicsView::mouseReleaseEvent(event);
 }

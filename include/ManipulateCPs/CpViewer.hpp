@@ -35,6 +35,7 @@ protected slots:
   void DeleteMultiCPsBtn_press();
   void DeleteABranchBtn_press();
   void rotateCPsBtn_press();
+  void ZoomInOutBtn_press();
   
   void ChangeValueDisplay(int val, int degree);
  

@@ -226,6 +226,9 @@ void MainWidget::highlightNodes()
       imageViewer_->setOverlayImage(bimg);
     }
   }
+  else {
+    imageViewer_->removeOverlay();
+  }
 }
 
 QDockWidget *MainWidget::morphotreeDockWidget()

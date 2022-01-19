@@ -1003,7 +1003,7 @@ void dmdReconstruct::ReconstructIndexingImage_multi(QVector<unsigned int> nodesI
             }
             
             output->NewwritePGM("output.pgm");
-            delete output;
+            // delete output;
             printf("DMD finished!\n");
         }
     }

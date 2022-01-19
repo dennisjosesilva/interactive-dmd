@@ -24,12 +24,13 @@
 
 #include "MainWindow.hpp"
 
-MainWidget::MainWidget(QWidget *parent)
+MainWidget::MainWidget(MainWindow *mainWindow, QWidget *parent)
   :QWidget{parent},
    needTreeVisualiserUpdate_{false},
    nodeSelectionByClickActivated_{false},
    ctrlDown_{false},
-   reconMode_{ReconMode::MorphoTree}
+   reconMode_{ReconMode::MorphoTree},
+   mainWindow_{mainWindow}
 { 
   namespace iv = ImageViewerWidget;  
   namespace mw = IcicleMorphotreeWidget;
@@ -120,10 +121,10 @@ void MainWidget::updateTreeVisualiser()
   
   needTreeVisualiserUpdate_ = false;
 
-  MainWindow *mainWindow = qobject_cast<MainWindow*>(parent());
-  mainWindow->setMinMaxProgressBar(0, treeVis_->numberOfNodesOfTree()-1);
-  mainWindow->statusBar()->clearMessage();
-  mainWindow->statusBar()->showMessage(tr("Loading Skeleton (DMD)"));
+  
+  mainWindow_->setMinMaxProgressBar(0, treeVis_->numberOfNodesOfTree()-1);
+  mainWindow_->statusBar()->clearMessage();
+  mainWindow_->statusBar()->showMessage(tr("Loading Skeleton (DMD)"));
   treeVis_->registerDMDSkeletons();  
   HasUpdatedTreeVisualiser = true;
   reconMode_ = ReconMode::MorphoTree;
@@ -159,23 +160,22 @@ void MainWidget::setImage(const QImage &image)
 }
 
 void MainWidget::createDockTreeVisualiser()
-{
-  MainWindow *mainWindow = qobject_cast<MainWindow*>(parent());
-  dockTreeVisualiser_ = new ClosableDockWidget{"Morphotree", mainWindow};
+{  
+  dockTreeVisualiser_ = new ClosableDockWidget{"Morphotree", mainWindow_};
 
   dockTreeVisualiser_->setVisible(false);
-  dockTreeVisualiser_->setFloating(true);  
+  //dockTreeVisualiser_->setFloating(true);  
+  mainWindow_->addDockWidget(Qt::RightDockWidgetArea, dockTreeVisualiser_);
   dockTreeVisualiser_->setWidget(treeVis_);
 
   connect(dockTreeVisualiser_, &ClosableDockWidget::closed, 
-    [mainWindow](ClosableDockWidget *dock) { mainWindow->showTreeVisAct()->setChecked(false); }
+    [this](ClosableDockWidget *dock) { mainWindow_->showTreeVisAct()->setChecked(false); }
   );
 }
 
 void MainWidget::createDockWidgetSdmd()
 {
-  dockWidgetSdmd_ = new QDockWidget{"SDMD processing", 
-    qobject_cast<QMainWindow*>(parent())};
+  dockWidgetSdmd_ = new QDockWidget{"SDMD processing", mainWindow_};
     
   dockWidgetSdmd_->setVisible(false);
   dockWidgetSdmd_->setFloating(true);  
@@ -239,8 +239,7 @@ QDockWidget *MainWidget::morphotreeDockWidget()
 
 MyDockWidget *MainWidget::createDockWidget(const QString &title, QWidget *widget)
 {  
-  MyDockWidget *dock = 
-    new MyDockWidget{title, qobject_cast<QMainWindow *>(parent())};
+  MyDockWidget *dock = new MyDockWidget{title, mainWindow_};
 
   dock->setVisible(true);
   dock->setFloating(true);

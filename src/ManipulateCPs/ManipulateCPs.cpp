@@ -64,7 +64,7 @@ void ManipulateCPs::ShowingCPs(){
 
                 if(j > 1){
                   prevNode->setNextNode(node1);
-                  Edge *edge = new Edge(prevNode, node1, i);
+                  Edge *edge = new Edge(prevNode, node1, degree);
                   scene->addItem(edge);
                   WholeEdgeList << edge;
                 } 
@@ -160,7 +160,7 @@ void ManipulateCPs::deleteCurrCp(){
     Node_ *CurrPrevN = CurrPressedNode->getPrevNode();
     Node_ *CurrNextN = CurrPressedNode->getNextNode();
     if(CurrPrevN != nullptr && CurrNextN != nullptr){
-      Edge *edge = new Edge(CurrPrevN, CurrNextN, CurrNodeIndex_m);
+      Edge *edge = new Edge(CurrPrevN, CurrNextN, CurrPressedNode->getDegree());
       edge->setThickerSignal(true);
       scene->addItem(edge);
       WholeEdgeList << edge;
@@ -214,24 +214,29 @@ void ManipulateCPs::removeTwoEdgeOfNode (Node_ *CurrNode)
 }
 
 void ManipulateCPs::MoveMultiPoint(Node_ *node, QPointF newPos){
-  //cout<<" CurrNodeIndex_m "<<node->getIndexM()<<" "<<node->getIndexN()<<" "<<newPos.rx()<<" "<<newPos.ry()<<endl;
   QList<QGraphicsItem*> selectedList =	scene->selectedItems();
-  if(selectedList.size()>1){
-    if(CPlistMap.size() == 1){
-      CPlistForOneNode[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
-      CPlistForOneNode[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
-      CPlistForOneNode[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
-    }
-    else{
-      vector<vector<Vector3<float>>> CPlist = CPlistMap[node->getComponentId()];
-      CPlist[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
-      CPlist[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
-      CPlist[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
-      //If there is already an item with the key key, that item's value is replaced with value.
-      CPlistMap.insert(node->getComponentId(), CPlist);
-
-    }
+  if(selectedList.size() == 1){
+     OutLog<<"For Node-"<<node->getComponentId()<<", branch-"<<node->getIndexM()<<": moving node-"<<
+     node->getIndexN()<<" to ("<<newPos.rx() + w/2<<", "<<newPos.ry() + h/2 <<")."<<endl<<endl;
   }
+  //else OutLog<<"Moving multi-nodes."<<endl;
+  
+
+  if(CPlistMap.size() == 1){
+    CPlistForOneNode[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
+    CPlistForOneNode[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
+    CPlistForOneNode[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
+  }
+  else{
+    vector<vector<Vector3<float>>> CPlist = CPlistMap[node->getComponentId()];
+    CPlist[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
+    CPlist[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
+    CPlist[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
+    //If there is already an item with the key key, that item's value is replaced with value.
+    CPlistMap.insert(node->getComponentId(), CPlist);
+
+  }
+
 }
 
 void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degree){
@@ -258,30 +263,8 @@ void ManipulateCPs::Update(){
 void ManipulateCPs::UpdateBackground()
 {
   scaleView(pow(2.0, -0.1 / 240.0));
- // scaleView(qreal(0.01));
 }
-void ManipulateCPs::itemMoved(Node_ *node, QPointF Pos)
-{
-  QList<QGraphicsItem*> selectedList =	scene->selectedItems();
-  if(selectedList.size() == 1){
-    if(CPlistMap.size() == 1) {
-      CPlistForOneNode[CurrNodeIndex_m][CurrNodeIndex_n][0] = Pos.rx() + w/2;
-      CPlistForOneNode[CurrNodeIndex_m][CurrNodeIndex_n][1] = Pos.ry() + h/2;
-    }
-    else{
-      vector<vector<Vector3<float>>> CPlist = CPlistMap[node->getComponentId()];
-      CPlist[node->getIndexM()][node->getIndexN()][0] = Pos.rx() + w/2;
-      CPlist[node->getIndexM()][node->getIndexN()][1] = Pos.ry() + h/2;
-      //If there is already an item with the key key, that item's value is replaced with value.
-      CPlistMap.insert(node->getComponentId(), CPlist);
-    }
-    
-    // 
 
-     OutLog<<"For Node-"<<node->getComponentId()<<", branch-"<<node->getIndexM()<<": moving node-"<<
-     node->getIndexN()<<" to ("<<Pos.rx() + w/2<<", "<<Pos.ry() + h/2 <<")."<<endl<<endl;
-  }
-}
 void ManipulateCPs::changeCurrNodeRInCplist(int r)
 {
   CPlistForOneNode[CurrNodeIndex_m][CurrNodeIndex_n][2] = r;
@@ -294,8 +277,9 @@ void ManipulateCPs::changeCurrbranchDegree(int d)
 }
 void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
 {
+  
   if(CPlistMap.size() == 1) CPlistMap.insert(nodeIdForOneNode, CPlistForOneNode);
-  //
+ 
   recon->reconFromMovedCPs(CPlistMap);
 
   UpdateBackground();
@@ -307,11 +291,12 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
   
   if(HoriLine != nullptr)
   {
+
     scene->removeItem(HoriLine);
     scene->removeItem(VerLine);
-    delete HoriLine, VerLine;
+    HoriLine = nullptr;
+    VerLine = nullptr;
   }  
-  
 }
 void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
 {
@@ -373,16 +358,12 @@ void ManipulateCPs::keyReleaseEvent(QKeyEvent *event)
     case Qt::Key_Z:
       Key_Z_pressed = false;
       break;  
-    // case Qt::Key_A:
-    //   Key_A_pressed = false;
-    //   break; 
   }
 
 }
 void ManipulateCPs::wheelEvent(QWheelEvent *event)
 {
   if(Key_Shift_pressed){
-    //std::cout<< event->angleDelta().y() / 120.0 <<"---"<<endl;
     int setR = CurrPressedNode->getRadius() + event->angleDelta().y() / 120.0;
     CurrPressedNode->setRadius(setR);
     CurrPressedNode->setPaintRadius(true);
@@ -428,7 +409,6 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
               rotatedPos.ry() = (StartPos.rx() - crossPoint.rx())*qSin(angle) + (StartPos.ry() - crossPoint.ry())*qCos(angle) + crossPoint.ry();
               
               selectedNode->setPos(rotatedPos);
-
           }
         }
 
@@ -450,7 +430,6 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
                 changedPos.ry() = crossPoint.ry() + (StartPos.ry() - crossPoint.ry()) * ZoomFactor;
                 
                 selectedNode->setPos(changedPos);
-
             }
           }
 
@@ -612,7 +591,7 @@ void ManipulateCPs::AddNewBranch(QPointF point)
   node2->setNextNode(nullptr);
 
   //4.Add edges between them
-  Edge *edge = new Edge(node1, node2, CPlistForOneNode.size()-1);
+  Edge *edge = new Edge(node1, node2, 1);
   edge->setThickerSignal(true);
   scene->addItem(edge);
   WholeEdgeList << edge;
@@ -661,7 +640,7 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
   }
   //add two new edges
   if(CurrPrevNode != nullptr){
-    Edge *edge = new Edge(CurrPrevNode, node1, CurrNodeIndex_m);
+    Edge *edge = new Edge(CurrPrevNode, node1, CPlistForOneNode[CurrNodeIndex_m][0][1]);
     edge->setThickerSignal(true);
     scene->addItem(edge);
     WholeEdgeList << edge;
@@ -670,7 +649,7 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
   }
   
   if(CurrNextNode != nullptr){
-    Edge *edge = new Edge(node1, CurrNextNode, CurrNodeIndex_m);
+    Edge *edge = new Edge(node1, CurrNextNode, CPlistForOneNode[CurrNodeIndex_m][0][1]);
     edge->setThickerSignal(true);
     scene->addItem(edge);
     WholeEdgeList << edge;

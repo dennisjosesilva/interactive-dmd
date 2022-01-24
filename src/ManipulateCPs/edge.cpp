@@ -26,7 +26,6 @@ Node_ *Edge::destNode() const
 
 void Edge::adjust()
 {
-  //std::cout<<"Edge adjust"<<std::endl;
   if (!source || !dest)
     return;
   int nodeR = source->getNodeRadius();
@@ -71,8 +70,27 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
   //painter->setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   //QColor qc = QColor::fromRgb(80*(colorI%3),50*(colorI/10),200*(colorI%2));//note: colorI should smaller than 60.
   
-  QColor qc = QColor(qrand()%255, qrand()%255, qrand()%255);
-
+  //QColor qc = QColor(qrand()%255, qrand()%255, qrand()%255);//generate random color.
+  float x;
+  switch (colorI)
+  {
+    case 1:
+      x = 0.0;
+      break;
+    case 2:
+      x = 0.33;
+      break;
+    case 3:
+      x = 0.66;
+      break;
+    case 4:
+      x = 0.99;
+      break;  
+    default:
+      x = 0.99;
+      break;
+  }
+  QColor qc = QColor::fromHslF(x*0.8, 0.95, 0.5);
   if(thickerEdge)  painter->setPen(QPen(qc, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   else painter->setPen(QPen(qc, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   painter->drawLine(line);

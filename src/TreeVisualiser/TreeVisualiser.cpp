@@ -765,6 +765,7 @@ void TreeVisualiser::nodeMousePress(GNode *node,
   if (treeWidget_->dragMode() == QGraphicsView::NoDrag) {        
     if (e->modifiers() & Qt::ShiftModifier) {
       if (selectedNodes_.count() == 0) {
+        node->setSelected(true);
         curSelectedNodeIndex_ = node->mnode()->id();
         selectedNodes_.insert(node->mnode()->id(), node);
       }

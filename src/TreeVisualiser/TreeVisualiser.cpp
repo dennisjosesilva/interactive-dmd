@@ -216,34 +216,22 @@ FIELD<float> *TreeVisualiser::SDMDReconstruction(unsigned int id)
 
 std::vector<bool> TreeVisualiser::SDMDRecontructionSelectedNodes()
 {
+  QVector<uint32> selectedNodesIds = selectedNodes_.keys().toVector();    
   std::vector<bool> frec(domain_.numberOfPoints(), false);
-  const QVector<GNode *> &gnodes = treeWidget_->gnodes();
-  QStack<NodePtr> s;
-  NodePtr r = treeWidget_->mtree().root();
+  dmdrecon_->ReconstructIndexingImage_multi(selectedNodesIds);
+  dmdrecon_->GetCPs(selectedNodesIds);
 
-  s.push(r);
+  FIELD<float> *bimg = dmdrecon_->getOutput();
 
-  while (!s.isEmpty()) {
-    NodePtr n = s.pop();
-
-    if (gnodes[n->id()]->isSelected()) {
-      dmdrecon_->ReconstructIndexingImage(n->id());
-      FIELD<float> *bimg = dmdrecon_->getOutput();
-
-      for (int y = 0; y < bimg->dimY(); y++) {
-        for (int x = 0; x < bimg->dimX(); x++) {
-          if (bimg->value(x, y)) 
-            frec[domain_.width() * y + x] = true;
-        }
-      }      
-    } 
-    else {
-      for (NodePtr c : n->children()) {
-        s.push(c);
-      }
+  for (int y = 0; y < bimg->dimY(); y++) {
+    for (int x = 0; x < bimg->dimX(); x++) {
+      if (bimg->value(x, y))
+        frec[domain_.pointToIndex(x, y)] = true;
     }
   }
 
+  delete bimg;
+  bimg = nullptr;
   return frec;
 }
 
@@ -777,6 +765,7 @@ void TreeVisualiser::nodeMousePress(GNode *node,
   if (treeWidget_->dragMode() == QGraphicsView::NoDrag) {        
     if (e->modifiers() & Qt::ShiftModifier) {
       if (selectedNodes_.count() == 0) {
+        node->setSelected(true);
         curSelectedNodeIndex_ = node->mnode()->id();
         selectedNodes_.insert(node->mnode()->id(), node);
       }

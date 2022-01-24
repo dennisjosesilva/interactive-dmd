@@ -96,9 +96,8 @@ QLayout *ThresholdControl::createSaliencyThresholdLayout()
   saliencyThresSpinBox_ = new QDoubleSpinBox{this};
   saliencyThresSpinBox_->setRange(0.1, 3);
   saliencyThresSpinBox_->setSingleStep(0.05);
-  SaliencyVal = 0.6;
-  saliencyThresSpinBox_->setValue(SaliencyVal);
-  
+  saliencyThresSpinBox_->setValue(1.0);
+  SaliencyVal = 1.0;
 
   saliencyThresLayout->addWidget(label);
   saliencyThresLayout->addWidget(saliencyThresSpinBox_);

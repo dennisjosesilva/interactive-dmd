@@ -13,6 +13,7 @@
 #include <QImage>
 #include <QToolBar>
 #include <QIcon>
+#include <QStackedWidget>
 
 #include <QStatusBar>
 #include <QProgressBar>
@@ -28,12 +29,15 @@ MainWindow::MainWindow()
   setWindowTitle("Interactive DMD"); 
   //const QString filename = "../../images/Zuckerberg.pgm";
   // const QString filename = "../images/bird.pgm";
-  const QString filename = "../images/2.pgm";
+  const QString filename = "../images/art1-line.pgm";
   
   mainWidget_ = new MainWidget{this};
  
   mainWidget_->loadImage(filename);
-  setCentralWidget(mainWidget_);
+  centralWidget_ = new QStackedWidget{this};
+  centralWidget_->addWidget(mainWidget_);
+  centralWidget_->setCurrentIndex(0);
+  setCentralWidget(centralWidget_);
 
   createMenus();
   createToolBar();  
@@ -61,9 +65,16 @@ MainWindow::MainWindow()
 
 void MainWindow::ChangeCentralWidget_(CpViewer *cv)
 {
-   if(cv == nullptr) {takeCentralWidget(); setCentralWidget(mainWidget_);}
-   else {takeCentralWidget(); setCentralWidget(cv);}
+  if (centralWidget_->count() == 2)
+      centralWidget_->removeWidget(centralWidget_->widget(1));
   
+   if(cv == nullptr) {
+     centralWidget_->setCurrentIndex(0);
+   }
+   else {     
+    centralWidget_->addWidget(cv);
+    centralWidget_->setCurrentIndex(1);
+   }  
 }
 void MainWindow::setMinMaxProgressBar(int min, int max)
 {

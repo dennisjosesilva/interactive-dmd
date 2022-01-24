@@ -6,8 +6,6 @@
 
 #include <QList>
 
-
-class QStackedWidget;
 class QDockWidget;
 class QAction;
 class QProgressBar;
@@ -55,7 +53,6 @@ private:
   void showProgressBar();
 
 private:
-  QStackedWidget *centralWidget_;
   MainWidget *mainWidget_;
   QDockWidget *dockTreeVis_;
   

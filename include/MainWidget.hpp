@@ -13,15 +13,13 @@
 
 enum class ReconMode { MorphoTree, SDMD };
 
-class MainWindow;
-
 class MainWidget : public QWidget
 {  
   Q_OBJECT
 public:
   using GNode = IcicleMorphotreeWidget::GNode;
 
-  MainWidget(MainWindow *mainWindow, QWidget *parent=nullptr);
+  MainWidget(QWidget *parent=nullptr);
 
   bool loadImage(const QString& filename);
   bool saveImage(const QString& filename);
@@ -55,7 +53,6 @@ public:
   inline float getHDValue() {return ThresCtl->getHDVal();}
    
   inline TreeVisualiser *getTreeVis() {return treeVis_;};
-  inline MainWindow *getMainWindow() { return mainWindow_; }
 
 protected slots:
   void imageMousePress(const QPointF &p, QMouseEvent *e);
@@ -100,6 +97,4 @@ private:
   InteractiveSdmd *Interactive_sdmd;
   QImage newImage;
   bool HasUpdatedTreeVisualiser = false;
-
-  MainWindow *mainWindow_;
 };

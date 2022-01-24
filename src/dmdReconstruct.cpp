@@ -56,7 +56,7 @@ void dmdReconstruct::reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<
         //update IndexingSample
         IndexingSample[IndexingSample.size() - NodeId] = movedSample;
     }
-    delete output;
+    //delete output;
  
 }
 
@@ -228,7 +228,7 @@ void dmdReconstruct::RenderOutput(int inty, bool DrawAnything)
         contextFunc->glDisable(GL_DEPTH_TEST);
         contextFunc->glEnable(GL_BLEND);
         contextFunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+
         //program2.link();
         program2.bind();
 
@@ -821,6 +821,7 @@ bool dmdReconstruct::renderLayer(int intensity, vector<Vector3<float>> SampleFor
                         output->set(x, y_, intensity);
                 }
             
+
             free(data);
             output->NewwritePGM("output.pgm");
             
@@ -875,7 +876,7 @@ void dmdReconstruct::ReconstructIndexingImage(int nodeID){
         }
         
         //output->NewwritePGM("output.pgm");
-        delete output;
+        //delete output;
         printf("DMD finished!\n");
     }
 
@@ -1003,7 +1004,7 @@ void dmdReconstruct::ReconstructIndexingImage_multi(QVector<unsigned int> nodesI
             }
             
             output->NewwritePGM("output.pgm");
-            // delete output;
+            //delete output;
             printf("DMD finished!\n");
         }
     }

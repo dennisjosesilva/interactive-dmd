@@ -30,7 +30,6 @@ public:
   void UpdateBackground();
   void ShowingCPs();
   
-  void itemMoved(Node_ *node, QPointF Pos);
   void changeCurrNodeRInCplist(int r);
   void changeCurrbranchDegree(int d);
   void ReconFromMovedCPs(dmdReconstruct *recon);

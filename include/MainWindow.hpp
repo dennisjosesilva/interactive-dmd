@@ -64,6 +64,7 @@ private:
   QAction *imageZoomInAct_;
   QAction *imageZoomOutAct_;
   QAction *nodeHighlightAct_;
+  QAction *syncTreeAct_;
 
   QAction *dmdProcessAct_;
 

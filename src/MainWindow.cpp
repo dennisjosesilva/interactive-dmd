@@ -172,6 +172,12 @@ void MainWindow::createToolBar()
   connect(nodeHighlightAct_, &QAction::triggered, this, &MainWindow::nodeHighlightAct_onTriggered);
   toolbar->addAction(nodeHighlightAct_);
 
+  const QIcon syncTreeIcon = QIcon{":/images/sync_morphotree_icon.png"};
+  syncTreeAct_ = new QAction{syncTreeIcon, tr("Sychronize image and morphological tree"), this};
+  syncTreeAct_->setStatusTip(tr("synchronize image and morphological tree"));
+  // TODO: connect(...);
+  toolbar->addAction(syncTreeAct_);
+
   // ===== Image Tool bar ========
   QToolBar *imageToolBar = addToolBar("Image Toolbar");
   imageToolBar->setIconSize(QSize(32, 32));

@@ -217,22 +217,30 @@ FIELD<float> *TreeVisualiser::SDMDReconstruction(unsigned int id)
 std::vector<bool> TreeVisualiser::SDMDRecontructionSelectedNodes()
 {
   QVector<uint32> selectedNodesIds = selectedNodes_.keys().toVector();    
-  std::vector<bool> frec(domain_.numberOfPoints(), false);
-  dmdrecon_->ReconstructIndexingImage_multi(selectedNodesIds);
-  dmdrecon_->GetCPs(selectedNodesIds);
-
-  FIELD<float> *bimg = dmdrecon_->getOutput();
-
-  for (int y = 0; y < bimg->dimY(); y++) {
-    for (int x = 0; x < bimg->dimX(); x++) {
-      if (bimg->value(x, y))
-        frec[domain_.pointToIndex(x, y)] = true;
-    }
+  
+  if (selectedNodesIds.contains(0)) { 
+    // when the root is selected return the root node.
+    return std::vector<bool>(domain_.numberOfPoints(), true);
   }
+  else {
+    // else reconstruct the nodes
+    std::vector<bool> frec(domain_.numberOfPoints(), false);
+    dmdrecon_->ReconstructIndexingImage_multi(selectedNodesIds);
+    dmdrecon_->GetCPs(selectedNodesIds);
 
-  delete bimg;
-  bimg = nullptr;
-  return frec;
+    FIELD<float> *bimg = dmdrecon_->getOutput();
+
+    for (int y = 0; y < bimg->dimY(); y++) {
+      for (int x = 0; x < bimg->dimX(); x++) {
+        if (bimg->value(x, y))
+          frec[domain_.pointToIndex(x, y)] = true;
+      }
+    }
+
+    delete bimg;
+    bimg = nullptr;
+    return frec;
+  }
 }
 
 void TreeVisualiser::selectNodesForRecBasedOnIntensities(
@@ -595,9 +603,14 @@ std::vector<bool> TreeVisualiser::morphoRecSelectedNodes() const
   const MTree &mtree = treeWidget_->mtree();
   const QVector<GNode *> &gnodes = treeWidget_->gnodes();
 
-  return mtree.reconstructNodes([&gnodes](NodePtr node){
-    return gnodes[node->id()]->isSelected();
-  }, domain_);
+  if (gnodes[0]->isSelected()){ 
+    return std::vector<bool>(domain_.numberOfPoints(), true);
+  }
+  else {
+    return mtree.reconstructNodes([&gnodes](NodePtr node){
+      return gnodes[node->id()]->isSelected();
+    }, domain_);
+  }
 }
 
 void TreeVisualiser::binRecBtn_press()

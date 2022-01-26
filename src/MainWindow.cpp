@@ -175,7 +175,7 @@ void MainWindow::createToolBar()
   const QIcon syncTreeIcon = QIcon{":/images/sync_morphotree_icon.png"};
   syncTreeAct_ = new QAction{syncTreeIcon, tr("Sychronize image and morphological tree"), this};
   syncTreeAct_->setStatusTip(tr("synchronize image and morphological tree"));
-  // TODO: connect(...);
+  connect(syncTreeAct_, &QAction::triggered, this, &MainWindow::syncTreeAct_onTrigged);
   toolbar->addAction(syncTreeAct_);
 
   // ===== Image Tool bar ========
@@ -307,6 +307,18 @@ void MainWindow::treeVisAct_onToggled(bool checked)
 void MainWindow::nodeSelectionClickAct_onToggled(bool checked)
 {
   mainWidget_->setNodeSelectionByClickActivated(checked);
+}
+
+void MainWindow::syncTreeAct_onTrigged()
+{
+  shouldUpdateProgressBar_ = true;
+  attrVisMenu_->setEnabled(false);
+  uncheckAttrVisActs();
+  if (showTreeVisAct_->isChecked()) {
+    showProgressBar();
+    attrVisMenu_->setEnabled(true);
+    mainWidget_->updateTreeVisualiser();
+  }
 }
 
 void MainWindow::imageZoomInAct_onTrigged()

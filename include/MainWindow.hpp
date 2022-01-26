@@ -29,7 +29,8 @@ private slots:
   void dmdProcessAct_onTrigged();
 
   void treeVisAct_onToggled(bool checked=true);
-  void nodeSelectionClickAct_onToggled(bool checked);
+  void nodeSelectionClickAct_onToggled(bool checked);  
+  void syncTreeAct_onTrigged();
   void imageZoomInAct_onTrigged();
   void imageZoomOutAct_onTrigged();
 

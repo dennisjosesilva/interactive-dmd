@@ -283,6 +283,8 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
   shouldUpdateCustomTreeRedraw_ = false;
   if (treeWidget_->hasAttributes()) 
     clearAttributes();
+  
+  selectedNodes_.clear();
 
   maxValue_ = static_cast<uint32>(*std::max_element(f.begin(), f.end()));
   curSelectedNodeIndex_ = InvalidNodeIndex;

@@ -48,6 +48,7 @@ void Node_::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     setSelected(false);
   if(graph->getItemsSelectionState())
     setSelected(true);
+  
   if(isSelected()){
     gradient.setColorAt(0, Qt::blue);
     gradient.setColorAt(1, Qt::darkBlue);
@@ -61,7 +62,9 @@ void Node_::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
   painter->setBrush(gradient);
 
   painter->setPen(QPen(Qt::red, 0));
-  painter->drawEllipse(-NodeRadius, -NodeRadius, 2*NodeRadius, 2*NodeRadius);
+  int SelectedNodeRadius = NodeRadius+2;
+  if(isSelected()) painter->drawEllipse(-SelectedNodeRadius, -SelectedNodeRadius, 2*SelectedNodeRadius, 2*SelectedNodeRadius);
+  else painter->drawEllipse(-NodeRadius, -NodeRadius, 2*NodeRadius, 2*NodeRadius);
 
   if(paintRadius){
     painter->setBrush(QColor(200,200,200,150));

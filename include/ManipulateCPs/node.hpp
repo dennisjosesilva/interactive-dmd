@@ -53,7 +53,7 @@ private:
   QVector<Edge*> edgeList;
   QPointF newPos;
   ManipulateCPs *graph;
-  int NodeRadius = 3;
+  int NodeRadius = 4;
   int index_m = 1000, index_n = 1000;
   int radius_; 
   int maxDegree, degree;

@@ -64,7 +64,7 @@ void ManipulateCPs::ShowingCPs(){
 
                 if(j > 1){
                   prevNode->setNextNode(node1);
-                  Edge *edge = new Edge(prevNode, node1, degree);
+                  Edge *edge = new Edge(prevNode, node1, degree, i);
                   scene->addItem(edge);
                   WholeEdgeList << edge;
                 } 
@@ -160,7 +160,8 @@ void ManipulateCPs::deleteCurrCp(){
     Node_ *CurrPrevN = CurrPressedNode->getPrevNode();
     Node_ *CurrNextN = CurrPressedNode->getNextNode();
     if(CurrPrevN != nullptr && CurrNextN != nullptr){
-      Edge *edge = new Edge(CurrPrevN, CurrNextN, CurrPressedNode->getDegree());
+      Edge *edge = new Edge(CurrPrevN, CurrNextN, CurrPressedNode->getDegree(), CurrNodeIndex_m);
+     
       edge->setThickerSignal(true);
       scene->addItem(edge);
       WholeEdgeList << edge;
@@ -245,7 +246,7 @@ void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degre
   
   CurrNodeIndex_m = CurrPressedNode->getIndexM();
   CurrNodeIndex_n = CurrPressedNode->getIndexN();
-  
+  //std::cout<<"Press_node"<<std::endl;
   //make edge thicker.
   for (Edge *edge : qAsConst(WholeEdgeList)){
     edge->setThickerSignal(false);
@@ -277,7 +278,7 @@ void ManipulateCPs::changeCurrbranchDegree(int d)
 }
 void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
 {
-  
+  emit setUnSync();
   if(CPlistMap.size() == 1) CPlistMap.insert(nodeIdForOneNode, CPlistForOneNode);
  
   recon->reconFromMovedCPs(CPlistMap);
@@ -591,7 +592,8 @@ void ManipulateCPs::AddNewBranch(QPointF point)
   node2->setNextNode(nullptr);
 
   //4.Add edges between them
-  Edge *edge = new Edge(node1, node2, 1);
+  Edge *edge = new Edge(node1, node2, 1, CPlistForOneNode.size()-1);
+  
   edge->setThickerSignal(true);
   scene->addItem(edge);
   WholeEdgeList << edge;
@@ -640,7 +642,7 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
   }
   //add two new edges
   if(CurrPrevNode != nullptr){
-    Edge *edge = new Edge(CurrPrevNode, node1, CPlistForOneNode[CurrNodeIndex_m][0][1]);
+    Edge *edge = new Edge(CurrPrevNode, node1, CPlistForOneNode[CurrNodeIndex_m][0][1], CurrNodeIndex_m);
     edge->setThickerSignal(true);
     scene->addItem(edge);
     WholeEdgeList << edge;
@@ -649,7 +651,7 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
   }
   
   if(CurrNextNode != nullptr){
-    Edge *edge = new Edge(node1, CurrNextNode, CPlistForOneNode[CurrNodeIndex_m][0][1]);
+    Edge *edge = new Edge(node1, CurrNextNode, CPlistForOneNode[CurrNodeIndex_m][0][1], CurrNodeIndex_m);
     edge->setThickerSignal(true);
     scene->addItem(edge);
     WholeEdgeList << edge;

@@ -5,8 +5,8 @@
 #include <QPainter>
 #include <QtMath>
 
-Edge::Edge(Node_ *sourceNode, Node_ *destNode, int color_i)
-  :source(sourceNode), dest(destNode), colorI(color_i)
+Edge::Edge(Node_ *sourceNode, Node_ *destNode, int degree, int color_i)
+  :source(sourceNode), dest(destNode), colorI(color_i), Degree(degree)
 {
   setAcceptedMouseButtons(Qt::NoButton);
   source->addEdge(this);
@@ -58,7 +58,6 @@ QRectF Edge::boundingRect() const
 
 void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-  //std::cout<<"Edge paint"<<std::endl;
   if (!source || !dest)
     return;
 
@@ -72,7 +71,7 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
   
   //QColor qc = QColor(qrand()%255, qrand()%255, qrand()%255);//generate random color.
   float x;
-  switch (colorI)
+  switch (Degree)
   {
     case 1:
       x = 0.0;
@@ -90,7 +89,7 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
       x = 0.99;
       break;
   }
-  QColor qc = QColor::fromHslF(x*0.8, 0.95, 0.5);
+   QColor qc = QColor::fromHslF(x*0.8, 0.95, 0.5);
   if(thickerEdge)  painter->setPen(QPen(qc, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   else painter->setPen(QPen(qc, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   painter->drawLine(line);

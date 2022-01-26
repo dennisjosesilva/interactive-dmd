@@ -92,6 +92,8 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   connect(manipulate_CPs, &ManipulateCPs::PressNode,
     this, &CpViewer::ChangeValueDisplay);
 
+  connect(manipulate_CPs, &ManipulateCPs::setUnSync,
+    this, &CpViewer::SetUnSync);
 }
 
 QLayout *CpViewer::createTextLayout()
@@ -193,7 +195,7 @@ void CpViewer::removeCPsBtn_press()
 void CpViewer::ReconBtn_press()
 {
   manipulate_CPs->ReconFromMovedCPs(recon_);
-  show_message(9);
+  //show_message(9);
 }
 
 void CpViewer::ReconImageBtn_press()
@@ -206,6 +208,10 @@ void CpViewer::ChangeValueDisplay(int radius, int degree)
 {
   if(radius != 0) CPradiusLabel_num->setText(QString::number(radius));
   if(degree != 0) DegreeLabel_num->setText(QString::number(degree));
+}
+
+void CpViewer::SetUnSync(){
+  bar->showMessage(tr("The two windows are no longer in sync!"));
 }
 void CpViewer::AddCPsBtn_press()
 {

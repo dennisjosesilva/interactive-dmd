@@ -30,7 +30,6 @@ public:
   void UpdateBackground();
   void ShowingCPs();
   
-  void itemMoved(Node_ *node, QPointF Pos);
   void changeCurrNodeRInCplist(int r);
   void changeCurrbranchDegree(int d);
   void ReconFromMovedCPs(dmdReconstruct *recon);
@@ -41,22 +40,25 @@ public:
   void MoveMultiPoint(Node_ *node, QPointF newPos);
   inline void getCPmap(QMap<unsigned int, vector<vector<Vector3<float>>>> CPmap) {CPlistMap = CPmap;}
   void deleteCurrCp();
+  void deleteCurrCp_multiNode();
   void deleteMultiCp();
-  void deleteABranch();
   void rotateCPsBtnPressed();
   void ZoomInOutBtn_pressed();
   void AddOneCp();
-  void DeleteTheBranch(Node_ *CurrPressedNode);
+  void DeleteTheBranch();
+  void DeleteTheBranch_multiNode();
   inline bool getItemsUnselectionState() {return AllItemsUnselected;}
   inline bool getItemsSelectionState() {return AllItemsSelected;}
   
   inline bool getRotateCPsState() {return rotateCPs;}
   //inline void closeLogFile() {OutLog.close();}
   void removeTwoEdgeOfNode (Node_ *CurrNode);
+  void SetDegreeOfTwoEdgeOfNode (Node_ *CurrNode, int degree);
 
 public: 
 signals: 
   void PressNode(int radius, int degree); 
+  void setUnSync();
 
 public slots:
   void zoomIn();

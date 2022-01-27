@@ -72,8 +72,8 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
   btnLayout->addWidget(removeCPsBtn);
   btnLayout->addWidget(AddCPsBtn);
   btnLayout->addWidget(DeleteCPsBtn);
-  btnLayout->addWidget(DeleteMultiCPsBtn);
   btnLayout->addWidget(DeleteABranchBtn);
+  btnLayout->addWidget(DeleteMultiCPsBtn);
   btnLayout->addWidget(rotateCPsBtn);
   btnLayout->addWidget(ZoomInOutBtn);
   btnLayout->addWidget(skelRecBtn);
@@ -95,6 +95,8 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
   connect(manipulate_CPs, &ManipulateCPs::PressNode,
     this, &CpViewer::ChangeValueDisplay);
 
+  connect(manipulate_CPs, &ManipulateCPs::setUnSync,
+    this, &CpViewer::SetUnSync);
 }
 
 QLayout *CpViewer::createTextLayout()
@@ -128,14 +130,14 @@ void CpViewer::getCPsMap(){
   {
     AddCPsBtn->setDisabled(true);
     DeleteCPsBtn->setDisabled(true);
-    DeleteMultiCPsBtn->setDisabled(true);
+    //DeleteMultiCPsBtn->setDisabled(true);
     DeleteABranchBtn->setDisabled(true);
 
   }
   else{
     AddCPsBtn->setEnabled(true);
     DeleteCPsBtn->setEnabled(true);
-    DeleteMultiCPsBtn->setEnabled(true);
+    //DeleteMultiCPsBtn->setEnabled(true);
     DeleteABranchBtn->setEnabled(true);
 
   }
@@ -196,7 +198,7 @@ void CpViewer::removeCPsBtn_press()
 void CpViewer::ReconBtn_press()
 {
   manipulate_CPs->ReconFromMovedCPs(recon_);
-  show_message(9);
+  //show_message(9);
 }
 
 void CpViewer::ReconImageBtn_press()
@@ -210,6 +212,10 @@ void CpViewer::ChangeValueDisplay(int radius, int degree)
 {
   if(radius != 0) CPradiusLabel_num->setText(QString::number(radius));
   if(degree != 0) DegreeLabel_num->setText(QString::number(degree));
+}
+
+void CpViewer::SetUnSync(){
+  bar->showMessage(tr("The two windows are no longer in sync!"));
 }
 void CpViewer::AddCPsBtn_press()
 {
@@ -228,7 +234,7 @@ void CpViewer::DeleteMultiCPsBtn_press()
 }
 void CpViewer::DeleteABranchBtn_press()
 {
-  manipulate_CPs->deleteABranch();
+  manipulate_CPs->DeleteTheBranch();
   show_message(6);
 }
 void CpViewer::rotateCPsBtn_press()

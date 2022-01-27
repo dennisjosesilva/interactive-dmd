@@ -48,6 +48,7 @@ void Node_::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     setSelected(false);
   if(graph->getItemsSelectionState())
     setSelected(true);
+  
   if(isSelected()){
     gradient.setColorAt(0, Qt::blue);
     gradient.setColorAt(1, Qt::darkBlue);
@@ -61,7 +62,9 @@ void Node_::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
   painter->setBrush(gradient);
 
   painter->setPen(QPen(Qt::red, 0));
-  painter->drawEllipse(-NodeRadius, -NodeRadius, 2*NodeRadius, 2*NodeRadius);
+  int SelectedNodeRadius = NodeRadius+2;
+  if(isSelected()) painter->drawEllipse(-SelectedNodeRadius, -SelectedNodeRadius, 2*SelectedNodeRadius, 2*SelectedNodeRadius);
+  else painter->drawEllipse(-NodeRadius, -NodeRadius, 2*NodeRadius, 2*NodeRadius);
 
   if(paintRadius){
     painter->setBrush(QColor(200,200,200,150));
@@ -80,12 +83,11 @@ QVariant Node_::itemChange(GraphicsItemChange change, const QVariant &value)
     for (Edge *edge : qAsConst(edgeList))
       edge->adjust();
     
-    if(index_m!=1000)
+    if(index_m != 1000)
     {
       graph->MoveMultiPoint(this, pos());
     }
-      
-    //std::cout<<"ItemPositionHasChanged"<<std::endl;
+    
     break;
   
   default:
@@ -98,22 +100,15 @@ QVariant Node_::itemChange(GraphicsItemChange change, const QVariant &value)
 void Node_::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
   //std::cout<<"mousePressEvent"<<std::endl;
-  //graph->setCurrentNodeIndex(index_m, index_n);
   graph->Press_node(this, radius_, maxDegree, degree);
  
   update();
   paintRadius = true;
   QGraphicsItem::mousePressEvent(event);
-  //cout<<"item: mousePressEvent"<<endl;
 }
 
 void Node_::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-  //std::cout<<"mouseReleaseEvent"<<std::endl;
-  newPos = pos();
-  //cout<<"index_m "<<newPos.rx()<<" index_m "<<newPos.ry()<<endl;
-  graph->itemMoved(this, newPos); 
-   
   update();
   QGraphicsItem::mouseReleaseEvent(event);
 }

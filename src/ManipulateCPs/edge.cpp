@@ -5,8 +5,8 @@
 #include <QPainter>
 #include <QtMath>
 
-Edge::Edge(Node_ *sourceNode, Node_ *destNode, int color_i)
-  :source(sourceNode), dest(destNode), colorI(color_i)
+Edge::Edge(Node_ *sourceNode, Node_ *destNode, int degree, int color_i)
+  :source(sourceNode), dest(destNode), colorI(color_i), Degree(degree)
 {
   setAcceptedMouseButtons(Qt::NoButton);
   source->addEdge(this);
@@ -26,7 +26,6 @@ Node_ *Edge::destNode() const
 
 void Edge::adjust()
 {
-  //std::cout<<"Edge adjust"<<std::endl;
   if (!source || !dest)
     return;
   int nodeR = source->getNodeRadius();
@@ -59,7 +58,6 @@ QRectF Edge::boundingRect() const
 
 void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-  //std::cout<<"Edge paint"<<std::endl;
   if (!source || !dest)
     return;
 
@@ -67,12 +65,32 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
   if (qFuzzyCompare(line.length(), qreal(0.0)))
     return;
 
-  // Draw the line itself
-  //painter->setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+  //generate colors based on the edge index.
   //QColor qc = QColor::fromRgb(80*(colorI%3),50*(colorI/10),200*(colorI%2));//note: colorI should smaller than 60.
   
-  QColor qc = QColor(qrand()%255, qrand()%255, qrand()%255);
+  //generate random colors.
+  //QColor qc = QColor(qrand()%255, qrand()%255, qrand()%255);
 
+  //generate colors based on the degree (using rainbow colormap).
+  QColor qc;
+  switch (Degree)
+  {
+    case 1:
+      qc = QColor::fromRgb(0, 0, 255);
+      break;
+    case 2:
+      qc = QColor::fromRgb(0, 255, 255);
+      break;
+    case 3:
+      qc = QColor::fromRgb(255, 255, 0);
+      break;
+    case 4:
+      qc = QColor::fromRgb(255, 0, 0);
+      break;  
+    default:
+      qc = QColor::fromRgb(255, 0, 0);
+      break;
+  }
   if(thickerEdge)  painter->setPen(QPen(qc, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   else painter->setPen(QPen(qc, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   painter->drawLine(line);

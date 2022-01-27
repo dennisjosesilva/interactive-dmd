@@ -322,12 +322,14 @@ void MainWidget::DisplayOrigImg()
   imageViewer_->setImage(newImage);
 }
 
-void MainWidget::addYellowBoard()
+void MainWidget::markTreeAsUnsynchronized()
 {
   imageViewer_->setStyleSheet(tr("QWidget { border: 10px solid yellow; } QLabel { border: none; }"));
+  mainWindow_->statusBar()->showMessage("Tree and image get unsynchronized", 15000);
 }
 
-void MainWidget::removeYellowBoard()
+void MainWidget::markTreeAsSynchronized()
 {
   imageViewer_->setStyleSheet(tr("border: none;"));
+  mainWindow_->statusBar()->showMessage("Tree and image has been synchronized", 15000);
 }

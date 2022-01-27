@@ -46,10 +46,14 @@ public:
   inline bool isHighlightNodeActivated() const { return highlightNode_; }
   void setHighlightNodeActivated(bool checked);
   
+  inline bool  needTreeVisualiserUpdate() const { return needTreeVisualiserUpdate_; }
+  inline bool &needTreeVisualiserUpdate() { return needTreeVisualiserUpdate_; }
+  inline void setNeedTreeVisualiserUpdate(bool val) { needTreeVisualiserUpdate_ = val; }
+
   void setImage(const QImage &image);
 
-  void addYellowBoard();
-  void removeYellowBoard();
+  void markTreeAsUnsynchronized();
+  void markTreeAsSynchronized();
 
   ReconMode reconMode() const { return reconMode_; }
   void setReconMode(ReconMode reconMode) { reconMode_ = reconMode; }

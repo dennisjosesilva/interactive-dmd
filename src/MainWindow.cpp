@@ -313,12 +313,13 @@ void MainWindow::syncTreeAct_onTrigged()
 {
   shouldUpdateProgressBar_ = true;
   attrVisMenu_->setEnabled(false);
+  mainWidget_->markTreeAsSynchronized();
+  mainWidget_->setNeedTreeVisualiserUpdate(true);
   uncheckAttrVisActs();
   if (showTreeVisAct_->isChecked()) {
     showProgressBar();
     attrVisMenu_->setEnabled(true);
-    mainWidget_->updateTreeVisualiser();
-    mainWidget_->removeYellowBoard();
+    mainWidget_->updateTreeVisualiser();    
   }
 }
 

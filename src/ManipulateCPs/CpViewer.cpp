@@ -203,7 +203,7 @@ void CpViewer::ReconImageBtn_press()
 {
   manipulate_CPs->ReconImageFromMovedCPs(recon_);
   show_message(10);
-  MainWidgetImageViewer->addYellowBoard();
+  MainWidgetImageViewer->markTreeAsUnsynchronized();
 }
 
 void CpViewer::ChangeValueDisplay(int radius, int degree)

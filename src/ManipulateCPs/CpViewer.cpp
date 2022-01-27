@@ -69,8 +69,8 @@ CpViewer::CpViewer(int W, int H, QWidget *parent)
   btnLayout->addWidget(removeCPsBtn);
   btnLayout->addWidget(AddCPsBtn);
   btnLayout->addWidget(DeleteCPsBtn);
-  btnLayout->addWidget(DeleteMultiCPsBtn);
   btnLayout->addWidget(DeleteABranchBtn);
+  btnLayout->addWidget(DeleteMultiCPsBtn);
   btnLayout->addWidget(rotateCPsBtn);
   btnLayout->addWidget(ZoomInOutBtn);
   btnLayout->addWidget(skelRecBtn);
@@ -127,14 +127,14 @@ void CpViewer::getCPsMap(){
   {
     AddCPsBtn->setDisabled(true);
     DeleteCPsBtn->setDisabled(true);
-    DeleteMultiCPsBtn->setDisabled(true);
+    //DeleteMultiCPsBtn->setDisabled(true);
     DeleteABranchBtn->setDisabled(true);
 
   }
   else{
     AddCPsBtn->setEnabled(true);
     DeleteCPsBtn->setEnabled(true);
-    DeleteMultiCPsBtn->setEnabled(true);
+    //DeleteMultiCPsBtn->setEnabled(true);
     DeleteABranchBtn->setEnabled(true);
 
   }
@@ -230,7 +230,7 @@ void CpViewer::DeleteMultiCPsBtn_press()
 }
 void CpViewer::DeleteABranchBtn_press()
 {
-  manipulate_CPs->deleteABranch();
+  manipulate_CPs->DeleteTheBranch();
   show_message(6);
 }
 void CpViewer::rotateCPsBtn_press()

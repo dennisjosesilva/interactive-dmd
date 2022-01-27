@@ -23,8 +23,7 @@ ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
 }
 
 void ManipulateCPs::ShowingCPs(){
-  //cout<<"CPlistMap.size() "<<CPlistMap.size()<<endl;
-  
+  scene->clear();
   for(auto it = CPlistMap.begin(); it != CPlistMap.end(); ++it)
   {
     unsigned int NodeId = it.key();
@@ -32,8 +31,8 @@ void ManipulateCPs::ShowingCPs(){
     if(CPlistMap.size() == 1) {
       CPlistForOneNode = CPlist;
       nodeIdForOneNode = NodeId;
-      
     }
+
     if(!WholeEdgeList.empty()) WholeEdgeList.clear();
       vector<Vector3<float>> ReadingCPforEachBranch;
       Vector3<float> ReadingEachCP;
@@ -65,6 +64,7 @@ void ManipulateCPs::ShowingCPs(){
                 if(j > 1){
                   prevNode->setNextNode(node1);
                   Edge *edge = new Edge(prevNode, node1, degree, i);
+                  edge->setComponentId(NodeId);
                   scene->addItem(edge);
                   WholeEdgeList << edge;
                 } 
@@ -78,7 +78,6 @@ void ManipulateCPs::ShowingCPs(){
       }
     OutLog<< "Node-"<<NodeId<< " contains "<<CPlist.size()<<" branches."<<endl<<endl;
   }
-   
   
 }
 void ManipulateCPs::AddOneCp(){
@@ -87,7 +86,7 @@ void ManipulateCPs::AddOneCp(){
 
 }
 
-void ManipulateCPs::DeleteTheBranch(Node_ *CurrPressedNode)
+void ManipulateCPs::DeleteTheBranch()
 {
   int CurrNodeIndex_m = CurrPressedNode->getIndexM();
   //1. update CPlist - erase the branch
@@ -115,32 +114,78 @@ void ManipulateCPs::DeleteTheBranch(Node_ *CurrPressedNode)
     backwardNode = backwardNode->getNextNode();
   }
   OutLog<<"Delete the whole branch."<<endl<<endl;
+  
+}
+
+void ManipulateCPs::DeleteTheBranch_multiNode()
+{
+  vector<vector<Vector3<float>>> CPlistForOneNode_ = CPlistMap[CurrPressedNode->getComponentId()];
+  
+  int CurrNodeIndex_m = CurrPressedNode->getIndexM();
+  
+  //1. update CPlist - erase the branch
+  vector<Vector3<float>> *changedBranch;
+  changedBranch = &(CPlistForOneNode_[CurrNodeIndex_m]);
+  changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
+  //cout<<"empty? "<<CPlistForOneNode_[CurrNodeIndex_m].empty()<<endl;
+  //2. change sliders
+  emit PressNode(0, 0); 
+
+  //3.remove all points and edges in the branch.
+  scene->removeItem(CurrPressedNode);
+  removeTwoEdgeOfNode(CurrPressedNode);
+
+  Node_ *forewardNode = CurrPressedNode->getPrevNode();
+  while(forewardNode != nullptr){
+    scene->removeItem(forewardNode);
+    removeTwoEdgeOfNode(forewardNode);
+    forewardNode = forewardNode->getPrevNode();
+  }
+  Node_ *backwardNode = CurrPressedNode->getNextNode();
+  while(backwardNode != nullptr){
+    scene->removeItem(backwardNode);
+    removeTwoEdgeOfNode(backwardNode);
+    backwardNode = backwardNode->getNextNode();
+  }
+  
+  CPlistMap.insert(CurrPressedNode->getComponentId(), CPlistForOneNode_);
+    
 }
 
 void ManipulateCPs::deleteCurrCp(){
 
   int CurrNodeIndex_m = CurrPressedNode->getIndexM();
   int CurrNodeIndex_n = CurrPressedNode->getIndexN();
-  
+  int degree = CPlistForOneNode[CurrNodeIndex_m][0][1];
+  bool DegreeChanged = false;
+
   //update CPlist
   int CurrCPNum = CPlistForOneNode[CurrNodeIndex_m][0][0] - 1;
  
-  if(CurrCPNum == 0) DeleteTheBranch(CurrPressedNode);//only has one CP
+  if(CurrCPNum == 0) DeleteTheBranch();//only has one CP
   else
   {
     CPlistForOneNode[CurrNodeIndex_m][0][0] = CurrCPNum;
     while(CPlistForOneNode[CurrNodeIndex_m][0][1] > CurrCPNum-1) 
       CPlistForOneNode[CurrNodeIndex_m][0][1] -= 1;//change degree.
     
+    if(degree != CPlistForOneNode[CurrNodeIndex_m][0][1])
+    {
+      DegreeChanged = true;
+      degree = CPlistForOneNode[CurrNodeIndex_m][0][1];
+    }
+    
     //update cpnum and degree for all nodes.
     Node_ *forewardNode = CurrPressedNode->getPrevNode();
     while(forewardNode != nullptr){
-      forewardNode->setDegree(CPlistForOneNode[CurrNodeIndex_m][0][0]-1, CPlistForOneNode[CurrNodeIndex_m][0][1]);
+      forewardNode->setDegree(CPlistForOneNode[CurrNodeIndex_m][0][0]-1, degree);
+      if(DegreeChanged) SetDegreeOfTwoEdgeOfNode(forewardNode, degree);
       forewardNode = forewardNode->getPrevNode();
     }
     Node_ *backwardNode = CurrPressedNode->getNextNode();
     while(backwardNode != nullptr){
-      backwardNode->setDegree(CPlistForOneNode[CurrNodeIndex_m][0][0]-1, CPlistForOneNode[CurrNodeIndex_m][0][1]);
+      backwardNode->setDegree(CPlistForOneNode[CurrNodeIndex_m][0][0]-1, degree);
+      if(DegreeChanged) SetDegreeOfTwoEdgeOfNode(backwardNode, degree);
       int index_n = backwardNode->getIndexN();
       backwardNode->setIndex(CurrNodeIndex_m, index_n-1);//update location of nodes after the CurrPressedNode.
       backwardNode = backwardNode->getNextNode();
@@ -160,7 +205,7 @@ void ManipulateCPs::deleteCurrCp(){
     Node_ *CurrPrevN = CurrPressedNode->getPrevNode();
     Node_ *CurrNextN = CurrPressedNode->getNextNode();
     if(CurrPrevN != nullptr && CurrNextN != nullptr){
-      Edge *edge = new Edge(CurrPrevN, CurrNextN, CurrPressedNode->getDegree(), CurrNodeIndex_m);
+      Edge *edge = new Edge(CurrPrevN, CurrNextN, degree, CurrNodeIndex_m);
      
       edge->setThickerSignal(true);
       scene->addItem(edge);
@@ -175,6 +220,83 @@ void ManipulateCPs::deleteCurrCp(){
     }
     OutLog<<"Delete one control point."<<endl<<endl;
   }
+
+}
+
+void ManipulateCPs::deleteCurrCp_multiNode(){
+  
+  vector<vector<Vector3<float>>> CPlistForOneNode = CPlistMap[CurrPressedNode->getComponentId()];
+
+  int CurrNodeIndex_m = CurrPressedNode->getIndexM();
+  int CurrNodeIndex_n = CurrPressedNode->getIndexN();
+
+  int degree = CPlistForOneNode[CurrNodeIndex_m][0][1];
+  bool DegreeChanged = false;
+
+  //update CPlist
+  int CurrCPNum = CPlistForOneNode[CurrNodeIndex_m][0][0] - 1;
+ 
+  if(CurrCPNum == 0) DeleteTheBranch_multiNode();//only has one CP
+  else
+  {
+    CPlistForOneNode[CurrNodeIndex_m][0][0] = CurrCPNum;
+    while(CPlistForOneNode[CurrNodeIndex_m][0][1] > CurrCPNum-1) 
+      CPlistForOneNode[CurrNodeIndex_m][0][1] -= 1;//change degree.
+    
+    if(degree != CPlistForOneNode[CurrNodeIndex_m][0][1])
+    {
+      DegreeChanged = true;
+      degree = CPlistForOneNode[CurrNodeIndex_m][0][1];
+    }
+    //update cpnum and degree for all nodes.
+    Node_ *forewardNode = CurrPressedNode->getPrevNode();
+    while(forewardNode != nullptr){
+      forewardNode->setDegree(CPlistForOneNode[CurrNodeIndex_m][0][0]-1, degree);
+      if(DegreeChanged) SetDegreeOfTwoEdgeOfNode(forewardNode, degree);
+      forewardNode = forewardNode->getPrevNode();
+    }
+    Node_ *backwardNode = CurrPressedNode->getNextNode();
+    while(backwardNode != nullptr){
+      backwardNode->setDegree(CPlistForOneNode[CurrNodeIndex_m][0][0]-1, degree);
+      if(DegreeChanged) SetDegreeOfTwoEdgeOfNode(backwardNode, degree);
+      int index_n = backwardNode->getIndexN();
+      backwardNode->setIndex(CurrNodeIndex_m, index_n-1);//update location of nodes after the CurrPressedNode.
+      backwardNode = backwardNode->getNextNode();
+    }
+   
+    //update CPlist
+    vector<Vector3<float>> *changedBranch;
+    changedBranch = &(CPlistForOneNode[CurrNodeIndex_m]);
+    changedBranch->erase(changedBranch->begin() + CurrNodeIndex_n);
+    
+    //change value display
+    emit PressNode(0, CPlistForOneNode[CurrNodeIndex_m][0][1]); 
+
+    scene->removeItem(CurrPressedNode);
+    removeTwoEdgeOfNode(CurrPressedNode);
+    //add new edge and update prev/next node.
+    Node_ *CurrPrevN = CurrPressedNode->getPrevNode();
+    Node_ *CurrNextN = CurrPressedNode->getNextNode();
+    if(CurrPrevN != nullptr && CurrNextN != nullptr){
+      Edge *edge = new Edge(CurrPrevN, CurrNextN, degree, CurrNodeIndex_m);
+      edge->setComponentId(CurrPressedNode->getComponentId());
+      edge->setThickerSignal(true);
+      scene->addItem(edge);
+      WholeEdgeList << edge;
+
+      CurrPrevN->setNextNode(CurrNextN);
+      CurrNextN->setPrevNode(CurrPrevN);
+    }
+    else{
+      if(CurrPrevN == nullptr) CurrNextN->setPrevNode(nullptr);
+      else CurrPrevN->setNextNode(nullptr);
+    }
+    OutLog<<"Delete one control point."<<endl<<endl;
+
+    CPlistMap.insert(CurrPressedNode->getComponentId(), CPlistForOneNode);
+    //If there is already an item with the key key, that item's value is replaced with value.
+  }
+   
 }
 
 void ManipulateCPs::rotateCPsBtnPressed()
@@ -195,22 +317,26 @@ void ManipulateCPs::deleteMultiCp()
     for (auto& selectedItem : selectedList) {
       if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
           CurrPressedNode = selectedNode;
-          deleteCurrCp();
+          if(CPlistMap.size() == 1) deleteCurrCp();
+          else deleteCurrCp_multiNode();
       }
     }
   }
 }
 
-void ManipulateCPs::deleteABranch()
-{
-  DeleteTheBranch(CurrPressedNode);
-}
 void ManipulateCPs::removeTwoEdgeOfNode (Node_ *CurrNode)
 {
   QVector<Edge*> EdgeList = CurrNode->getEdgeList();
   for (Edge *edge : qAsConst(EdgeList)){
     scene->removeItem(edge);
     //does WholeEdgeList need remove edge? Seems doesn't.
+  }
+}
+void ManipulateCPs::SetDegreeOfTwoEdgeOfNode (Node_ *CurrNode, int degree)
+{
+  QVector<Edge*> EdgeList = CurrNode->getEdgeList();
+  for (Edge *edge : qAsConst(EdgeList)){
+    edge -> setDegree(degree);
   }
 }
 
@@ -242,15 +368,24 @@ void ManipulateCPs::MoveMultiPoint(Node_ *node, QPointF newPos){
 
 void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degree){
   emit PressNode(radius, degree); 
+  
   CurrPressedNode = node;
   
   CurrNodeIndex_m = CurrPressedNode->getIndexM();
   CurrNodeIndex_n = CurrPressedNode->getIndexN();
-  //std::cout<<"Press_node"<<std::endl;
+  
   //make edge thicker.
   for (Edge *edge : qAsConst(WholeEdgeList)){
     edge->setThickerSignal(false);
-    if(edge->getIndex() == CurrNodeIndex_m) edge->setThickerSignal(true);
+    if(CPlistMap.size() == 1){
+      if(edge->getIndex() == CurrNodeIndex_m) 
+        edge->setThickerSignal(true);
+    }
+    else{
+      if(edge->getIndex() == CurrNodeIndex_m && edge->getComponentId() == CurrPressedNode->getComponentId()) 
+        edge->setThickerSignal(true);
+    }
+    
     edge->adjust();
   }
   //make one branch seleted.
@@ -275,7 +410,8 @@ void ManipulateCPs::changeCurrbranchDegree(int d)
 {
   CPlistForOneNode[CurrNodeIndex_m][0][1] = d;
   OutLog<<"Changing the degree of the CP to "<<d<<endl<<endl;
-}
+} 
+
 void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
 {
   emit setUnSync();
@@ -292,7 +428,6 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
   
   if(HoriLine != nullptr)
   {
-
     scene->removeItem(HoriLine);
     scene->removeItem(VerLine);
     HoriLine = nullptr;
@@ -364,6 +499,7 @@ void ManipulateCPs::keyReleaseEvent(QKeyEvent *event)
 }
 void ManipulateCPs::wheelEvent(QWheelEvent *event)
 {
+  //change the radius of the current CP
   if(Key_Shift_pressed){
     int setR = CurrPressedNode->getRadius() + event->angleDelta().y() / 120.0;
     CurrPressedNode->setRadius(setR);
@@ -374,7 +510,8 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
     //change value display
     emit PressNode(setR, 0);
   }
-  else if(Key_D_pressed){//change degree
+  //change the degree of the current CP
+  else if(Key_D_pressed){
     int setD = CurrPressedNode->getDegree() + event->angleDelta().y() / 120.0;
     setD = (setD < 1) ? 1 : setD;
     setD = (setD > CurrPressedNode->getMaxDegree()) ? CurrPressedNode->getMaxDegree() : setD;
@@ -388,14 +525,19 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
     Node_ *forewardNode = CurrPressedNode->getPrevNode();
     while(forewardNode != nullptr){
       forewardNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
+      SetDegreeOfTwoEdgeOfNode(forewardNode, setD);
+      UpdateBackground();
       forewardNode = forewardNode->getPrevNode();
     }
     Node_ *backwardNode = CurrPressedNode->getNextNode();
     while(backwardNode != nullptr){
       backwardNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
+      SetDegreeOfTwoEdgeOfNode(backwardNode, setD);
+      UpdateBackground();
       backwardNode = backwardNode->getNextNode();
     }
   }
+  //rotate current CP(s)
     else if(Key_R_pressed)
     {
       QList<QGraphicsItem*> selectedList =	scene->selectedItems();
@@ -416,6 +558,7 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
       }
       OutLog<<"Rotating multiple CPs."<<endl<<endl;
     }
+    //zoom in/out current CP(s)
     else if(Key_Z_pressed)
       {
         QList<QGraphicsItem*> selectedList =	scene->selectedItems();
@@ -593,7 +736,7 @@ void ManipulateCPs::AddNewBranch(QPointF point)
 
   //4.Add edges between them
   Edge *edge = new Edge(node1, node2, 1, CPlistForOneNode.size()-1);
-  
+  edge->setComponentId(nodeIdForOneNode);
   edge->setThickerSignal(true);
   scene->addItem(edge);
   WholeEdgeList << edge;

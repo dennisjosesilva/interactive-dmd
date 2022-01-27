@@ -1,5 +1,7 @@
 //#include <ImageViewerWidget/ImageViewerWidget.hpp>
 
+#pragma once
+
 #include "ManipulateCPs/ManipulateCPs.hpp"
 #include <QWidget>
 #include <QSlider>
@@ -8,13 +10,15 @@
 #include <QStatusBar>
 
 class QPushButton;
+class MainWidget;
+
 
 class CpViewer : public QWidget
 {
 Q_OBJECT
 
 public:
-  CpViewer(int W, int H, QWidget *parent=nullptr);
+  CpViewer(int W, int H, MainWidget *mainWidget, QWidget *parent=nullptr);
 
   inline void setImage(const QImage &newImage) { manipulate_CPs->setImage(newImage); }
   inline void UpdateWH(int width, int height) {manipulate_CPs-> UpdateWH(width, height);}
@@ -57,6 +61,8 @@ private:
   QPushButton *AddCPsBtn;
   QPushButton *DeleteCPsBtn;
   QPushButton *DeleteMultiCPsBtn;
-  QPushButton *DeleteABranchBtn;
+  QPushButton *DeleteABranchBtn;  
+
+  MainWidget *MainWidgetImageViewer;
 };
 

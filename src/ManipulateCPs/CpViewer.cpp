@@ -1,4 +1,7 @@
 #include "ManipulateCPs/CpViewer.hpp"
+
+#include "MainWidget.hpp"
+
 #include <QPushButton>
 #include <QScrollArea>
 
@@ -10,8 +13,8 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
-CpViewer::CpViewer(int W, int H, QWidget *parent)
-  :QWidget(parent), w(W), h(H)
+CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
+  :QWidget(parent), w(W), h(H), MainWidgetImageViewer{imageViewer}
 {
   QLayout *mainLayout = new QVBoxLayout;
 
@@ -200,6 +203,7 @@ void CpViewer::ReconImageBtn_press()
 {
   manipulate_CPs->ReconImageFromMovedCPs(recon_);
   show_message(10);
+  MainWidgetImageViewer->addYellowBoard();
 }
 
 void CpViewer::ChangeValueDisplay(int radius, int degree)

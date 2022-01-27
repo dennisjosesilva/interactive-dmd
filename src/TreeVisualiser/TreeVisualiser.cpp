@@ -643,8 +643,8 @@ void TreeVisualiser::SplineManipulateBtn_press()
   if (!selectedNodesID.empty()) {
     if (FirstCreateCpviewer) {
       FirstCreateCpviewer = false;
-      cv = new CpViewer(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()));
-      
+      cv = new CpViewer(static_cast<int>(domain_.width()), static_cast<int>(domain_.height()),
+        mainWidget_);      
     }
     else {
       //cv = qobject_cast<CpViewer *>(SplineManipDock_->widget());

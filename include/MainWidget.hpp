@@ -48,6 +48,9 @@ public:
   
   void setImage(const QImage &image);
 
+  void addYellowBoard();
+  void removeYellowBoard();
+
   ReconMode reconMode() const { return reconMode_; }
   void setReconMode(ReconMode reconMode) { reconMode_ = reconMode; }
   inline bool GetInterpState(){return ThresCtl->getInterpState();}

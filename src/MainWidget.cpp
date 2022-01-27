@@ -38,6 +38,7 @@ MainWidget::MainWidget(MainWindow *mainWindow, QWidget *parent)
   QLayout *mainLayout = new QVBoxLayout;
 
   imageViewer_ = new iv::ImageViewerWidget{this};
+  imageViewer_->setObjectName("MainWidgetImageViewer");
   ThresCtl = new ThresholdControl{this};
 
   treeVis_ = new TreeVisualiser{this};
@@ -61,7 +62,6 @@ MainWidget::MainWidget(MainWindow *mainWindow, QWidget *parent)
 
   imageViewer_->scrollAreaWidget()->viewport()->installEventFilter(this);
   
-
   setLayout(mainLayout);
 }
 
@@ -294,7 +294,7 @@ bool MainWidget::eventFilter(QObject *obj, QEvent *evt)
 }
 
 void MainWidget::treeVis_NodeSelected()
-{
+{  
   if (highlightNode_)
     highlightNodes();
 }
@@ -315,10 +315,19 @@ void MainWidget::DisplaySelectedNodes(vector<int> selectedIntensity)
     treeVis_->selectNodesForRecBasedOnIntensities(selectedIntensity);
     setReconMode(ReconMode::SDMD);
   }
-  
 }
 
 void MainWidget::DisplayOrigImg()
 {
   imageViewer_->setImage(newImage);
+}
+
+void MainWidget::addYellowBoard()
+{
+  imageViewer_->setStyleSheet(tr("QWidget { border: 10px solid yellow; } QLabel { border: none; }"));
+}
+
+void MainWidget::removeYellowBoard()
+{
+  imageViewer_->setStyleSheet(tr("border: none;"));
 }

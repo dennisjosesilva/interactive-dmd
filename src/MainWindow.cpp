@@ -318,6 +318,7 @@ void MainWindow::syncTreeAct_onTrigged()
     showProgressBar();
     attrVisMenu_->setEnabled(true);
     mainWidget_->updateTreeVisualiser();
+    mainWidget_->removeYellowBoard();
   }
 }
 

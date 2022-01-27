@@ -117,10 +117,10 @@ void MainWidget::updateTreeVisualiser()
   const uchar *bits = image.bits();
   std::vector<mt::uint8> f{ bits, bits + domain.numberOfPoints() };
 
+  treeVis_->clearNodeSelection();
   treeVis_->loadImage(domain, f);
   
   needTreeVisualiserUpdate_ = false;
-
   
   mainWindow_->setMinMaxProgressBar(0, treeVis_->numberOfNodesOfTree()-1);
   mainWindow_->statusBar()->clearMessage();

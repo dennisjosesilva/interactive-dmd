@@ -316,6 +316,8 @@ void MainWindow::syncTreeAct_onTrigged()
   mainWidget_->markTreeAsSynchronized();
   mainWidget_->setNeedTreeVisualiserUpdate(true);
   uncheckAttrVisActs();
+  mainWidget_->clearNodeHighlight();
+  
   if (showTreeVisAct_->isChecked()) {
     showProgressBar();
     attrVisMenu_->setEnabled(true);

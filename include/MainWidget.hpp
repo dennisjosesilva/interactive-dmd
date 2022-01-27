@@ -64,6 +64,8 @@ public:
   inline TreeVisualiser *getTreeVis() {return treeVis_;};
   inline MainWindow *getMainWindow() { return mainWindow_; }
 
+  inline void clearNodeHighlight() { imageViewer_->removeOverlay(); treeVis_->clearNodeSelection(); }
+
 protected slots:
   void imageMousePress(const QPointF &p, QMouseEvent *e);
   void ChangeDisplayImg(QImage img);

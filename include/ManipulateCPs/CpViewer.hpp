@@ -45,7 +45,7 @@ protected slots:
   void ZoomInOutBtn_press();
   
   void ChangeValueDisplay(int val, int degree);
-  void SetUnSync();
+  //void SetUnSync();
  
 private:
   QLabel *CPradiusLabel_num;

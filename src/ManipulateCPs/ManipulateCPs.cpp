@@ -414,7 +414,7 @@ void ManipulateCPs::changeCurrbranchDegree(int d)
 
 void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
 {
-  emit setUnSync();
+  //emit setUnSync();
   if(CPlistMap.size() == 1) CPlistMap.insert(nodeIdForOneNode, CPlistForOneNode);
  
   recon->reconFromMovedCPs(CPlistMap);

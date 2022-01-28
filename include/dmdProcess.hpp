@@ -13,7 +13,7 @@ class dmdProcess {
     dmdProcess();
     ~dmdProcess();
     void readFromFile (const char *c_str){
-      filename = c_str;
+      //filename = c_str;
       OriginalImage = FIELD<float>::read(c_str); 
       nPix = OriginalImage->dimX() * OriginalImage->dimY();
     }
@@ -49,7 +49,7 @@ class dmdProcess {
     int clear_color;
 
   private:
-    const char *filename;
+    //const char *filename;
     FIELD<float>* processedImage, *OriginalImage;
     int nPix;
     double *importance;

@@ -157,6 +157,7 @@ void MainWidget::setImage(const QImage &image)
 {
   imageViewer_->removeOverlay();
   imageViewer_->setImage(image);
+  ThresCtl->readQImgIntoSdmd(image);
 }
 
 void MainWidget::createDockTreeVisualiser()

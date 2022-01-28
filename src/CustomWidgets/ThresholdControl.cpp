@@ -207,6 +207,26 @@ QImage ThresholdControl::fieldToImage(FIELD<float> *fimg) const
   return img;
 }
 
+FIELD<float> *ThresholdControl::imageToField(QImage img) const
+{
+  
+  FIELD<float> *fimg = new FIELD<float>{ 
+    static_cast<int>(img.width()), static_cast<int>(img.height()) };
+
+  float *fimg_data = fimg->data();
+  uchar *img_data = img.bits();
+
+  int N = img.width() * img.height();
+  for (int i = 0; i < N; ++i)
+    fimg_data[i] = static_cast<float>(img_data[i]);
+  
+  //fimg->NewwritePGM("new.pgm");
+  return fimg;
+}
+void ThresholdControl::readQImgIntoSdmd(const QImage &img){
+  FIELD<float> *image = imageToField(img);
+  dmdProcess_.setProcessedImage(image);
+}
 void ThresholdControl::RunBtn_press()
 {
   int CPnum;

@@ -58,7 +58,7 @@ public:
 public: 
 signals: 
   void PressNode(int radius, int degree); 
-  void setUnSync();
+  //void setUnSync();
 
 public slots:
   void zoomIn();

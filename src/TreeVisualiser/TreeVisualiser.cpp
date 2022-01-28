@@ -683,7 +683,6 @@ void TreeVisualiser::SplineManipulateBtn_press()
 }
 void TreeVisualiser::skelRecBtn_press()
 {
-  
   emit ChangeCentralWidget(nullptr);
   FirstCreateCpviewer = true;
   

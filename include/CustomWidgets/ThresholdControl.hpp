@@ -15,6 +15,7 @@ class ThresholdControl : public QWidget
 public:
   ThresholdControl(QWidget *parent=nullptr);
   inline void readImgIntoSdmd(const char *c_str) { dmdProcess_.readFromFile(c_str); }
+  void readQImgIntoSdmd(const QImage &img);
   inline bool getInterpState() {return InterpState;}
   inline float getSaliencyVal() {return SaliencyVal;}
   inline float getHDVal() {return HDVal;}
@@ -26,6 +27,7 @@ protected:
   QLayout *createHausdorffThresholdLayout();
   QLayout* createRunButtons();
   QImage fieldToImage(FIELD<float> *field) const; 
+  FIELD<float> *imageToField(QImage img) const;
 
 public: 
 signals: 

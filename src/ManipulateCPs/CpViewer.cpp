@@ -21,49 +21,60 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
 // -------------------- First Row - buttons  ------------------------
   QLayout *btnLayout = new QHBoxLayout; 
 
-  QPushButton *showCPsBtn = new QPushButton { QIcon{":/images/Spline_CPs_icon.png"}, tr(""), this};
+  AddHoverInfoPushButton *showCPsBtn = new AddHoverInfoPushButton {tr("Show all CPs"),
+   QIcon{":/images/Spline_CPs_icon.png"}, tr(""), this};
   showCPsBtn->setIconSize(QSize{32, 32});
   connect(showCPsBtn, &QPushButton::clicked, this, &CpViewer::showCPsBtn_press);
 
-  QPushButton *removeCPsBtn = new QPushButton { QIcon{":/images/Remove_SplineCPs_icon.png"}, tr(""), this};
+  AddHoverInfoPushButton *removeCPsBtn = new AddHoverInfoPushButton {tr("Do not show CPs"),
+   QIcon{":/images/Remove_SplineCPs_icon.png"}, tr(""), this};
   removeCPsBtn->setIconSize(QSize{32, 32});
   connect(removeCPsBtn, &QPushButton::clicked, this, &CpViewer::removeCPsBtn_press);
 
-  AddCPsBtn = new QPushButton { QIcon{":/images/AddCP_icon.png"}, tr(""), this};
+  AddCPsBtn = new AddHoverInfoPushButton {tr("Add a CP"), 
+   QIcon{":/images/AddCP_icon.png"}, tr(""), this};
+  //AddCPsBtn = new QPushButton { QIcon{":/images/AddCP_icon.png"}, tr(""), this};
   AddCPsBtn->setIconSize(QSize{32, 32});
   connect(AddCPsBtn, &QPushButton::clicked, this, &CpViewer::AddCPsBtn_press);
 
-  DeleteCPsBtn = new QPushButton { QIcon{":/images/DeleteCP_icon.png"}, tr(""), this};
+  DeleteCPsBtn = new AddHoverInfoPushButton {tr("Delete a CP"), 
+  QIcon{":/images/DeleteCP_icon.png"}, tr(""), this};
   DeleteCPsBtn->setIconSize(QSize{32, 32});
   connect(DeleteCPsBtn, &QPushButton::clicked, this, &CpViewer::DeleteCPsBtn_press);
   
-  DeleteMultiCPsBtn = new QPushButton { QIcon{":/images/DeleteMultiCP_icon.png"}, tr(""), this};
+  AddHoverInfoPushButton *DeleteMultiCPsBtn = new AddHoverInfoPushButton {tr("Delete all selected CPs"),
+   QIcon{":/images/DeleteMultiCP_icon.png"}, tr(""), this};
   DeleteMultiCPsBtn->setIconSize(QSize{32, 32}); 
   connect(DeleteMultiCPsBtn, &QPushButton::clicked, this, &CpViewer::DeleteMultiCPsBtn_press);
 
-  DeleteABranchBtn = new QPushButton { QIcon{":/images/DeleteABranch_icon.png"}, tr(""), this};
+  DeleteABranchBtn = new AddHoverInfoPushButton {tr("Delete the selected branch"),
+   QIcon{":/images/DeleteABranch_icon.png"}, tr(""), this};
   DeleteABranchBtn->setIconSize(QSize{32, 32}); 
   connect(DeleteABranchBtn, &QPushButton::clicked, this, &CpViewer::DeleteABranchBtn_press);
 
 
-  QPushButton *rotateCPsBtn = new QPushButton { QIcon{":/images/rotate_CPs.png"}, tr(""), this};
+  AddHoverInfoPushButton *rotateCPsBtn = new AddHoverInfoPushButton {tr("Rotation. Set a focus first"),
+   QIcon{":/images/rotate_CPs.png"}, tr(""), this};
   rotateCPsBtn->setIconSize(QSize{32, 32}); 
   connect(rotateCPsBtn, &QPushButton::clicked, this, &CpViewer::rotateCPsBtn_press);
 
-  QPushButton *ZoomInOutBtn = new QPushButton { QIcon{":/images/zoom_in_out.png"}, tr(""), this};
+  AddHoverInfoPushButton *ZoomInOutBtn = new AddHoverInfoPushButton {tr("Scaling. Set a focus first"),
+   QIcon{":/images/zoom_in_out.png"}, tr(""), this};
   ZoomInOutBtn->setIconSize(QSize{32, 32}); 
   connect(ZoomInOutBtn, &QPushButton::clicked, this, &CpViewer::ZoomInOutBtn_press);
 
 
-  QPushButton *skelRecBtn = new QPushButton();
-  skelRecBtn->setText("Reconstruct\n CC");
+  AddHoverInfoPushButton *skelRecBtn = new AddHoverInfoPushButton(tr("Reconstruct the changed component"),
+   QIcon{}, tr("Reconstruct\n CC"), this);
+  //skelRecBtn->setText("Reconstruct\n CC");
   //QPushButton *skelRecBtn = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
   skelRecBtn->setFixedSize(QSize{90, 38});//?
   connect(skelRecBtn, &QPushButton::clicked, this, &CpViewer::ReconBtn_press);
   
 
-  QPushButton *skelRecBtn_ = new QPushButton();
-  skelRecBtn_->setText("Reconstruct\n Image");
+  AddHoverInfoPushButton *skelRecBtn_ = new AddHoverInfoPushButton(tr("Reconstruct the whole image"),
+   QIcon{}, tr("Reconstruct\n Image"), this);
+  //skelRecBtn_->setText("Reconstruct\n Image");
   //QPushButton *skelRecBtn_ = new QPushButton { QIcon{":/images/Skel_icon.png"}, tr(""), this};
   skelRecBtn_->setFixedSize(QSize{90, 38});//?
   connect(skelRecBtn_, &QPushButton::clicked, this, &CpViewer::ReconImageBtn_press);
@@ -87,10 +98,12 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
   manipulate_CPs = new ManipulateCPs(w, h);
   mainLayout->addWidget(manipulate_CPs);
   
-  bar = new QStatusBar;
-  bar->showMessage(tr("Click the first button to show control points."));
-  mainLayout->addWidget(bar);
+  //bar = new QStatusBar;
+  //bar->showMessage(tr("Click the first button to show control points."));
+  //mainLayout->addWidget(bar);
   setLayout(mainLayout);
+
+  MainWidgetImageViewer->CPviewer_show_message(0);
 
   connect(manipulate_CPs, &ManipulateCPs::PressNode,
     this, &CpViewer::ChangeValueDisplay);
@@ -122,6 +135,7 @@ QLayout *CpViewer::createTextLayout()
   
   return TextLayout; 
 }
+
 void CpViewer::getCPsMap(){
   QMap<unsigned int, vector<vector<Vector3<float>>>> CPmap = recon_->getCplistMap();
   manipulate_CPs->getCPmap(CPmap);
@@ -138,72 +152,29 @@ void CpViewer::getCPsMap(){
     DeleteCPsBtn->setEnabled(true);
     //DeleteMultiCPsBtn->setEnabled(true);
     DeleteABranchBtn->setEnabled(true);
-
   }
-
 }
-void CpViewer::show_message(int WhichMessage)
-{
-  //bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
-  switch (WhichMessage)
-  {
-    case 1:
-      bar->showMessage(tr("Show all the spline control points of the shape."));
-      break;
-    case 2:
-      bar->showMessage(tr("Cancel the display of control points."));
-      break;
-    case 3:
-      bar->showMessage(tr("Add a control point."));
-      break;
-    case 4:
-      bar->showMessage(tr("Delete a control point."));
-      break;
-    case 5:
-      bar->showMessage(tr("Delete multiple control points."));
-      break;
-    case 6:
-      bar->showMessage(tr("Delete the current branch."));
-      break;
-    case 7:
-      bar->showMessage(tr("Rotate the selected control points."));
-      break;
-    case 8:
-      bar->showMessage(tr("Zoom in/out the selected control points."));
-      break;
-    case 9:
-      bar->showMessage(tr("Display the changed shape."));
-      break;
-    case 10:
-      bar->showMessage(tr("Display the changed image."));
-      break;
-   
-  }
-
-}
-
 void CpViewer::showCPsBtn_press()
 {
   manipulate_CPs->ShowingCPs();
-  show_message(1);
+  MainWidgetImageViewer->CPviewer_show_message(1);
 }
 
 void CpViewer::removeCPsBtn_press()
 {
   manipulate_CPs->Update();
-  show_message(2);
+  MainWidgetImageViewer->CPviewer_show_message(2);
 }
 
 void CpViewer::ReconBtn_press()
 {
   manipulate_CPs->ReconFromMovedCPs(recon_);
-  show_message(9);
+  MainWidgetImageViewer->CPviewer_show_message(9);
 }
 
 void CpViewer::ReconImageBtn_press()
 {
   manipulate_CPs->ReconImageFromMovedCPs(recon_);
-  show_message(10);
   MainWidgetImageViewer->markTreeAsUnsynchronized();
 }
 
@@ -216,30 +187,30 @@ void CpViewer::ChangeValueDisplay(int radius, int degree)
 void CpViewer::AddCPsBtn_press()
 {
   manipulate_CPs->AddOneCp();
-  show_message(3);
+  MainWidgetImageViewer->CPviewer_show_message(3);
 }
 void CpViewer::DeleteCPsBtn_press()
 {
   manipulate_CPs->deleteCurrCp();
-  show_message(4);
+  MainWidgetImageViewer->CPviewer_show_message(4);
 }
 void CpViewer::DeleteMultiCPsBtn_press()
 {
   manipulate_CPs->deleteMultiCp();
-  show_message(5);
+  MainWidgetImageViewer->CPviewer_show_message(5);
 }
 void CpViewer::DeleteABranchBtn_press()
 {
   manipulate_CPs->DeleteTheBranch();
-  show_message(6);
+  MainWidgetImageViewer->CPviewer_show_message(6);
 }
 void CpViewer::rotateCPsBtn_press()
 {
   manipulate_CPs->rotateCPsBtnPressed();
-  show_message(7);
+  MainWidgetImageViewer->CPviewer_show_message(7);
 }
 void CpViewer::ZoomInOutBtn_press()
 {
   manipulate_CPs->ZoomInOutBtn_pressed();
-  show_message(8);
+  MainWidgetImageViewer->CPviewer_show_message(8);
 }

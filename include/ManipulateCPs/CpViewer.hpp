@@ -7,7 +7,8 @@
 #include <QSlider>
 #include <QLabel>
 #include <QDoubleSpinBox>
-#include <QStatusBar>
+//#include <QStatusBar>
+#include "ManipulateCPs/AddHoverInfoPushButton.hpp"
 
 class QPushButton;
 class MainWidget;
@@ -26,8 +27,7 @@ public:
   inline void transData(dmdReconstruct* recon) 
   {recon_ = recon; getCPsMap(); }
   void getCPsMap();
-  void show_message(int WhichMessage);
-
+  
 protected:
   QLayout *createTextLayout();
 
@@ -53,17 +53,16 @@ private:
   int degree;
   ManipulateCPs *manipulate_CPs;
   int w, h;
-  //int inty;
+  
   dmdReconstruct *recon_;
-  QStatusBar *bar;
-  //QDoubleSpinBox *CPradiusSpinBox_;
+  
   QDoubleSpinBox *DegreeSpinBox_;
 
-  QPushButton *AddCPsBtn;
-  QPushButton *DeleteCPsBtn;
-  QPushButton *DeleteMultiCPsBtn;
-  QPushButton *DeleteABranchBtn;  
+  AddHoverInfoPushButton *AddCPsBtn;
+  AddHoverInfoPushButton *DeleteCPsBtn;
+  AddHoverInfoPushButton *DeleteABranchBtn;  
 
   MainWidget *MainWidgetImageViewer;
+  
 };
 

@@ -54,6 +54,7 @@ public:
 
   void markTreeAsUnsynchronized();
   void markTreeAsSynchronized();
+  void CPviewer_show_message(int WhichMessage);
 
   ReconMode reconMode() const { return reconMode_; }
   void setReconMode(ReconMode reconMode) { reconMode_ = reconMode; }

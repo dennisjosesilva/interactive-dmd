@@ -334,3 +334,42 @@ void MainWidget::markTreeAsSynchronized()
   imageViewer_->setStyleSheet(tr("border: none;"));
   mainWindow_->statusBar()->showMessage("Tree and image has been synchronized", 15000);
 }
+
+void MainWidget::CPviewer_show_message(int WhichMessage)
+{
+  switch (WhichMessage)
+  {
+    case 0:
+      mainWindow_->statusBar()->showMessage(tr("Click the first button to show control points."));
+      break;
+    case 1:
+      mainWindow_->statusBar()->showMessage(tr("Show all the spline control points of the shape."));
+      break;
+    case 2:
+      mainWindow_->statusBar()->showMessage(tr("Cancel the display of control points."));
+      break;
+    case 3:
+      mainWindow_->statusBar()->showMessage(tr("Add a control point."));
+      break;
+    case 4:
+      mainWindow_->statusBar()->showMessage(tr("Delete a control point."));
+      break;
+    case 5:
+      mainWindow_->statusBar()->showMessage(tr("Delete multiple control points."));
+      break;
+    case 6:
+      mainWindow_->statusBar()->showMessage(tr("Delete the current branch."));
+      break;
+    case 7:
+      mainWindow_->statusBar()->showMessage(tr("Rotate the selected control points."));
+      break;
+    case 8:
+      mainWindow_->statusBar()->showMessage(tr("Zoom in/out the selected control points."));
+      break;
+    case 9:
+      mainWindow_->statusBar()->showMessage(tr("Display the changed shape."));
+      break;
+    default:
+      break;
+  }
+}

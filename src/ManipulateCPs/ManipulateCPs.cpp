@@ -24,6 +24,8 @@ ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
 
 void ManipulateCPs::ShowingCPs(){
   scene->clear();
+  if(!WholeEdgeList.empty()) WholeEdgeList.clear();
+
   for(auto it = CPlistMap.begin(); it != CPlistMap.end(); ++it)
   {
     unsigned int NodeId = it.key();
@@ -33,49 +35,48 @@ void ManipulateCPs::ShowingCPs(){
       nodeIdForOneNode = NodeId;
     }
 
-    if(!WholeEdgeList.empty()) WholeEdgeList.clear();
-      vector<Vector3<float>> ReadingCPforEachBranch;
-      Vector3<float> ReadingEachCP;
-      
-      for(auto i = 0; i < CPlist.size(); ++i){
-        if(!CPlist[i].empty()){
-          ReadingCPforEachBranch = CPlist[i];
-          
-          Node_ *prevNode = nullptr;
-          int degree, maxDegree;
-          for(auto j = 0; j < ReadingCPforEachBranch.size(); ++j){
-              
-              ReadingEachCP = ReadingCPforEachBranch[j];
-              if(j == 0) 
-              {
-                maxDegree = ReadingEachCP[0] - 1;
-                degree = ReadingEachCP[1];
-              }
-              else{ //read 
-                Node_ *node1 = new Node_(this);
-                scene->addItem(node1);
-                node1->setPos(ReadingEachCP[0] - w/2, ReadingEachCP[1] - h/2);
-                node1->setIndex(i, j);//i means the (i+1)_th branch; j means the j_th CP. When j=0, represents(CPnum,degree,sampleNum)
-                node1->setRadius(ReadingEachCP[2]);
-                node1->setDegree(maxDegree, degree);
-                node1->setComponentId(NodeId);
-                node1->setPrevNode(prevNode);
+    vector<Vector3<float>> ReadingCPforEachBranch;
+    Vector3<float> ReadingEachCP;
+    
+    for(auto i = 0; i < CPlist.size(); ++i){
+      if(!CPlist[i].empty()){
+        ReadingCPforEachBranch = CPlist[i];
+        
+        Node_ *prevNode = nullptr;
+        int degree, maxDegree;
+        for(auto j = 0; j < ReadingCPforEachBranch.size(); ++j){
+            
+            ReadingEachCP = ReadingCPforEachBranch[j];
+            if(j == 0) 
+            {
+              maxDegree = ReadingEachCP[0] - 1;
+              degree = ReadingEachCP[1];
+            }
+            else{ //read 
+              Node_ *node1 = new Node_(this);
+              scene->addItem(node1);
+              node1->setPos(ReadingEachCP[0] - w/2, ReadingEachCP[1] - h/2);
+              node1->setIndex(i, j);//i means the (i+1)_th branch; j means the j_th CP. When j=0, represents(CPnum,degree,sampleNum)
+              node1->setRadius(ReadingEachCP[2]);
+              node1->setDegree(maxDegree, degree);
+              node1->setComponentId(NodeId);
+              node1->setPrevNode(prevNode);
 
-                if(j > 1){
-                  prevNode->setNextNode(node1);
-                  Edge *edge = new Edge(prevNode, node1, degree, i);
-                  edge->setComponentId(NodeId);
-                  scene->addItem(edge);
-                  WholeEdgeList << edge;
-                } 
-                
-                prevNode = node1;
-                if(j == ReadingCPforEachBranch.size() - 1) node1->setNextNode(nullptr);
-                
-              }
-          }
+              if(j > 1){
+                prevNode->setNextNode(node1);
+                Edge *edge = new Edge(prevNode, node1, degree, i);
+                edge->setComponentId(NodeId);
+                scene->addItem(edge);
+                WholeEdgeList << edge;
+              } 
+              
+              prevNode = node1;
+              if(j == ReadingCPforEachBranch.size() - 1) node1->setNextNode(nullptr);
+              
+            }
         }
       }
+    }
     OutLog<< "Node-"<<NodeId<< " contains "<<CPlist.size()<<" branches."<<endl<<endl;
   }
   

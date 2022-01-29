@@ -54,7 +54,8 @@ qt5_wrap_cpp(PROJECT_SOURCE
   include/ManipulateCPs/CpViewer.hpp
   include/ManipulateCPs/node.hpp
   include/ManipulateCPs/edge.hpp
-  include/ManipulateCPs/AddHoverInfoPushButton.hpp)
+  include/ManipulateCPs/AddHoverInfoPushButton.hpp
+  include/ManipulateCPs/ShowDegreeColorWidget.hpp)
 
 # SET RESOURCE FILES
 qt5_add_resources(PROJECT_SOURCE resources.qrc)

@@ -9,6 +9,7 @@
 #include <QDoubleSpinBox>
 //#include <QStatusBar>
 #include "ManipulateCPs/AddHoverInfoPushButton.hpp"
+#include "ManipulateCPs/ShowDegreeColorWidget.hpp"
 
 class QPushButton;
 class MainWidget;
@@ -30,6 +31,7 @@ public:
   
 protected:
   QLayout *createTextLayout();
+  QLayout *createDegreeColorLayout();
 
  
 protected slots:

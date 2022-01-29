@@ -31,7 +31,7 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
   removeCPsBtn->setIconSize(QSize{32, 32});
   connect(removeCPsBtn, &QPushButton::clicked, this, &CpViewer::removeCPsBtn_press);
 
-  AddCPsBtn = new AddHoverInfoPushButton {tr("Add a CP"), 
+  AddCPsBtn = new AddHoverInfoPushButton {tr("Add a CP. Select a branch (CP) first"), 
    QIcon{":/images/AddCP_icon.png"}, tr(""), this};
   //AddCPsBtn = new QPushButton { QIcon{":/images/AddCP_icon.png"}, tr(""), this};
   AddCPsBtn->setIconSize(QSize{32, 32});
@@ -98,9 +98,9 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
   manipulate_CPs = new ManipulateCPs(w, h);
   mainLayout->addWidget(manipulate_CPs);
   
-  //bar = new QStatusBar;
-  //bar->showMessage(tr("Click the first button to show control points."));
-  //mainLayout->addWidget(bar);
+  QLayout *DegreeColorLayout = createDegreeColorLayout();
+  mainLayout->addItem(DegreeColorLayout);
+
   setLayout(mainLayout);
 
   MainWidgetImageViewer->CPviewer_show_message(0);
@@ -109,6 +109,33 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
     this, &CpViewer::ChangeValueDisplay);
 
   //connect(manipulate_CPs, &ManipulateCPs::setUnSync, this, &CpViewer::SetUnSync);
+}
+
+QLayout *CpViewer::createDegreeColorLayout()
+{
+  QLayout *Layout = new QHBoxLayout;
+  Layout->addWidget(new QLabel{"(D)egree = 1: ", this});
+  ShowDegreeColorWidget *colorLine1 = new ShowDegreeColorWidget(1, this);
+  Layout->addWidget(colorLine1);
+  
+  Layout->addWidget(new QLabel{" D = 2: ", this});
+  ShowDegreeColorWidget *colorLine2 = new ShowDegreeColorWidget(2, this);
+  Layout->addWidget(colorLine2);
+
+  Layout->addWidget(new QLabel{" D = 3: ", this});
+  ShowDegreeColorWidget *colorLine3 = new ShowDegreeColorWidget(3, this);
+  Layout->addWidget(colorLine3);
+
+  Layout->addWidget(new QLabel{" D = 4: ", this});
+  ShowDegreeColorWidget *colorLine4 = new ShowDegreeColorWidget(4, this);
+  Layout->addWidget(colorLine4);
+
+  Layout->addWidget(new QLabel{" D > 4: ", this});
+  ShowDegreeColorWidget *colorLine5 = new ShowDegreeColorWidget(4, this);
+  Layout->addWidget(colorLine5);
+
+
+  return Layout;
 }
 
 QLayout *CpViewer::createTextLayout()

@@ -4,7 +4,7 @@
 #include "ManipulateCPs/node.hpp"
 #include <QPixmap>
 #include <QGraphicsView>
-#include <dmdReconstruct.hpp>
+#include <SDMD/dmdReconstruct.hpp>
 #include <iostream>
 #include <QGraphicsLineItem>
 #include <fstream>
@@ -102,6 +102,7 @@ private:
   QImage showBackgroundImg;
   bool drawQImage = false;
   bool rotateCPs = false, ZoomInOut=false;
+  bool RedCrossDrawn = false;
   QPointF crossPoint;
   QGraphicsLineItem* HoriLine = nullptr;
   QGraphicsLineItem* VerLine = nullptr;

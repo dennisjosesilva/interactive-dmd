@@ -48,6 +48,8 @@ protected:
 
   void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+
   
 private:
   QVector<Edge*> edgeList;

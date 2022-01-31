@@ -405,12 +405,14 @@ void ManipulateCPs::UpdateBackground()
 void ManipulateCPs::changeCurrNodeRInCplist(int r)
 {
   CPlistForOneNode[CurrNodeIndex_m][CurrNodeIndex_n][2] = r;
-  OutLog<<"Changing the radius of the CP to "<<r<<endl<<endl;
+  OutLog<<"Changing the radius of the node - "<<CurrNodeIndex_m
+  <<" in branch - "<<CurrNodeIndex_n<<" to "<<r<<"."<<endl<<endl;
 }
 void ManipulateCPs::changeCurrbranchDegree(int d)
 {
   CPlistForOneNode[CurrNodeIndex_m][0][1] = d;
-  OutLog<<"Changing the degree of the CP to "<<d<<endl<<endl;
+  OutLog<<"Change the degree of branch - "<<CurrPressedNode->getIndexN()
+  <<" to "<<d<<"."<<endl<<endl;
 } 
 
 void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
@@ -447,143 +449,6 @@ void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
 
   scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
 }
-
-void ManipulateCPs::keyPressEvent(QKeyEvent *event)
-{
-  switch (event->key())
-  {
-  case Qt::Key_Plus:
-    zoomIn();
-    break;
-  case Qt::Key_Minus:
-    zoomOut();
-    break;
-  case Qt::Key_Shift:
-    Key_Shift_pressed = true;
-    break;
-  case Qt::Key_D:
-    Key_D_pressed = true;
-    break;
-  case Qt::Key_R:
-    Key_R_pressed = true;
-    break;
-  case Qt::Key_Z:
-    Key_Z_pressed = true;
-    break;
-  case Qt::Key_A:
-    AllItemsSelected = true;
-    UpdateBackground();
-    break;
-  default:
-    QGraphicsView::keyPressEvent(event);
-  }
-}
-
-void ManipulateCPs::keyReleaseEvent(QKeyEvent *event)
-{
-  switch (event->key())
-  {
-    case Qt::Key_Shift:
-      Key_Shift_pressed = false;
-      break;
-    case Qt::Key_D:
-      Key_D_pressed = false;
-      break;
-    case Qt::Key_R:
-      Key_R_pressed = false;
-      break;
-    case Qt::Key_Z:
-      Key_Z_pressed = false;
-      break;  
-  }
-
-}
-void ManipulateCPs::wheelEvent(QWheelEvent *event)
-{
-  //change the radius of the current CP
-  if(Key_Shift_pressed){
-    int setR = CurrPressedNode->getRadius() + event->angleDelta().y() / 120.0;
-    CurrPressedNode->setRadius(setR);
-    CurrPressedNode->setPaintRadius(true);
-    CurrPressedNode->update();
-    //update CPlist
-    changeCurrNodeRInCplist(setR);
-    //change value display
-    emit PressNode(setR, 0);
-  }
-  //change the degree of the current CP
-  else if(Key_D_pressed){
-    int setD = CurrPressedNode->getDegree() + event->angleDelta().y() / 120.0;
-    setD = (setD < 1) ? 1 : setD;
-    setD = (setD > CurrPressedNode->getMaxDegree()) ? CurrPressedNode->getMaxDegree() : setD;
-
-    CurrPressedNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
-    //update CPlist
-    changeCurrbranchDegree(setD);
-    //change value display
-    emit PressNode(0, setD);
-     //update degree for all nodes in the branch.
-    Node_ *forewardNode = CurrPressedNode->getPrevNode();
-    while(forewardNode != nullptr){
-      forewardNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
-      SetDegreeOfTwoEdgeOfNode(forewardNode, setD);
-      UpdateBackground();
-      forewardNode = forewardNode->getPrevNode();
-    }
-    Node_ *backwardNode = CurrPressedNode->getNextNode();
-    while(backwardNode != nullptr){
-      backwardNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
-      SetDegreeOfTwoEdgeOfNode(backwardNode, setD);
-      UpdateBackground();
-      backwardNode = backwardNode->getNextNode();
-    }
-  }
-  //rotate current CP(s)
-    else if(Key_R_pressed)
-    {
-      QList<QGraphicsItem*> selectedList =	scene->selectedItems();
-      if(!selectedList.empty()){
-        Node_ * selectedNode;
-        QPointF StartPos, rotatedPos;
-        float angle = M_PI/180 * (event->angleDelta().y() / 120.0);
-        for (auto& selectedItem : selectedList) {
-          if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
-              StartPos = selectedNode->getPos();
-              rotatedPos.rx() = (StartPos.rx() - crossPoint.rx())*qCos(angle) - (StartPos.ry() - crossPoint.ry())*qSin(angle) + crossPoint.rx();
-              rotatedPos.ry() = (StartPos.rx() - crossPoint.rx())*qSin(angle) + (StartPos.ry() - crossPoint.ry())*qCos(angle) + crossPoint.ry();
-              
-              selectedNode->setPos(rotatedPos);
-          }
-        }
-
-      }
-      OutLog<<"Rotating multiple CPs."<<endl<<endl;
-    }
-    //zoom in/out current CP(s)
-    else if(Key_Z_pressed)
-      {
-        QList<QGraphicsItem*> selectedList =	scene->selectedItems();
-        if(!selectedList.empty()){
-          Node_ * selectedNode;
-          QPointF StartPos, changedPos;
-          ZoomFactor = (event->angleDelta().y() / 120.0) * 0.1 + 1.0;
-          //cout<<"ZoomFactor: "<<ZoomFactor<<endl;
-          for (auto& selectedItem : selectedList) {
-            if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
-                StartPos = selectedNode->getPos();
-                changedPos.rx() = crossPoint.rx() + (StartPos.rx() - crossPoint.rx()) * ZoomFactor;
-                changedPos.ry() = crossPoint.ry() + (StartPos.ry() - crossPoint.ry()) * ZoomFactor;
-                
-                selectedNode->setPos(changedPos);
-            }
-          }
-
-        }
-        OutLog<<"Zoom in/out multiple CPs."<<endl<<endl;
-      }
-      else scaleView(pow(2.0, -event->angleDelta().y() / 240.0));
-}
-
 
 QRectF getBoundingRect(QPointF sourcePoint, QPointF destPoint) 
 {
@@ -829,6 +694,197 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
 
 }
 
+
+void ManipulateCPs::keyPressEvent(QKeyEvent *event)
+{
+  switch (event->key())
+  {
+  case Qt::Key_Plus:
+    zoomIn();
+    break;
+  case Qt::Key_Minus:
+    zoomOut();
+    break;
+  case Qt::Key_Shift:
+    Key_Shift_pressed = true;
+    break;
+  case Qt::Key_D:
+    Key_D_pressed = true;
+    break;
+  case Qt::Key_R:
+    Key_R_pressed = true;
+    break;
+  case Qt::Key_Z:
+    Key_Z_pressed = true;
+    break;
+  case Qt::Key_A:
+    AllItemsSelected = true;
+    UpdateBackground();
+    break;
+  default:
+    QGraphicsView::keyPressEvent(event);
+  }
+}
+
+void ManipulateCPs::keyReleaseEvent(QKeyEvent *event)
+{
+  switch (event->key())
+  {
+    case Qt::Key_Shift:
+      Key_Shift_pressed = false;
+      break;
+    case Qt::Key_D:
+      Key_D_pressed = false;
+      break;
+    case Qt::Key_R:
+      if(event->isAutoRepeat())
+      {
+        event->ignore();
+      }
+      else{
+        Key_R_pressed = false;
+        RedCrossDrawn = false;
+      }
+      break;
+    case Qt::Key_Z:
+      if(event->isAutoRepeat())
+      {
+        event->ignore();
+      }
+      else{
+        Key_Z_pressed = false;
+        RedCrossDrawn = false;
+      }
+      break;  
+  }
+}
+
+void ManipulateCPs::wheelEvent(QWheelEvent *event)
+{
+  //change the radius of the current CP
+  if(Key_Shift_pressed){
+    if(CPlistMap.size() > 1){
+      Key_Shift_pressed = false;
+      QMessageBox::information(0, "For your information",
+         "Currently processing multiple nodes! Increasing or\n"
+         "decreasing the radius only works for one node.");
+    }
+    else
+    {
+      int setR = CurrPressedNode->getRadius() + event->angleDelta().y() / 120.0;
+        CurrPressedNode->setRadius(setR);
+        CurrPressedNode->setPaintRadius(true);
+        CurrPressedNode->update();
+        //update CPlist
+        changeCurrNodeRInCplist(setR);
+        //change value display
+        emit PressNode(setR, 0);
+    }
+  }
+  //change the degree of the current CP
+  else if(Key_D_pressed){
+    if(CPlistMap.size() > 1){
+      Key_D_pressed = false;
+      QMessageBox::information(0, "For your information",
+         "Currently processing multiple nodes! Increasing or\n"
+         "decreasing the degree only works for one node.");
+    }
+    else
+    {
+      int setD = CurrPressedNode->getDegree() + event->angleDelta().y() / 120.0;
+      setD = (setD < 1) ? 1 : setD;
+      setD = (setD > CurrPressedNode->getMaxDegree()) ? CurrPressedNode->getMaxDegree() : setD;
+
+      CurrPressedNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
+      //update CPlist
+      changeCurrbranchDegree(setD);
+      //change value display
+      emit PressNode(0, setD);
+      //update degree for all nodes in the branch.
+      Node_ *forewardNode = CurrPressedNode->getPrevNode();
+      while(forewardNode != nullptr){
+        forewardNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
+        SetDegreeOfTwoEdgeOfNode(forewardNode, setD);
+        UpdateBackground();
+        forewardNode = forewardNode->getPrevNode();
+      }
+      Node_ *backwardNode = CurrPressedNode->getNextNode();
+      while(backwardNode != nullptr){
+        backwardNode->setDegree(CurrPressedNode->getMaxDegree(), setD);
+        SetDegreeOfTwoEdgeOfNode(backwardNode, setD);
+        UpdateBackground();
+        backwardNode = backwardNode->getNextNode();
+      }
+    }
+  }
+  //rotate current CP(s)
+    else if(Key_R_pressed)
+    {
+      if(RedCrossDrawn){
+        QList<QGraphicsItem*> selectedList =	scene->selectedItems();
+        float angle;
+        if(!selectedList.empty()){
+          Node_ * selectedNode;
+          QPointF StartPos, rotatedPos;
+          angle = M_PI/180 * (event->angleDelta().y() / 120.0);
+          for (auto& selectedItem : selectedList) {
+            if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
+                StartPos = selectedNode->getPos();
+                rotatedPos.rx() = (StartPos.rx() - crossPoint.rx())*qCos(angle) - (StartPos.ry() - crossPoint.ry())*qSin(angle) + crossPoint.rx();
+                rotatedPos.ry() = (StartPos.rx() - crossPoint.rx())*qSin(angle) + (StartPos.ry() - crossPoint.ry())*qCos(angle) + crossPoint.ry();
+                
+                selectedNode->setPos(rotatedPos);
+            }
+          }
+        }
+        if(angle > 0)
+          OutLog<<"Rotating multiple CPs clockwise."<<endl<<endl;
+        else
+          OutLog<<"Rotating multiple CPs counterclockwise."<<endl<<endl; 
+      }
+      else{
+        Key_R_pressed = false;
+        QMessageBox::information(0, "For your information",
+         "If you want to rotate the selected CPs, \n"
+         "please press the rotation button first.");
+      }
+      
+    }
+    //zoom in/out current CP(s)
+    else if(Key_Z_pressed)
+      {
+        if(RedCrossDrawn){
+          QList<QGraphicsItem*> selectedList =	scene->selectedItems();
+          if(!selectedList.empty()){
+            Node_ * selectedNode;
+            QPointF StartPos, changedPos;
+            ZoomFactor = (event->angleDelta().y() / 120.0) * 0.1 + 1.0;
+            //cout<<"ZoomFactor: "<<ZoomFactor<<endl;
+            for (auto& selectedItem : selectedList) {
+              if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
+                  StartPos = selectedNode->getPos();
+                  changedPos.rx() = crossPoint.rx() + (StartPos.rx() - crossPoint.rx()) * ZoomFactor;
+                  changedPos.ry() = crossPoint.ry() + (StartPos.ry() - crossPoint.ry()) * ZoomFactor;
+                  
+                  selectedNode->setPos(changedPos);
+              }
+            }
+
+          }
+          if(ZoomFactor > 1)
+            OutLog<<"Scale-up multiple CPs."<<endl<<endl;
+          else OutLog<<"Scale-down multiple CPs."<<endl<<endl;
+        }
+        else{
+          Key_Z_pressed = false;
+          QMessageBox::information(0, "For your information",
+          "If you want to scale up/down the selected CPs, \n"
+          "please press the scaling button first.");
+        }
+      }
+      else scaleView(pow(2.0, -event->angleDelta().y() / 240.0));
+}
+
 void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
   //const QPoint& point = event->pos(); 
   //cout<<"view: mousePressEvent"<<endl;
@@ -860,6 +916,7 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
       scene->addItem(VerLine);
       crossPoint = scenePoint;
       //rotateCPs = false;
+      RedCrossDrawn = true;
     }
   AllItemsSelected = false;
   AllItemsUnselected = false;

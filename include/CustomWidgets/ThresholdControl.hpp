@@ -2,8 +2,8 @@
 
 #include <QWidget>
 #include <QDoubleSpinBox>
-#include "dmdProcess.hpp"
-#include "dmdReconstruct.hpp"
+#include "SDMD/dmdProcess.hpp"
+#include "SDMD/dmdReconstruct.hpp"
 
 class OrientablePushButton;
 class QLayout;

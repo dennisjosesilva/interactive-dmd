@@ -20,8 +20,8 @@
 #include <QDockWidget>
 #include <QString>
 
-#include "dmdProcess.hpp"
-#include "dmdReconstruct.hpp"
+#include "SDMD/dmdProcess.hpp"
+#include "SDMD/dmdReconstruct.hpp"
 
 class RecNodeButton;
 class QGraphicsSceneMouseEvent;

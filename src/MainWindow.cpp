@@ -21,7 +21,7 @@
 
 #include <QDebug>
 
-#include "dmdReconstruct.hpp"
+#include "SDMD/dmdReconstruct.hpp"
 
 MainWindow::MainWindow()
   :shouldUpdateProgressBar_{true}

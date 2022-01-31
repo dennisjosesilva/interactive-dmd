@@ -42,8 +42,8 @@ qt5_wrap_cpp(PROJECT_SOURCE
   include/TreeVisualiser/TreeVisualiser.hpp
   include/TreeVisualiser/SimpleImageViewer.hpp
   include/TreeVisualiser/TreeVisualiserStylePanel.hpp
-  include/InteractiveSdmd.hpp
-  include/scribbleWidget.hpp
+  include/SDMD/InteractiveSdmd.hpp
+  include/SDMD/scribbleWidget.hpp
   include/CustomWidgets/LabelWithProgressBar.hpp
   include/CustomWidgets/ClosableDockWidget.hpp
   include/CustomWidgets/TitleColorBar.hpp

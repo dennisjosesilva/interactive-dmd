@@ -15,6 +15,7 @@ Node_::Node_(ManipulateCPs *graphWidget)
   setFlag(ItemIsSelectable);
   setCacheMode(DeviceCoordinateCache);
   setZValue(-1);
+  setAcceptHoverEvents(true);
 }
 
 void Node_::addEdge(Edge *edge)
@@ -111,4 +112,10 @@ void Node_::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
   update();
   QGraphicsItem::mouseReleaseEvent(event);
+}
+void Node_::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+  update();
+  paintRadius = true;
+  QGraphicsItem::hoverEnterEvent(event);
 }

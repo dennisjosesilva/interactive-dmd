@@ -6,7 +6,7 @@
 #include <IcicleMorphotreeWidget/Graphics/Node/GNode.hpp>
 
 #include "TreeVisualiser/TreeVisualiser.hpp"
-#include "InteractiveSdmd.hpp"
+#include "SDMD/InteractiveSdmd.hpp"
 #include <QDockWidget>
 #include "CustomWidgets/ClosableDockWidget.hpp"
 #include "CustomWidgets/ThresholdControl.hpp"

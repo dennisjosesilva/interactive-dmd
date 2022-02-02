@@ -40,7 +40,6 @@ public:
   void MoveMultiPoint(Node_ *node, QPointF newPos);
   inline void getCPmap(QMap<unsigned int, vector<vector<Vector3<float>>>> CPmap) {CPlistMap = CPmap;}
   void deleteCurrCp();
-  void deleteCurrCp_multiNode();
   void deleteMultiCp();
   void rotateCPsBtnPressed();
   void ZoomInOutBtn_pressed();

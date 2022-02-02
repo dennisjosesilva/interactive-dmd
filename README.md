@@ -67,13 +67,13 @@ This button is used for scaling all the selected CPs. First, you need to click t
 
 In addition to the above operations, you can also **move** CP(s) directly on the shape, change the radius or degree of a CP, and **copy** CP(s), as follows.
 
-*Change the radius:* First, select a CP, and then hold down the shift key, and next scroll the mouse wheel to increase/decrease the radius. Its radius is shown on the right corner of the window.
+9. *Change the radius:* First, select a CP, and then hold down the shift key, and next scroll the mouse wheel to increase/decrease the radius. Its radius is shown on the right corner of the window.
 
-*Chang the degree:* First, select a CP, and then hold down the "D" key, and next scroll the mouse wheel to increase/decrease the degree. Its degree is shown on the right corner of the window. Note that after changing the degree of this CP, the degree of other CPs on the same branch will also be changed.
+10. *Chang the degree:* First, select a CP, and then hold down the "D" key, and next scroll the mouse wheel to increase/decrease the degree. Its degree is shown on the right corner of the window. Note that after changing the degree of this CP, the degree of other CPs on the same branch will also be changed.
 
 For detailed explanation about *degree* of a spline, please check this [link](https://www.geometrictools.com/Documentation/BSplineReduction.pdf).
 
-*Copy CP(s) to another location:* First, select all CPs you want to copy (note that even though only one CP in a branch, is selected, the whole branch will be copied), and then press the "C" key. Next, click on the image with the mouse to indicate where you want to put the copied CPs. Next, click the "V" key, then all the CPs will be copied to the position you clicked. 
+11. *Copy CP(s) to another location:* First, select all CPs you want to copy (note that even though only one CP in a branch, is selected, the whole branch will be copied), and then press the "C" key. Next, click on the image with the mouse to indicate where you want to put the copied CPs. Next, click the "V" key, then all the CPs will be copied to the position you clicked. 
 
 After you have done any of the above operations, click the 'Reconstruct CC' button to view the new/changed reconstructed result of the current shape. You can also click the 'Reconstruct Image' button to view the new/changed reconstructed result of the original image.
 

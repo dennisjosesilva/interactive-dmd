@@ -6,7 +6,10 @@
 #include <QList>
 #include <QtMath>
 //#include <QRandomGenerator>          
-             
+
+int offsetX, offsetY;
+int selectedCentralX, selectedCentralY;
+
 ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
   :QGraphicsView(parent), w(W), h(H) 
 {
@@ -90,6 +93,7 @@ void ManipulateCPs::AddOneCp(){
 void ManipulateCPs::DeleteTheBranch()
 {
   int CurrNodeIndex_m = CurrPressedNode->getIndexM();
+  cout<<"CurrNodeIndex_m "<<CurrNodeIndex_m<<endl;
   //1. update CPlist - erase the branch
   vector<Vector3<float>> *changedBranch;
   changedBranch = &(CPlistForOneNode[CurrNodeIndex_m]);
@@ -103,11 +107,13 @@ void ManipulateCPs::DeleteTheBranch()
   removeTwoEdgeOfNode(CurrPressedNode);
 
   Node_ *forewardNode = CurrPressedNode->getPrevNode();
+
   while(forewardNode != nullptr){
     scene->removeItem(forewardNode);
     removeTwoEdgeOfNode(forewardNode);
     forewardNode = forewardNode->getPrevNode();
   }
+  
   Node_ *backwardNode = CurrPressedNode->getNextNode();
   while(backwardNode != nullptr){
     scene->removeItem(backwardNode);
@@ -311,7 +317,7 @@ void ManipulateCPs::ZoomInOutBtn_pressed()
 void ManipulateCPs::deleteMultiCp()
 {
   OutLog<<"Delete multiple CPs."<<endl<<endl;
-  QList<QGraphicsItem*> selectedList =	scene->selectedItems();
+  selectedList =	scene->selectedItems();
   if(!selectedList.empty()){
     Node_ * selectedNode;
     
@@ -342,7 +348,7 @@ void ManipulateCPs::SetDegreeOfTwoEdgeOfNode (Node_ *CurrNode, int degree)
 }
 
 void ManipulateCPs::MoveMultiPoint(Node_ *node, QPointF newPos){
-  QList<QGraphicsItem*> selectedList =	scene->selectedItems();
+  selectedList =	scene->selectedItems();
   if(selectedList.size() == 1){
      OutLog<<"For Node-"<<node->getComponentId()<<", branch-"<<node->getIndexM()<<": moving node-"<<
      node->getIndexN()<<" to ("<<newPos.rx() + w/2<<", "<<newPos.ry() + h/2 <<")."<<endl<<endl;
@@ -548,7 +554,7 @@ int ManipulateCPs::DetermineLocation(QPointF pressedPoint){
 
 void ManipulateCPs::AddNewBranch(QPointF point)
 {
-  //1. update CPlist - erase the branch
+  //1. update CPlist - add the branch
   int set_radius = 1;
  
   vector<Vector3<float>> addedBranch;
@@ -694,6 +700,123 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
 
 }
 
+void ManipulateCPs::Key_C_Pressed()
+{
+  if(!selectedCPsForCopy.empty()) selectedCPsForCopy.clear();
+  selectedCPsForCopy =scene->selectedItems();
+  if(!selectedCPsForCopy.empty()){
+    Key_C_pressed = true;
+    int selectedSize = selectedCPsForCopy.size();
+    int totalX = 0;
+    int totalY = 0;
+
+    //find the center.
+    Node_ * selectedNode;
+    for (auto& selectedItem : selectedCPsForCopy) {
+      if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
+         QPointF pos = selectedNode->getPos();
+         //cout<<"pos.rx() "<<pos.rx()<<" pos.ry() "<<pos.ry()<<endl;
+         totalX += pos.rx();
+         totalY += pos.ry();
+      }
+    }
+    selectedCentralX = totalX/selectedSize;
+    selectedCentralY = totalY/selectedSize;
+  }
+  else{
+    QMessageBox::information(0, "For your information",
+         "If you want to copy some CPs, \n"
+         "please select them first.");
+  }
+}
+
+void ManipulateCPs::paste(){
+  //cout<<"-- "<<selectedCPsForCopy.empty()<<endl;
+  if(!selectedCPsForCopy.empty()){
+    vector<int> addedBranchNum;
+    Node_ * selectedNode;
+    for (auto& selectedItem : selectedCPsForCopy) {
+      if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
+        
+        int BranchNum = selectedNode->getIndexM();
+        if (std::find(addedBranchNum.begin(), addedBranchNum.end(), BranchNum) == addedBranchNum.end())
+        {//Didn't find the element.
+          addedBranchNum.push_back(BranchNum);
+
+          //1. update CPlist - add the branch of the selectedNode
+          vector<Vector3<float>> addedBranch;
+          addedBranch = CPlistForOneNode[BranchNum];
+          for(auto j = 0; j < addedBranch.size(); ++j){
+            if(j > 0) 
+            { 
+              addedBranch[j][0] += offsetX;
+              addedBranch[j][1] += offsetY;
+            }
+          }
+          CPlistForOneNode.push_back(addedBranch);
+
+          //2. Add nodes into the scene.
+          Node_ *curr_node = addPastedCPIntoScene (selectedNode);
+          Node_ *curr_node_ = curr_node;
+
+          Node_ *forewardNode = selectedNode->getPrevNode();
+          
+          while(forewardNode != nullptr){
+            Node_ *foreward_node = addPastedCPIntoScene (forewardNode);
+            curr_node->setPrevNode(foreward_node);
+            foreward_node->setNextNode(curr_node);
+            //3.Add edges
+            Edge *edge = new Edge(foreward_node, curr_node, curr_node->getDegree(), curr_node->getIndexM());
+            //edge->setComponentId(nodeIdForOneNode);
+            scene->addItem(edge);
+            WholeEdgeList << edge;
+            curr_node = foreward_node;
+            forewardNode = forewardNode->getPrevNode();
+          }
+          curr_node->setPrevNode(nullptr);
+
+          Node_ *backwardNode = selectedNode->getNextNode();
+          while(backwardNode != nullptr){
+            Node_*backward_node = addPastedCPIntoScene (backwardNode);
+            backward_node->setPrevNode(curr_node_);
+            curr_node_->setNextNode(backward_node);
+            //3.Add edges
+            Edge *edge = new Edge(curr_node_, backward_node, curr_node->getDegree(), curr_node->getIndexM());
+            //edge->setComponentId(nodeIdForOneNode);
+            scene->addItem(edge);
+            WholeEdgeList << edge;
+            curr_node_ = backward_node;
+            backwardNode = backwardNode->getNextNode();
+          }
+           curr_node_->setNextNode(nullptr);
+          
+        }
+  
+      }
+    }
+    //cout<<"CPlistForOneNode.size() "<<CPlistForOneNode.size()<<endl;
+    
+  }
+  else{
+    QMessageBox::information(0, "For your information",
+        "If you want to paste some CPs, please select\n"
+        "them first and then press 'C' key.");
+  }
+}
+  
+Node_ * ManipulateCPs::addPastedCPIntoScene (Node_ *CurrNode){
+  
+  QPointF pos = CurrNode->getPos();
+
+  Node_ * translatedNode =  new Node_(this);
+  scene->addItem(translatedNode);
+  translatedNode->setPos(pos.rx() + offsetX, pos.ry() + offsetY);
+  translatedNode->setIndex(CPlistForOneNode.size()-1, CurrNode->getIndexN());
+  translatedNode->setRadius(CurrNode->getRadius());
+  translatedNode->setDegree(CurrNode->getMaxDegree(), CurrNode->getDegree());
+  // node1->setComponentId(NodeId);
+  return translatedNode;
+}
 
 void ManipulateCPs::keyPressEvent(QKeyEvent *event)
 {
@@ -720,6 +843,12 @@ void ManipulateCPs::keyPressEvent(QKeyEvent *event)
   case Qt::Key_A:
     AllItemsSelected = true;
     UpdateBackground();
+    break;
+  case Qt::Key_C:
+    Key_C_Pressed();
+    break;
+  case Qt::Key_V:
+    paste();
     break;
   default:
     QGraphicsView::keyPressEvent(event);
@@ -821,7 +950,7 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
     else if(Key_R_pressed)
     {
       if(RedCrossDrawn){
-        QList<QGraphicsItem*> selectedList =	scene->selectedItems();
+        selectedList =	scene->selectedItems();
         float angle;
         if(!selectedList.empty()){
           Node_ * selectedNode;
@@ -854,7 +983,7 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
     else if(Key_Z_pressed)
       {
         if(RedCrossDrawn){
-          QList<QGraphicsItem*> selectedList =	scene->selectedItems();
+          selectedList =	scene->selectedItems();
           if(!selectedList.empty()){
             Node_ * selectedNode;
             QPointF StartPos, changedPos;
@@ -918,8 +1047,15 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
       //rotateCPs = false;
       RedCrossDrawn = true;
     }
-  AllItemsSelected = false;
-  AllItemsUnselected = false;
+    else if(Key_C_pressed){
+      Key_C_pressed = false;
+      offsetX = (int)scenePoint.x() - selectedCentralX;
+      offsetY = (int)scenePoint.y() - selectedCentralY;
+      }
+      else{
+        AllItemsSelected = false;
+        AllItemsUnselected = false;
+      }
   QGraphicsView::mousePressEvent(event);
 }
 

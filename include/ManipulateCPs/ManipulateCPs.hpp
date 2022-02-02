@@ -54,6 +54,9 @@ public:
   //inline void closeLogFile() {OutLog.close();}
   void removeTwoEdgeOfNode (Node_ *CurrNode);
   void SetDegreeOfTwoEdgeOfNode (Node_ *CurrNode, int degree);
+  void Key_C_Pressed();
+  void paste();
+  Node_ * addPastedCPIntoScene (Node_ *CurrNode);
 
 public: 
 signals: 
@@ -98,6 +101,7 @@ private:
   bool Key_D_pressed = false;
   bool Key_R_pressed = false;
   bool Key_Z_pressed = false;
+  bool Key_C_pressed = false;
   //bool Key_A_pressed = false;
   QImage showBackgroundImg;
   bool drawQImage = false;
@@ -108,4 +112,6 @@ private:
   QGraphicsLineItem* VerLine = nullptr;
   float ZoomFactor = 1.0;
   ofstream OutLog;
+  QList<QGraphicsItem*> selectedList;
+  QList<QGraphicsItem*> selectedCPsForCopy;
 };

@@ -5,8 +5,9 @@
 #include <QKeyEvent>
 #include <QList>
 #include <QtMath>
+#include <QPair>
 //#include <QRandomGenerator>          
-
+//using namespace std;
 int offsetX, offsetY;
 int selectedCentralX, selectedCentralY;
 
@@ -85,20 +86,26 @@ void ManipulateCPs::ShowingCPs(){
   
 }
 void ManipulateCPs::AddOneCp(){
-  
   AddCPbuttonPressed = true;
-
 }
 
 void ManipulateCPs::DeleteTheBranch()
 {
   int CurrNodeIndex_m = CurrPressedNode->getIndexM();
-  cout<<"CurrNodeIndex_m "<<CurrNodeIndex_m<<endl;
+  //cout<<"CurrNodeIndex_m "<<CurrNodeIndex_m<<endl;
   //1. update CPlist - erase the branch
   vector<Vector3<float>> *changedBranch;
-  changedBranch = &(CPlistForOneNode[CurrNodeIndex_m]);
-  changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
-
+  if(CPlistMap.size() == 1 ) {
+    changedBranch = &(CPlistForOneNode[CurrNodeIndex_m]);
+    changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
+  }
+  else {
+    vector<vector<Vector3<float>>> CPlistForOneNode_ = CPlistMap[CurrPressedNode->getComponentId()];
+    changedBranch = &(CPlistForOneNode_[CurrNodeIndex_m]);
+    changedBranch->clear();
+    CPlistMap.insert(CurrPressedNode->getComponentId(), CPlistForOneNode_);
+  }
+  
   //2. change sliders
   emit PressNode(0, 0); 
 
@@ -121,90 +128,70 @@ void ManipulateCPs::DeleteTheBranch()
     backwardNode = backwardNode->getNextNode();
   }
   OutLog<<"Delete the whole branch."<<endl<<endl;
-  
-}
-
-void ManipulateCPs::DeleteTheBranch_multiNode()
-{
-  vector<vector<Vector3<float>>> CPlistForOneNode_ = CPlistMap[CurrPressedNode->getComponentId()];
-  
-  int CurrNodeIndex_m = CurrPressedNode->getIndexM();
-  
-  //1. update CPlist - erase the branch
-  vector<Vector3<float>> *changedBranch;
-  changedBranch = &(CPlistForOneNode_[CurrNodeIndex_m]);
-  changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
-  //cout<<"empty? "<<CPlistForOneNode_[CurrNodeIndex_m].empty()<<endl;
-  //2. change sliders
-  emit PressNode(0, 0); 
-
-  //3.remove all points and edges in the branch.
-  scene->removeItem(CurrPressedNode);
-  removeTwoEdgeOfNode(CurrPressedNode);
-
-  Node_ *forewardNode = CurrPressedNode->getPrevNode();
-  while(forewardNode != nullptr){
-    scene->removeItem(forewardNode);
-    removeTwoEdgeOfNode(forewardNode);
-    forewardNode = forewardNode->getPrevNode();
-  }
-  Node_ *backwardNode = CurrPressedNode->getNextNode();
-  while(backwardNode != nullptr){
-    scene->removeItem(backwardNode);
-    removeTwoEdgeOfNode(backwardNode);
-    backwardNode = backwardNode->getNextNode();
-  }
-  
-  CPlistMap.insert(CurrPressedNode->getComponentId(), CPlistForOneNode_);
-    
 }
 
 void ManipulateCPs::deleteCurrCp(){
-
+  
   int CurrNodeIndex_m = CurrPressedNode->getIndexM();
   int CurrNodeIndex_n = CurrPressedNode->getIndexN();
-  int degree = CPlistForOneNode[CurrNodeIndex_m][0][1];
-  bool DegreeChanged = false;
 
-  //update CPlist
-  int CurrCPNum = CPlistForOneNode[CurrNodeIndex_m][0][0] - 1;
+  int degree, CurrCPNum;
+  bool DegreeChanged = false;
+  vector<Vector3<float>> *changedBranch;
+
+  if(CPlistMap.size() == 1 ) CurrCPNum = CPlistForOneNode[CurrNodeIndex_m][0][0] - 1;
+  else {
+    vector<vector<Vector3<float>>> CPlistForOneNode_ = CPlistMap[CurrPressedNode->getComponentId()];
+    CurrCPNum = CPlistForOneNode_[CurrNodeIndex_m][0][0] - 1;
+  }
  
   if(CurrCPNum == 0) DeleteTheBranch();//only has one CP
   else
   {
-    CPlistForOneNode[CurrNodeIndex_m][0][0] = CurrCPNum;
-    while(CPlistForOneNode[CurrNodeIndex_m][0][1] > CurrCPNum-1) 
-      CPlistForOneNode[CurrNodeIndex_m][0][1] -= 1;//change degree.
-    
-    if(degree != CPlistForOneNode[CurrNodeIndex_m][0][1])
-    {
-      DegreeChanged = true;
+    if(CPlistMap.size() == 1 ){
+      CPlistForOneNode[CurrNodeIndex_m][0][0] = CurrCPNum;
+      while(CPlistForOneNode[CurrNodeIndex_m][0][1] > CurrCPNum-1) {
+        CPlistForOneNode[CurrNodeIndex_m][0][1] -= 1;//change degree.
+        DegreeChanged = true;
+      }
       degree = CPlistForOneNode[CurrNodeIndex_m][0][1];
+      //update CPlist
+      changedBranch = &(CPlistForOneNode[CurrNodeIndex_m]);
+      changedBranch->erase(changedBranch->begin() + CurrNodeIndex_n);
     }
-    
+    else{
+      vector<vector<Vector3<float>>> CPlistForOneNode = CPlistMap[CurrPressedNode->getComponentId()];
+      CPlistForOneNode[CurrNodeIndex_m][0][0] = CurrCPNum;
+      while(CPlistForOneNode[CurrNodeIndex_m][0][1] > CurrCPNum-1) {
+        CPlistForOneNode[CurrNodeIndex_m][0][1] -= 1;//change degree.
+        DegreeChanged = true;
+      }
+      degree = CPlistForOneNode[CurrNodeIndex_m][0][1];
+      //update CPlist
+      changedBranch = &(CPlistForOneNode[CurrNodeIndex_m]);
+      changedBranch->erase(changedBranch->begin() + CurrNodeIndex_n);
+      CPlistMap.insert(CurrPressedNode->getComponentId(), CPlistForOneNode);
+
+    }
+
     //update cpnum and degree for all nodes.
     Node_ *forewardNode = CurrPressedNode->getPrevNode();
     while(forewardNode != nullptr){
-      forewardNode->setDegree(CPlistForOneNode[CurrNodeIndex_m][0][0]-1, degree);
+      forewardNode->setDegree(CurrCPNum-1, degree);
       if(DegreeChanged) SetDegreeOfTwoEdgeOfNode(forewardNode, degree);
       forewardNode = forewardNode->getPrevNode();
     }
     Node_ *backwardNode = CurrPressedNode->getNextNode();
     while(backwardNode != nullptr){
-      backwardNode->setDegree(CPlistForOneNode[CurrNodeIndex_m][0][0]-1, degree);
+      backwardNode->setDegree(CurrCPNum-1, degree);
       if(DegreeChanged) SetDegreeOfTwoEdgeOfNode(backwardNode, degree);
       int index_n = backwardNode->getIndexN();
       backwardNode->setIndex(CurrNodeIndex_m, index_n-1);//update location of nodes after the CurrPressedNode.
       backwardNode = backwardNode->getNextNode();
     }
    
-    //update CPlist
-    vector<Vector3<float>> *changedBranch;
-    changedBranch = &(CPlistForOneNode[CurrNodeIndex_m]);
-    changedBranch->erase(changedBranch->begin() + CurrNodeIndex_n);
-    
     //change value display
-    emit PressNode(0, CPlistForOneNode[CurrNodeIndex_m][0][1]); 
+    emit PressNode(0, degree); 
 
     scene->removeItem(CurrPressedNode);
     removeTwoEdgeOfNode(CurrPressedNode);
@@ -213,7 +200,7 @@ void ManipulateCPs::deleteCurrCp(){
     Node_ *CurrNextN = CurrPressedNode->getNextNode();
     if(CurrPrevN != nullptr && CurrNextN != nullptr){
       Edge *edge = new Edge(CurrPrevN, CurrNextN, degree, CurrNodeIndex_m);
-     
+      edge->setComponentId(CurrPressedNode->getComponentId());
       edge->setThickerSignal(true);
       scene->addItem(edge);
       WholeEdgeList << edge;
@@ -243,7 +230,7 @@ void ManipulateCPs::deleteCurrCp_multiNode(){
   //update CPlist
   int CurrCPNum = CPlistForOneNode[CurrNodeIndex_m][0][0] - 1;
  
-  if(CurrCPNum == 0) DeleteTheBranch_multiNode();//only has one CP
+  if(CurrCPNum == 0) DeleteTheBranch();//only has one CP
   else
   {
     CPlistForOneNode[CurrNodeIndex_m][0][0] = CurrCPNum;
@@ -324,8 +311,9 @@ void ManipulateCPs::deleteMultiCp()
     for (auto& selectedItem : selectedList) {
       if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
           CurrPressedNode = selectedNode;
-          if(CPlistMap.size() == 1) deleteCurrCp();
-          else deleteCurrCp_multiNode();
+          //if(CPlistMap.size() == 1) deleteCurrCp();
+          //else deleteCurrCp_multiNode();
+          deleteCurrCp();
       }
     }
   }
@@ -375,7 +363,7 @@ void ManipulateCPs::MoveMultiPoint(Node_ *node, QPointF newPos){
 
 void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degree){
   emit PressNode(radius, degree); 
-  
+  //cout<<"nodeID: "<<node->getComponentId()<<endl;;
   CurrPressedNode = node;
   
   CurrNodeIndex_m = CurrPressedNode->getIndexM();
@@ -733,27 +721,47 @@ void ManipulateCPs::Key_C_Pressed()
 void ManipulateCPs::paste(){
   //cout<<"-- "<<selectedCPsForCopy.empty()<<endl;
   if(!selectedCPsForCopy.empty()){
-    vector<int> addedBranchNum;
+    int countBranchBum = 0;
+    vector<QPair<int,int> > BranchNumVec;
+
     Node_ * selectedNode;
     for (auto& selectedItem : selectedCPsForCopy) {
       if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
-        
         int BranchNum = selectedNode->getIndexM();
-        if (std::find(addedBranchNum.begin(), addedBranchNum.end(), BranchNum) == addedBranchNum.end())
-        {//Didn't find the element.
-          addedBranchNum.push_back(BranchNum);
-
+        int NodeNum = selectedNode->getComponentId();
+        QPair<int, int> NodeBranchPair = qMakePair(NodeNum, BranchNum);
+        if (std::find(BranchNumVec.begin(), BranchNumVec.end(), NodeBranchPair) == BranchNumVec.end())
+        {// The branch where this selectedNode is located has not been processed before
+          countBranchBum++;
+          BranchNumVec.push_back(NodeBranchPair);
           //1. update CPlist - add the branch of the selectedNode
           vector<Vector3<float>> addedBranch;
-          addedBranch = CPlistForOneNode[BranchNum];
-          for(auto j = 0; j < addedBranch.size(); ++j){
-            if(j > 0) 
-            { 
-              addedBranch[j][0] += offsetX;
-              addedBranch[j][1] += offsetY;
+
+          if(CPlistMap.size() == 1){
+            addedBranch = CPlistForOneNode[BranchNum];
+            for(auto j = 0; j < addedBranch.size(); ++j){
+              if(j > 0) 
+              { 
+                addedBranch[j][0] += offsetX;
+                addedBranch[j][1] += offsetY;
+              }
             }
+            CPlistForOneNode.push_back(addedBranch);
           }
-          CPlistForOneNode.push_back(addedBranch);
+          else{//multi_node
+            vector<vector<Vector3<float>>> CPlistForOneNode = CPlistMap[NodeNum];
+
+            addedBranch = CPlistForOneNode[BranchNum];
+            for(auto j = 0; j < addedBranch.size(); ++j){
+              if(j > 0) 
+              { 
+                addedBranch[j][0] += offsetX;
+                addedBranch[j][1] += offsetY;
+              }
+            }
+            CPlistForOneNode.push_back(addedBranch);
+            CPlistMap.insert(NodeNum, CPlistForOneNode);
+          }
 
           //2. Add nodes into the scene.
           Node_ *curr_node = addPastedCPIntoScene (selectedNode);
@@ -767,7 +775,7 @@ void ManipulateCPs::paste(){
             foreward_node->setNextNode(curr_node);
             //3.Add edges
             Edge *edge = new Edge(foreward_node, curr_node, curr_node->getDegree(), curr_node->getIndexM());
-            //edge->setComponentId(nodeIdForOneNode);
+            edge->setComponentId(NodeNum);
             scene->addItem(edge);
             WholeEdgeList << edge;
             curr_node = foreward_node;
@@ -794,7 +802,7 @@ void ManipulateCPs::paste(){
   
       }
     }
-    //cout<<"CPlistForOneNode.size() "<<CPlistForOneNode.size()<<endl;
+    OutLog<<countBranchBum<<" branches copied."<<endl<<endl;
     
   }
   else{
@@ -807,14 +815,20 @@ void ManipulateCPs::paste(){
 Node_ * ManipulateCPs::addPastedCPIntoScene (Node_ *CurrNode){
   
   QPointF pos = CurrNode->getPos();
+  int index_m;
+  int NodeNum = CurrNode->getComponentId();
+
+  if(CPlistMap.size() == 1) index_m = CPlistForOneNode.size()-1;
+  else index_m = CPlistMap[NodeNum].size()-1;
 
   Node_ * translatedNode =  new Node_(this);
   scene->addItem(translatedNode);
   translatedNode->setPos(pos.rx() + offsetX, pos.ry() + offsetY);
-  translatedNode->setIndex(CPlistForOneNode.size()-1, CurrNode->getIndexN());
+  translatedNode->setIndex(index_m, CurrNode->getIndexN());
   translatedNode->setRadius(CurrNode->getRadius());
   translatedNode->setDegree(CurrNode->getMaxDegree(), CurrNode->getDegree());
-  // node1->setComponentId(NodeId);
+  translatedNode->setComponentId(NodeNum);//The new pasted component temporarily has the same NodeID as the one it 
+                                          //copied from. When users click the 'sync' button. It will get its new nodeID
   return translatedNode;
 }
 

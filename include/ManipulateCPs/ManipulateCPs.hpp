@@ -46,7 +46,6 @@ public:
   void ZoomInOutBtn_pressed();
   void AddOneCp();
   void DeleteTheBranch();
-  void DeleteTheBranch_multiNode();
   inline bool getItemsUnselectionState() {return AllItemsUnselected;}
   inline bool getItemsSelectionState() {return AllItemsSelected;}
   

@@ -70,7 +70,6 @@ In addition to the above operations, you can also **move** CP(s) directly on the
 9. *Change the radius:* First, select a CP, and then hold down the shift key, and next scroll the mouse wheel to increase/decrease the radius. Its radius is shown on the right corner of the window.
 
 10. *Chang the degree:* First, select a CP, and then hold down the "D" key, and next scroll the mouse wheel to increase/decrease the degree. Its degree is shown on the right corner of the window. Note that after changing the degree of this CP, the degree of other CPs on the same branch will also be changed.
-
 For detailed explanation about *degree* of a spline, please check this [link](https://www.geometrictools.com/Documentation/BSplineReduction.pdf).
 
 11. *Copy CP(s) to another location:* First, select all CPs you want to copy (note that even though only one CP in a branch, is selected, the whole branch will be copied), and then press the "C" key. Next, click on the image with the mouse to indicate where you want to put the copied CPs. Next, click the "V" key, then all the CPs will be copied to the position you clicked. 

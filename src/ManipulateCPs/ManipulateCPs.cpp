@@ -28,10 +28,12 @@ ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
 
 void ManipulateCPs::ShowingCPs(){
   scene->clear();
+  
   if(!WholeEdgeList.empty()) WholeEdgeList.clear();
 
   for(auto it = CPlistMap.begin(); it != CPlistMap.end(); ++it)
   {
+    int count = 0;
     unsigned int NodeId = it.key();
     vector<vector<Vector3<float>>> CPlist = it.value();
     if(CPlistMap.size() == 1) {
@@ -57,6 +59,7 @@ void ManipulateCPs::ShowingCPs(){
               degree = ReadingEachCP[1];
             }
             else{ //read 
+              count++;
               Node_ *node1 = new Node_(this);
               scene->addItem(node1);
               node1->setPos(ReadingEachCP[0] - w/2, ReadingEachCP[1] - h/2);
@@ -81,7 +84,7 @@ void ManipulateCPs::ShowingCPs(){
         }
       }
     }
-    OutLog<< "Node-"<<NodeId<< " contains "<<CPlist.size()<<" branches."<<endl<<endl;
+    OutLog<< "Node-"<<NodeId<< " contains "<<CPlist.size()<<" branches and "<<count<<" CPs."<<endl<<endl;
   }
   
 }
@@ -258,29 +261,28 @@ void ManipulateCPs::SetDegreeOfTwoEdgeOfNode (Node_ *CurrNode, int degree)
 }
 
 void ManipulateCPs::MoveMultiPoint(Node_ *node, QPointF newPos){
-  selectedList =	scene->selectedItems();
-  if(selectedList.size() == 1){
-     OutLog<<"For Node-"<<node->getComponentId()<<", branch-"<<node->getIndexM()<<": moving node-"<<
-     node->getIndexN()<<" to ("<<newPos.rx() + w/2<<", "<<newPos.ry() + h/2 <<")."<<endl<<endl;
+  if(!(Key_R_pressed || Key_Z_pressed)){//To avoid multiple assignments.
+    selectedList = scene->selectedItems();
+    if(selectedList.size() == 1){
+      OutLog<<"For Node-"<<node->getComponentId()<<", branch-"<<node->getIndexM()<<": moving node-"<<
+      node->getIndexN()<<" to ("<<newPos.rx() + w/2<<", "<<newPos.ry() + h/2 <<")."<<endl<<endl;
+    }
+    //else OutLog<<"Moving multi-nodes."<<endl;
+    
+    if(CPlistMap.size() == 1){
+      CPlistForOneNode[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
+      CPlistForOneNode[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
+      CPlistForOneNode[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
+    }
+    else{
+      vector<vector<Vector3<float>>> CPlist = CPlistMap[node->getComponentId()];
+      CPlist[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
+      CPlist[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
+      CPlist[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
+      //If there is already an item with the key key, that item's value is replaced with value.
+      CPlistMap.insert(node->getComponentId(), CPlist);
+    }
   }
-  //else OutLog<<"Moving multi-nodes."<<endl;
-  
-
-  if(CPlistMap.size() == 1){
-    CPlistForOneNode[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
-    CPlistForOneNode[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
-    CPlistForOneNode[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
-  }
-  else{
-    vector<vector<Vector3<float>>> CPlist = CPlistMap[node->getComponentId()];
-    CPlist[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
-    CPlist[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
-    CPlist[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
-    //If there is already an item with the key key, that item's value is replaced with value.
-    CPlistMap.insert(node->getComponentId(), CPlist);
-
-  }
-
 }
 
 void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degree){
@@ -352,6 +354,7 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
     HoriLine = nullptr;
     VerLine = nullptr;
   }  
+  RedCrossDrawn = false;
 }
 void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
 {
@@ -754,6 +757,35 @@ Node_ * ManipulateCPs::addPastedCPIntoScene (Node_ *CurrNode){
   return translatedNode;
 }
 
+void ManipulateCPs::updateCPlist(){
+
+  selectedList = scene->selectedItems();
+  
+  if(!selectedList.empty()){
+    Node_ * node;
+    
+    for (auto& selectedItem : selectedList) {
+      
+      if (node = qgraphicsitem_cast<Node_ *>(selectedItem)) {
+          
+        if(CPlistMap.size() == 1){
+          CPlistForOneNode[node->getIndexM()][node->getIndexN()][0] = node->getPos().rx() + w/2;
+          CPlistForOneNode[node->getIndexM()][node->getIndexN()][1] = node->getPos().ry() + h/2;
+          CPlistForOneNode[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
+        }
+        else{
+          vector<vector<Vector3<float>>> CPlist = CPlistMap[node->getComponentId()];
+          CPlist[node->getIndexM()][node->getIndexN()][0] = node->getPos().rx() + w/2;
+          CPlist[node->getIndexM()][node->getIndexN()][1] = node->getPos().ry() + h/2;
+          CPlist[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
+          //If there is already an item with the key key, that item's value is replaced with value.
+          CPlistMap.insert(node->getComponentId(), CPlist);
+        }
+      }
+    }
+  }
+}
+
 void ManipulateCPs::keyPressEvent(QKeyEvent *event)
 {
   switch (event->key())
@@ -808,7 +840,8 @@ void ManipulateCPs::keyReleaseEvent(QKeyEvent *event)
       }
       else{
         Key_R_pressed = false;
-        RedCrossDrawn = false;
+        updateCPlist();
+        //RedCrossDrawn = false;
       }
       break;
     case Qt::Key_Z:
@@ -818,7 +851,8 @@ void ManipulateCPs::keyReleaseEvent(QKeyEvent *event)
       }
       else{
         Key_Z_pressed = false;
-        RedCrossDrawn = false;
+        updateCPlist();
+        //RedCrossDrawn = false;
       }
       break;  
   }
@@ -886,19 +920,24 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
     else if(Key_R_pressed)
     {
       if(RedCrossDrawn){
-        selectedList =	scene->selectedItems();
+        
+        selectedList = scene->selectedItems();
         float angle;
+        qreal cx = crossPoint.rx();
+        qreal cy = crossPoint.ry();
         if(!selectedList.empty()){
           Node_ * selectedNode;
           QPointF StartPos, rotatedPos;
           angle = M_PI/180 * (event->angleDelta().y() / 120.0);
           for (auto& selectedItem : selectedList) {
+            
             if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
                 StartPos = selectedNode->getPos();
-                rotatedPos.rx() = (StartPos.rx() - crossPoint.rx())*qCos(angle) - (StartPos.ry() - crossPoint.ry())*qSin(angle) + crossPoint.rx();
-                rotatedPos.ry() = (StartPos.rx() - crossPoint.rx())*qSin(angle) + (StartPos.ry() - crossPoint.ry())*qCos(angle) + crossPoint.ry();
+                rotatedPos.rx() = (StartPos.rx() - cx)*qCos(angle) - (StartPos.ry() - cy)*qSin(angle) + cx;
+                rotatedPos.ry() = (StartPos.rx() - cx)*qSin(angle) + (StartPos.ry() - cy)*qCos(angle) + cy;
                 
                 selectedNode->setPos(rotatedPos);
+                //then MoveMultiPoint() will be automatically called.
             }
           }
         }
@@ -913,13 +952,12 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
          "If you want to rotate the selected CPs, \n"
          "please press the rotation button first.");
       }
-      
     }
     //zoom in/out current CP(s)
     else if(Key_Z_pressed)
       {
         if(RedCrossDrawn){
-          selectedList =	scene->selectedItems();
+          selectedList = scene->selectedItems();
           if(!selectedList.empty()){
             Node_ * selectedNode;
             QPointF StartPos, changedPos;
@@ -932,6 +970,7 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
                   changedPos.ry() = crossPoint.ry() + (StartPos.ry() - crossPoint.ry()) * ZoomFactor;
                   
                   selectedNode->setPos(changedPos);
+                  //then MoveMultiPoint() will be automatically called.
               }
             }
 
@@ -991,6 +1030,12 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
       else{
         AllItemsSelected = false;
         AllItemsUnselected = false;
+        isBranchSelected = false;
+        //make edge unselected.
+        for (Edge *edge : qAsConst(WholeEdgeList)){
+          edge->setThickerSignal(false);
+          edge->adjust();
+        }
       }
   QGraphicsView::mousePressEvent(event);
 }

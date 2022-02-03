@@ -54,6 +54,7 @@ public:
   void SetDegreeOfTwoEdgeOfNode (Node_ *CurrNode, int degree);
   void Key_C_Pressed();
   void paste();
+  void updateCPlist();
   Node_ * addPastedCPIntoScene (Node_ *CurrNode);
 
 public: 

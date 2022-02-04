@@ -310,7 +310,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 
   domain_ = domain;
   dmd_.setProcessedImage(greyImageToField(f));  
-  dmdrecon_ = new dmdReconstruct();
+  //dmdrecon_ = new dmdReconstruct();
 }
 
 std::vector<morphotree::uint8> TreeVisualiser::bool2UInt8(
@@ -439,8 +439,12 @@ void TreeVisualiser::registerDMDSkeletons()
   cout<<time.elapsed()<<" ms."<<endl;
 
   nskelCache.closeFile();
-  dmdrecon_->readIndexingControlPoints(domain_.width(), domain_.height(), 
-    dmd_.clear_color, dmd_.getInty_Node()); // pre-upload
+  
+  dmdrecon_ = new dmdReconstruct(domain_.width(), domain_.height(), dmd_.clear_color);
+  
+  dmdrecon_->readIndexingControlPoints(dmd_.getInty_Node());
+  //dmdrecon_->readIndexingControlPoints(domain_.width(), domain_.height(), 
+  //  dmd_.clear_color, dmd_.getInty_Node()); // pre-upload
 }
 
 void TreeVisualiser::showArea()

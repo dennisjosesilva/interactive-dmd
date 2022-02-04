@@ -57,5 +57,5 @@ private:
   float IslandsVal, SaliencyVal, HDVal;
 
   dmdProcess dmdProcess_;
-  dmdReconstruct dmdRecon_;
+  dmdReconstruct *dmdRecon_;
 };

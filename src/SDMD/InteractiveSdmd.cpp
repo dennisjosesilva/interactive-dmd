@@ -203,15 +203,15 @@ void InteractiveSdmd::RunBtn_press()
   CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, nullptr);
 
   bar->showMessage(tr("Reading Control points..."));
-  dmdRecon_.readControlPoints(scribble_->image().width(), scribble_->image().height(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
-  bar->showMessage(tr("Reconstruction..."));
-  cout<<"InterpState: "<<InterpState<<endl;
-  QImage img = dmdRecon_.ReconstructImage(InterpState);
+  // dmdRecon_.readControlPoints(scribble_->image().width(), scribble_->image().height(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
+  // bar->showMessage(tr("Reconstruction..."));
+  // cout<<"InterpState: "<<InterpState<<endl;
+  // QImage img = dmdRecon_.ReconstructImage(InterpState);
   
-  bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
+  // bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
 
-  //QImage img = fieldToImage(dmdRecon_.getOutput());    
-  setImage(img);
+  // //QImage img = fieldToImage(dmdRecon_.getOutput());    
+  // setImage(img);
   
 }
 
@@ -230,14 +230,14 @@ void InteractiveSdmd::saliencyBtn_press(){
   //CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, nullptr);
   //
   bar->showMessage(tr("Reading Control points..."));
-  dmdRecon_.readControlPoints(scribble_->image().width(), scribble_->image().height(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
-  bar->showMessage(tr("Reconstruction..."));
-  QImage img = dmdRecon_.ReconstructImage(InterpState);
+  // dmdRecon_.readControlPoints(scribble_->image().width(), scribble_->image().height(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
+  // bar->showMessage(tr("Reconstruction..."));
+  // QImage img = dmdRecon_.ReconstructImage(InterpState);
   
-  bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
+  // bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
 
-  //QImage img = fieldToImage(dmdRecon_.getOutput());    
-  setImage(img);
+  // //QImage img = fieldToImage(dmdRecon_.getOutput());    
+  // setImage(img);
 }
 
 void InteractiveSdmd::DrawEllipseBtn_toggled(bool checked){

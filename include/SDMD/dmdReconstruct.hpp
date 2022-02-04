@@ -21,7 +21,7 @@
 class dmdReconstruct {
   public:
     
-    dmdReconstruct();
+    dmdReconstruct(int width_, int height_, int clear_color);
     //~dmdReconstruct();
 
     void openglSetup();
@@ -33,8 +33,11 @@ class dmdReconstruct {
     FIELD<float>* renderLayer_interp(int i);
 
 
-    void readControlPoints(int width_, int height_, int clear_color, vector<int> gray_levels_);
-    void readIndexingControlPoints(int width, int height, int clear_color, multimap<int,int> Inty_Node);
+    //void readControlPoints(int width_, int height_, int clear_color, vector<int> gray_levels_);
+    void readControlPoints(vector<int> gray_levels_);
+    
+    //void readIndexingControlPoints(int width, int height, int clear_color, multimap<int,int> Inty_Node);
+    void readIndexingControlPoints(multimap<int,int> Inty_Node);
     
     QImage ReconstructImage(bool interpolate);
     void ReconstructIndexingImage(int nodeID);
@@ -79,7 +82,6 @@ class dmdReconstruct {
     QOpenGLFunctions *contextFunc;
     QOpenGLShaderProgram program;
     QOpenGLShaderProgram program2;
-    bool RunOnce = true;
     vector<vector<Vector3<float>>> IndexingSample;
     vector<vector<vector<Vector3<float>>>> IndexingCP;
     vector<vector<Vector3<float>>> IndexingSample_interactive;

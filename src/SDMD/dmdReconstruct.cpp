@@ -7,11 +7,18 @@ FIELD<float>* prev_layer_dt;
 bool firstTime, DrawnTheLayer;
 //int CurrNode;
 
-dmdReconstruct::dmdReconstruct()
-: vertexPositionBuffer(QOpenGLBuffer::VertexBuffer)
+dmdReconstruct::dmdReconstruct(int width_, int height_, int clear_color)
+ :  vertexPositionBuffer(QOpenGLBuffer::VertexBuffer),
+    width (width_),
+    height (height_),
+    clearColor(clear_color)
 {
-    printf("dmdReconstruct....\n");
-    //RunOnce = 1;
+    
+    width_2 = (GLfloat)width_/2.0;
+    height_2 = (GLfloat)height_/2.0;
+    openglSetup();
+    framebufferSetup(); 
+    initialize_skeletonization_recon(width, height); 
 }
 /*
 dmdReconstruct::~dmdReconstruct() {
@@ -72,7 +79,7 @@ void dmdReconstruct::openglSetup(){
 
     openGLContext.makeCurrent(&surface);
                  
-//    ========GEOMEETRY SETUP========
+//    ========shader Program SETUP========
 
     program.addShaderFromSourceCode(QOpenGLShader::Vertex,
                                    "#version 330\r\n"
@@ -343,41 +350,19 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int i){
     return CrtLayer;
 }
 
-void dmdReconstruct::readControlPoints(int width_, int height_, int clear_color, vector<int> gray_levels_){
+void dmdReconstruct::readControlPoints(vector<int> gray_levels_){
     //cout<<"gray_levels_ size: "<<gray_levels_.size()<<endl;
     BSplineCurveFitterWindow3 readCPs;
     IndexingSample_interactive = readCPs.SplineGenerate();//loadSample();
-    
-    width = width_;
-    height = height_;
-    
-    width_2 = (GLfloat)width/2.0;
-    height_2 = (GLfloat)height/2.0;
-
-    clearColor = clear_color;
     gray_levels = gray_levels_;
-    if (RunOnce) {openglSetup(); RunOnce = false;}
-    
-    framebufferSetup(); 
-    initialize_skeletonization_recon(width, height);//initCUDA
-    
 }
 
-void dmdReconstruct::readIndexingControlPoints(int width_, int height_, int clear_color, multimap<int,int> Inty_Node){
-   /**/ BSplineCurveFitterWindow3 readCPs;
+void dmdReconstruct::readIndexingControlPoints(multimap<int,int> Inty_Node){
+    BSplineCurveFitterWindow3 readCPs;
     IndexingSample = readCPs.ReadIndexingSpline();//get the reconstructed skeleton points
     IndexingCP = readCPs.get_indexingCP();
-    width = width_;
-    height = height_;
-    width_2 = (GLfloat)width/2.0;
-    height_2 = (GLfloat)height/2.0;
-
-    clearColor = clear_color;
+   
     Inty_node = Inty_Node;
-    if (RunOnce) {openglSetup(); RunOnce = false;}
-    framebufferSetup(); 
-    initialize_skeletonization_recon(width, height);//initCUDA
-    
 }
 
 void dmdReconstruct::initOutput(int clear_color) {

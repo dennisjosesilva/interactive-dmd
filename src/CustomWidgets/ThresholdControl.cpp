@@ -242,12 +242,16 @@ void ThresholdControl::RunBtn_press()
   CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, nullptr);
 
   //bar->showMessage(tr("Reading Control points..."));
-  dmdRecon_.readControlPoints(dmdProcess_.getImgWidth(), dmdProcess_.getImgHeight(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
+  dmdRecon_ = new dmdReconstruct(dmdProcess_.getImgWidth(), dmdProcess_.getImgHeight(), dmdProcess_.clear_color);
+  
+  dmdRecon_->readControlPoints(dmdProcess_.get_gray_levels());
+  //dmdRecon_.readControlPoints(dmdProcess_.getImgWidth(), dmdProcess_.getImgHeight(), 
+  //  dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
   //bar->showMessage(tr("Reconstruction..."));
   //cout<<"InterpState: "<<InterpState<<endl;
   QTime time;
   time.start();
-  QImage img = dmdRecon_.ReconstructImage(InterpState);
+  QImage img = dmdRecon_->ReconstructImage(InterpState);
   //dmdRecon_.ReconstructImage(InterpState);
   //bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
   //QImage img = fieldToImage(dmdRecon_.getOutput());    

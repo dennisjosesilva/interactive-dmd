@@ -52,10 +52,11 @@ public:
   //inline void closeLogFile() {OutLog.close();}
   void removeTwoEdgeOfNode (Node_ *CurrNode);
   void SetDegreeOfTwoEdgeOfNode (Node_ *CurrNode, int degree);
-  void Key_C_Pressed();
+  void FindCenter();
   void paste();
   void updateCPlist();
   Node_ * addPastedCPIntoScene (Node_ *CurrNode);
+  void DeleteSelectedBranch();
 
 public: 
 signals: 
@@ -101,6 +102,7 @@ private:
   bool Key_R_pressed = false;
   bool Key_Z_pressed = false;
   bool Key_C_pressed = false;
+  bool Key_X_pressed = false;
   //bool Key_A_pressed = false;
   QImage showBackgroundImg;
   bool drawQImage = false;

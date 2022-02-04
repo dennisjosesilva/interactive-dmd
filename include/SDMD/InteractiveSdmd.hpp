@@ -72,7 +72,7 @@ private:
 
 
   dmdProcess dmdProcess_;
-  dmdReconstruct dmdRecon_;
+  //dmdReconstruct dmdRecon_;
   int layerVal;
   float IslandsVal, SaliencyVal, HDVal;
   QStatusBar *bar;

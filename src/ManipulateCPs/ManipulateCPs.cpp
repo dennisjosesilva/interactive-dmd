@@ -613,12 +613,73 @@ void ManipulateCPs::updateAddingCP(int index_n, QPointF point){
 
 }
 
-void ManipulateCPs::Key_C_Pressed()
+void ManipulateCPs::DeleteSelectedBranch()
+{
+  if(!selectedCPsForCopy.empty()){
+    int countBranchNum = 0;
+    vector<QPair<int,int> > BranchNumVec;
+
+    Node_ * CurrPressedNode;
+    for (auto& selectedItem : selectedCPsForCopy) {
+      if (CurrPressedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
+        int BranchNum = CurrPressedNode->getIndexM();
+        int NodeNum = CurrPressedNode->getComponentId();
+        QPair<int, int> NodeBranchPair = qMakePair(NodeNum, BranchNum);
+        if (std::find(BranchNumVec.begin(), BranchNumVec.end(), NodeBranchPair) == BranchNumVec.end())
+        {// The branch where this CurrPressedNode is located has not been processed before
+          countBranchNum++;
+          BranchNumVec.push_back(NodeBranchPair);
+
+          //cout<<"CurrNodeIndex_m "<<CurrNodeIndex_m<<endl;
+          // 1. update CPlist - delete the branch of the CurrPressedNode
+          /*vector<Vector3<float>> *changedBranch;
+          if(CPlistMap.size() == 1 ) {
+            changedBranch = &(CPlistForOneNode[BranchNum]);
+            changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
+          }
+          else {
+            vector<vector<Vector3<float>>> CPlistForOneNode_ = CPlistMap[NodeNum];
+            changedBranch = &(CPlistForOneNode_[BranchNum]);
+            changedBranch->clear();
+            CPlistMap.insert(NodeNum, CPlistForOneNode_);
+          }
+          */
+          //2. change sliders
+          emit PressNode(0, 0); 
+
+          //3.remove all points and edges in the branch.
+          scene->removeItem(CurrPressedNode);
+          removeTwoEdgeOfNode(CurrPressedNode);
+
+          Node_ *forewardNode = CurrPressedNode->getPrevNode();
+
+          while(forewardNode != nullptr){
+            scene->removeItem(forewardNode);
+            removeTwoEdgeOfNode(forewardNode);
+            forewardNode = forewardNode->getPrevNode();
+          }
+          
+          Node_ *backwardNode = CurrPressedNode->getNextNode();
+          while(backwardNode != nullptr){
+            scene->removeItem(backwardNode);
+            removeTwoEdgeOfNode(backwardNode);
+            backwardNode = backwardNode->getNextNode();
+          }
+
+        }
+      }
+    }
+    OutLog<<"Cut "<<countBranchNum<<" branches."<<endl<<endl;
+  }
+
+}
+
+void ManipulateCPs::FindCenter()
 {
   if(!selectedCPsForCopy.empty()) selectedCPsForCopy.clear();
   selectedCPsForCopy =scene->selectedItems();
+
   if(!selectedCPsForCopy.empty()){
-    Key_C_pressed = true;
     int selectedSize = selectedCPsForCopy.size();
     int totalX = 0;
     int totalY = 0;
@@ -635,6 +696,11 @@ void ManipulateCPs::Key_C_Pressed()
     }
     selectedCentralX = totalX/selectedSize;
     selectedCentralY = totalY/selectedSize;
+
+    if(Key_X_pressed)
+    {
+      DeleteSelectedBranch();
+    }
   }
   else{
     QMessageBox::information(0, "For your information",
@@ -646,7 +712,7 @@ void ManipulateCPs::Key_C_Pressed()
 void ManipulateCPs::paste(){
   //cout<<"-- "<<selectedCPsForCopy.empty()<<endl;
   if(!selectedCPsForCopy.empty()){
-    int countBranchBum = 0;
+    int countBranchNum = 0;
     vector<QPair<int,int> > BranchNumVec;
 
     Node_ * selectedNode;
@@ -657,7 +723,7 @@ void ManipulateCPs::paste(){
         QPair<int, int> NodeBranchPair = qMakePair(NodeNum, BranchNum);
         if (std::find(BranchNumVec.begin(), BranchNumVec.end(), NodeBranchPair) == BranchNumVec.end())
         {// The branch where this selectedNode is located has not been processed before
-          countBranchBum++;
+          countBranchNum++;
           BranchNumVec.push_back(NodeBranchPair);
           //1. update CPlist - add the branch of the selectedNode
           vector<Vector3<float>> addedBranch;
@@ -686,6 +752,21 @@ void ManipulateCPs::paste(){
             }
             CPlistForOneNode.push_back(addedBranch);
             CPlistMap.insert(NodeNum, CPlistForOneNode);
+          }
+          if(Key_X_pressed){
+            //Then delete the branch that you cut
+            vector<Vector3<float>> *changedBranch;
+            if(CPlistMap.size() == 1) {
+              changedBranch = &(CPlistForOneNode[BranchNum]);
+              changedBranch->clear(); //This size will not change and CPlist[CurrNodeIndex_m] will be empty.
+            }
+            else {
+              vector<vector<Vector3<float>>> CPlistForOneNode_ = CPlistMap[NodeNum];
+              changedBranch = &(CPlistForOneNode_[BranchNum]);
+              changedBranch->clear();
+              CPlistMap.insert(NodeNum, CPlistForOneNode_);
+            }
+
           }
 
           //2. Add nodes into the scene.
@@ -727,7 +808,8 @@ void ManipulateCPs::paste(){
   
       }
     }
-    OutLog<<countBranchBum<<" branches copied."<<endl<<endl;
+    Key_X_pressed = false;
+    OutLog<<countBranchNum<<" branches pasted."<<endl<<endl;
     
   }
   else{
@@ -813,7 +895,12 @@ void ManipulateCPs::keyPressEvent(QKeyEvent *event)
     UpdateBackground();
     break;
   case Qt::Key_C:
-    Key_C_Pressed();
+    Key_C_pressed = true;
+    FindCenter();
+    break;
+  case Qt::Key_X:
+    Key_X_pressed = true;
+    FindCenter();
     break;
   case Qt::Key_V:
     paste();
@@ -999,7 +1086,6 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
       AddNewBranch(scenePoint);
     }
     else{
-      
         int index_n = DetermineLocation(scenePoint);
         cout<<"index_n---"<<index_n<<endl;
         if(index_n != 100)
@@ -1022,8 +1108,9 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
       //rotateCPs = false;
       RedCrossDrawn = true;
     }
-    else if(Key_C_pressed){
+    else if(Key_C_pressed || Key_X_pressed){
       Key_C_pressed = false;
+      //Key_X_pressed = false;
       offsetX = (int)scenePoint.x() - selectedCentralX;
       offsetY = (int)scenePoint.y() - selectedCentralY;
       }

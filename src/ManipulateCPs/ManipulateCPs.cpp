@@ -10,6 +10,8 @@
 //using namespace std;
 int offsetX, offsetY;
 int selectedCentralX, selectedCentralY;
+bool CutPastedOnce = false;
+bool CutOrCopy = false;
 
 ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
   :QGraphicsView(parent), w(W), h(H) 
@@ -630,7 +632,7 @@ void ManipulateCPs::DeleteSelectedBranch()
           countBranchNum++;
           BranchNumVec.push_back(NodeBranchPair);
 
-          //cout<<"CurrNodeIndex_m "<<CurrNodeIndex_m<<endl;
+          //These branches cannot be deleted first since we need them in the paste function.
           // 1. update CPlist - delete the branch of the CurrPressedNode
           /*vector<Vector3<float>> *changedBranch;
           if(CPlistMap.size() == 1 ) {
@@ -676,8 +678,10 @@ void ManipulateCPs::DeleteSelectedBranch()
 
 void ManipulateCPs::FindCenter()
 {
-  if(!selectedCPsForCopy.empty()) selectedCPsForCopy.clear();
-  selectedCPsForCopy =scene->selectedItems();
+  CutPastedOnce = false;
+  //if(!selectedCPsForCopy.empty()) selectedCPsForCopy.clear();
+  if(!CutOrCopy) //Just in case you pressed 'X', and then pressed 'C' (You actually wanted to press 'V')
+    selectedCPsForCopy =scene->selectedItems();
 
   if(!selectedCPsForCopy.empty()){
     int selectedSize = selectedCPsForCopy.size();
@@ -700,6 +704,7 @@ void ManipulateCPs::FindCenter()
     if(Key_X_pressed)
     {
       DeleteSelectedBranch();
+      CutOrCopy = true;
     }
   }
   else{
@@ -710,7 +715,13 @@ void ManipulateCPs::FindCenter()
 }
 
 void ManipulateCPs::paste(){
+  CutOrCopy = false;
   //cout<<"-- "<<selectedCPsForCopy.empty()<<endl;
+if(CutPastedOnce) {
+  QMessageBox::information(0, "For your information",
+        "Note that the cut CPs can only be pasted once.\n");
+}
+else{
   if(!selectedCPsForCopy.empty()){
     int countBranchNum = 0;
     vector<QPair<int,int> > BranchNumVec;
@@ -754,6 +765,7 @@ void ManipulateCPs::paste(){
             CPlistMap.insert(NodeNum, CPlistForOneNode);
           }
           if(Key_X_pressed){
+            CutPastedOnce = true;
             //Then delete the branch that you cut
             vector<Vector3<float>> *changedBranch;
             if(CPlistMap.size() == 1) {
@@ -814,9 +826,10 @@ void ManipulateCPs::paste(){
   }
   else{
     QMessageBox::information(0, "For your information",
-        "If you want to paste some CPs, please select\n"
-        "them first and then press 'C' key.");
+        "If you want to paste some CPs, please select them\n"
+        "first and then press 'C'/'X' key to copy/cut.");
   }
+}
 }
   
 Node_ * ManipulateCPs::addPastedCPIntoScene (Node_ *CurrNode){

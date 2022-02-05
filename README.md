@@ -28,7 +28,7 @@ $ conan create . ImageViewerWidget/0.0.1@dennisjosesilva/dev
 $ conan create . Spline/0.0.1@jieyingwang/dmd
 ```
 
-- [SMAT](https://github.com/WangJieying/SMAT_code)
+- [Skel](https://github.com/WangJieying/Skel)
 
 ```bash
 $ conan create . Skel/0.0.1@jieyingwang/dmd
@@ -52,7 +52,7 @@ make
 
 ### Morphotree widget and node selection
 
-The morphotree widget is a alternative representation of the image. In this widget, we render a max-tree (one of the types of common morphological trees). In this tree, each node represents a connected component of an upper-threshold. The child nodes are connected components that are subsets of their parent node. An simple example is shown down below:
+The morphotree widget is an alternative representation of the image. In this widget, we render a max-tree (one of the types of common morphological trees). In this tree, each node represents a connected component of an upper-threshold. The child nodes are connected components that are subsets of their parent node. An simple example is shown down below:
 
 ![](images/simple-tree-example.png)
 
@@ -175,8 +175,9 @@ In addition to the above operations, you can also **move** CP(s) directly on the
 
 11. *Copy CP(s) to another location:* First, select all CPs you want to copy (note that even though only one CP in a branch is selected, the whole branch will be copied), and then press the "C" key. Next, click on the image with the mouse to indicate where you want to put the pasted CPs. Next, click the "V" key, then all the CPs will be copied to the position you clicked. 
 
-12. *Cut CP(s) to another location:* First, select all CPs you want to cut (note that even though only one CP in a branch is selected, the whole branch will be cut), and then press the "X" key. Next, click on the image with the mouse to indicate where you want to put the pasted CPs. Next, click the "V" key, then all the CPs will be pasted to the position you clicked. 
+12. *Cut CP(s) to another location:* First, select all CPs you want to cut (note that even though only one CP in a branch is selected, the whole branch will be cut), and then press the "X" key. Next, click on the image with the mouse to indicate where you want to put the pasted CPs. Next, click the "V" key, then all the CPs will be pasted to the position you clicked. Note that unlike copy, the cut CPs can only be pasted *once*.
 
 After you have done any of the above operations, click the 'Reconstruct CC' button to view the new/changed reconstructed result of the current shape. You can also click the 'Reconstruct Image' button to view the new/changed reconstructed result of the original image.
 
 # 4. Other remarks
+

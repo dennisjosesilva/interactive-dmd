@@ -12,19 +12,19 @@ void ShowDegreeColorWidget::paintEvent(QPaintEvent *event)
 	switch (ColorIndex)
 	{
 		case 1:
-			pen.setColor(QColor(0,0,255,255));
+			pen.setColor(QColor(0,0,200,255));
 			break;
 		case 2:
-			pen.setColor(QColor(0,255,255,255));
+			pen.setColor(QColor(0,200,255,255));
 			break;
 		case 3:
-			pen.setColor(QColor(255,255,0,255));
+			pen.setColor(QColor(128,255,128,255));
 			break;
 		case 4:
-			pen.setColor(QColor(255,0,0,255));
+			pen.setColor(QColor(255,100,0,255));
 			break;
 		default:
-			pen.setColor(QColor(255,0,0,255));
+			pen.setColor(QColor(200,0,0,255));
 			break;
 	}
 	//pen.setColor(QColor(255,0,0,255));

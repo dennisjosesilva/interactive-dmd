@@ -131,7 +131,7 @@ QLayout *CpViewer::createDegreeColorLayout()
   Layout->addWidget(colorLine4);
 
   Layout->addWidget(new QLabel{" D > 4: ", this});
-  ShowDegreeColorWidget *colorLine5 = new ShowDegreeColorWidget(4, this);
+  ShowDegreeColorWidget *colorLine5 = new ShowDegreeColorWidget(5, this);
   Layout->addWidget(colorLine5);
 
 

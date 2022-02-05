@@ -21,7 +21,7 @@ extern float diagonal;
 
 
 dmdProcess::dmdProcess() {
-    printf("Into dmdProcess class.\n");
+    //printf("Into dmdProcess class.\n");
     this->importance = NULL;
 }
 /**/

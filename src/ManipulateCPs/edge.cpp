@@ -76,25 +76,23 @@ void Edge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
   switch (Degree)
   {
     case 1:
-      qc = QColor::fromRgb(0, 0, 255);
+      qc = QColor::fromRgb(0, 0, 200);
       break;
     case 2:
-      qc = QColor::fromRgb(0, 255, 255);
+      qc = QColor::fromRgb(0, 200, 255);
       break;
     case 3:
-      qc = QColor::fromRgb(255, 255, 0);
+      qc = QColor::fromRgb(128, 255, 128);
       break;
     case 4:
-      qc = QColor::fromRgb(255, 0, 0);
+      qc = QColor::fromRgb(255, 100, 0);
       break;  
     default:
-      qc = QColor::fromRgb(255, 0, 0);
+      qc = QColor::fromRgb(200, 0, 0);
       break;
   }
   if(thickerEdge)  painter->setPen(QPen(qc, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-  else painter->setPen(QPen(qc, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+  else painter->setPen(QPen(qc, 1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
   painter->drawLine(line);
 
 }
-
-

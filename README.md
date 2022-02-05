@@ -2,7 +2,7 @@ This software is used for manipulating images interactively.
 
 # 1. Building
 
-The software needs a C++ compiler, the CUDA, conan, graphviz, and Qt to build. The program depends on some custom packages. To install a conan package, we need to run a conan command at the root of the repositories on the links down below. 
+The software needs a C++ compiler, the CUDA, [conan](https://conan.io/),  and Qt to build. The program depends on some custom packages. To install a conan package, we need to run a conan command at the root of the repositories on the links down below. 
 
 - [morphotree library](https://github.com/dennisjosesilva/interactive-dmd) 
 

@@ -7,31 +7,31 @@ The software needs a C++ compiler, the CUDA, [conan](https://conan.io/),  and Qt
 - [morphotree library](https://github.com/dennisjosesilva/interactive-dmd) 
 
 ```bash
-$ conan install . morphotree/0.0.1@dennisjosesilva/dev
+$ conan create . morphotree/0.0.1@dennisjosesilva/dev
 ```
 
 - [IcicleMorphotreeWidget](https://github.com/dennisjosesilva/IcicleMorphotreeWidget)
 
 ```bash
-$ conan install . IcicleMorphotreeWidget/0.0.1@dennisjosesilva/dev
+$ conan create . IcicleMorphotreeWidget/0.0.1@dennisjosesilva/dev
 ```
 
 - [ImageViewerWidget](https://github.com/dennisjosesilva/ImageViewerWidget)
 
 ```bash
-$ conan install . ImageViewerWidget/0.0.1@dennisjosesilva/dev
+$ conan create . ImageViewerWidget/0.0.1@dennisjosesilva/dev
 ```
 
 - [Spline](https://github.com/WangJieying/Spline)
 
 ```bash
-$ conan install . Spline/0.0.1@jieyingwang/dmd
+$ conan create . Spline/0.0.1@jieyingwang/dmd
 ```
 
 - [SMAT](https://github.com/WangJieying/SMAT_code)
 
 ```bash
-$ conan install . Skel/0.0.1@jieyingwang/dmd
+$ conan create . Skel/0.0.1@jieyingwang/dmd
 ```
 
 # 2. Running

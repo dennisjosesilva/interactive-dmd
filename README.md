@@ -137,7 +137,8 @@ Select node(s) that you want to manipulate in the 'Morphotree' window and then p
 **Instructions**:
 
 1. <img src="images/Spline_CPs_icon.png" alt="drawing" width="60"/>
-   After pressing this button, the control points (CPs) of the shape(s) will be displayed. Each shape has one or several branches. Each branch has one or more CPs. The color of each branch indicates its degree, and their corresponding relationship is displayed at the bottom of the window.
+   
+After pressing this button, the control points (CPs) of the shape(s) will be displayed. Each shape has one or several branches. Each branch has one or more CPs. The color of each branch indicates its degree, and their corresponding relationship is displayed at the bottom of the window.
 
 2. <img src="images/Remove_SplineCPs_icon.png" alt="drawing" width="60"/>
 
@@ -160,7 +161,8 @@ This button is used for deleting a whole branch. So first you need to select a b
 This button is used for deleting multiple CPs. You can select multiple CPs at once by the rubber band drag mode of the mouse, and then click this button to delete all the selected CPs.
 
 7. <img src="images/rotate_CPs.png" alt="drawing" width="60"/>
-   This button is used for rotating all the selected CPs. First, you need to click this button and then click on the image where you want to put focus. Next, select all the CPs that you want to process. Then hold down the "R" key and scroll the mouse wheel to the angle you want.
+
+This button is used for rotating all the selected CPs. First, you need to click this button and then click on the image where you want to put focus. Next, select all the CPs that you want to process. Then hold down the "R" key and scroll the mouse wheel to the angle you want.
 
 8. <img src="images/zoom_in_out.png" alt="drawing" width="60"/>
 
@@ -178,6 +180,10 @@ In addition to the above operations, you can also **move** CP(s) directly on the
 12. *Cut CP(s) to another location:* First, select all CPs you want to cut (note that even though only one CP in a branch is selected, the whole branch will be cut), and then press the "X" key. Next, click on the image with the mouse to indicate where you want to put the pasted CPs. Next, click the "V" key, then all the CPs will be pasted to the position you clicked. Note that unlike copy, the cut CPs can only be pasted *once*.
 
 After you have done any of the above operations, click the 'Reconstruct CC' button to view the new/changed reconstructed result of the current shape. You can also click the 'Reconstruct Image' button to view the new/changed reconstructed result of the original image.
+
+A shape manipulation example can be found [here](images/demo.mp4).
+
+![ShapeManipulate](images/horseManipulate.png)
 
 # 4. Other remarks
 

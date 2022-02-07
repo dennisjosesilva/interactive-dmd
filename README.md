@@ -56,7 +56,7 @@ The morphotree widget is an alternative representation of the image. In this wid
 
 ![](images/simple-tree-example.png)
 
-In this figure, we can see tree nodes representing the connected components in white that span from gray to white at the graphical representation of tree. These nodes are children of a bigger node that spans from black to gray. Thise node contains the previously small tree nodes. Finally the root node in black that contains the bigger node.
+In this figure, we can see tree nodes representing the connected components in white that span from gray to white at the graphical representation of tree. These nodes are children of a bigger node that spans from black to gray. This node contains the previously small tree nodes. Finally the root node in black that contains the bigger node.
 
 ### Usage:
 

@@ -68,7 +68,7 @@ The main way to interact of the morphotree widget is to select nodes. We can sel
 
 2) *Pixel node selection*: we can activated node selection by pixel clicking at <img title="" src="images/node_selection_pixel_icon.png" alt="" data-align="inline" width="50">  . When it is activated, we can click at a pixel of the input image and select smallest node that contains that pixel.
 
-In both ways, we can select more than a node by clicking at the node or pixel with the *SHIFT* key down. Also, we can select all descendant nodes of the nodes that are already selected by clickin at  <img src="images/select_descendants_icon.png" title="" alt="" width="51">. 
+In both ways, we can select more than a node by clicking at the node or pixel with the *SHIFT* key down. Also, we can select all descendant nodes of the nodes that are already selected by clicking at  <img src="images/select_descendants_icon.png" title="" alt="" width="51">. 
 
 When we click in a node that is already selected, it gets unselected. If the _SHIFT_ key is down, the selection of the other nodes are kept, otherwise all nodes gets unselected.
 
@@ -116,7 +116,7 @@ Using the morphotree widget, we can also remove nodes from the SDMD reconstructi
 
 The tool can change the skeleton of the nodes to produce other connected  components as described at the section **Shape manipulation**. When this happen, the reconstruction image gets unsynchronised with the tree. In this case, the node selection funcionality can get unexpected results. In order to make the manipulated image corresponding to the max-tree of the widget the user should synchronise the tree. 
 
-When tree gets unsynchronised (the user apply a skeleton manipulation) the border of the image gets a yellow border and a message is shown in the status bar as shown in the image below:
+When tree gets unsynchronised (the user apply a skeleton manipulation) the border of the image gets yellow  and a message is shown in the status bar as shown in the image below:
 
 ![](images/unsync_example.png)
 

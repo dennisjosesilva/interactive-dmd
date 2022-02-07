@@ -66,9 +66,9 @@ The main way to interact of the morphotree widget is to select nodes. We can sel
 
 1) *Direct node selection*: we can select a node by click on it on the morphotree widget. When selected, the node got a red border.
 
-2) *Pixel node selection*: we can activated node selection by pixel clicking at <img title="" src="images/node_selection_pixel_icon.png" alt="" data-align="inline" width="50">  . When it is activated, we can click at a pixel of the input image and select smallest node that contains that pixel.
+2) *Pixel node selection*: we can activated node selection by pixel clicking on <img title="" src="images/node_selection_pixel_icon.png" alt="" data-align="inline" width="50">  . When it is activated, we can click at a pixel of the input image and select smallest node that contains that pixel.
 
-In both ways, we can select more than a node by clicking at the node or pixel with the *SHIFT* key down. Also, we can select all descendant nodes of the nodes that are already selected by clicking at  <img src="images/select_descendants_icon.png" title="" alt="" width="51">. 
+In both ways, we can select more than a node by clicking on the node or pixel with the *SHIFT* key down. Also, we can select all descendant nodes of the nodes that are already selected by clicking on  <img src="images/select_descendants_icon.png" title="" alt="" width="51">. 
 
 When we click in a node that is already selected, it gets unselected. If the _SHIFT_ key is down, the selection of the other nodes are kept, otherwise all nodes gets unselected.
 

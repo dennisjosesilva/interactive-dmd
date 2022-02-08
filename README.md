@@ -2,7 +2,11 @@ This software is used for manipulating images interactively.
 
 # 1. Building
 
-The software needs a C++ compiler, the CUDA, [conan](https://conan.io/),  and Qt to build. The program depends on some custom packages. To install a conan package, we need to run a conan command at the root of the repositories on the links down below. 
+The software needs a C++ compiler, the CUDA, [conan](https://conan.io/),  and Qt to build. The program depends on some custom conan packages. 
+
+## 1.1. Manual dependency installation
+
+To install a conan package, we need to run a conan command at the root of the repositories on the links down below. 
 
 - [morphotree library](https://github.com/dennisjosesilva/morphotree) 
 
@@ -33,6 +37,24 @@ $ conan create . Spline/0.0.1@jieyingwang/dmd
 ```bash
 $ conan create . Skel/0.0.1@jieyingwang/dmd
 ```
+
+## 1.2 Scripted dependency installation
+
+Alternatively to the manual conan packages installation. We also provided an bash script to install all custom conan packages dependencies. It runs conan recipes that automaticly download the dependencies from GitHub and install it at the local conan. 
+
+The scripts are on the directory "**conan-dependencies-recipes**".  To run this script in Linux, one can run the following command at the **conan-dependencies-recipes** directory:
+
+```bash
+$ bash create_dependencies_packages.bash
+```
+
+We also provide a script that remove all custom conan package dependencies. To run this script, one can run the following command at the **conan-dependencies-recipes** directory:
+
+```bash
+$ bash remove_dependencies_packages.bash
+```
+
+Then, enter with yes for the packages to be removed and hit **Enter** (or **Return**).
 
 # 2. Running
 
@@ -79,8 +101,6 @@ We can visualise the connected component represented by the selected nodes by tw
 1. *Visualise direct on the image*: We can visualise the nodes direct in the image viewer, by activating this features using the button <img src="images/highlight_node_icon.png" title="" alt="" width="68"> . When it is activated, the connected component represented by the node is painted in red at the image viewer.
 
 2. _Node reconstruction:_ We can visualise the selected nodes in an dock window as a binary image. To do it, we can press the button <img title="" src="images/binrec_plus_icon.png" alt="" width="54"> to reconstruct the selected nodes.
-   
-   
 
 #### Manipulate tree rendering
 
@@ -120,11 +140,7 @@ When tree gets unsynchronised (the user apply a skeleton manipulation) the borde
 
 ![](images/unsync_example.png)
 
-
-
 To synchronise the image to the tree, the user can click on <img src="images/sync_morphotree_icon.png" title="" alt="" width="50"> at the toolbar. When the image and tree is synchronised, it cannot go back to the previous status and the whole tree and node skeletons are recomputed.
-
-
 
 Shape manipulation
 ---------
@@ -137,7 +153,7 @@ Select node(s) that you want to manipulate in the 'Morphotree' window and then p
 **Instructions**:
 
 1. <img src="images/Spline_CPs_icon.png" alt="drawing" width="60"/>
-   
+
 After pressing this button, the control points (CPs) of the shape(s) will be displayed. Each shape has one or several branches. Each branch has one or more CPs. The color of each branch indicates its degree, and their corresponding relationship is displayed at the bottom of the window.
 
 2. <img src="images/Remove_SplineCPs_icon.png" alt="drawing" width="60"/>
@@ -186,4 +202,3 @@ A shape manipulation example can be found [here](images/demo.mp4).
 ![ShapeManipulate](images/horseManipulate.png)
 
 # 4. Other remarks
-

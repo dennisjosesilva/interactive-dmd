@@ -2,11 +2,13 @@ This software is used for manipulating images interactively.
 
 # 1. Building
 
-The software needs a C++ compiler, the CUDA, [conan](https://conan.io/),  and Qt to build. The program depends on some custom conan packages. 
+The software needs a C++ compiler, the CUDA, [conan](https://conan.io/),  and Qt to build. 
+It also depends on some custom Conan packages that can be installed manually or using a bash script on 
+Linux.
 
 ## 1.1. Manual dependency installation
 
-To install a conan package, we need to run a conan command at the root of the repositories on the links down below. 
+To install a Conan package, we need to run a Conan command at the root of the repositories on the links down below. 
 
 - [morphotree library](https://github.com/dennisjosesilva/morphotree) 
 
@@ -40,7 +42,7 @@ $ conan create . Skel/0.0.1@jieyingwang/dmd
 
 ## 1.2 Scripted dependency installation
 
-Alternatively to the manual conan packages installation. We also provided an bash script to install all custom conan packages dependencies. It runs conan recipes that automaticly download the dependencies from GitHub and install it at the local conan. 
+Alternatively to the manual Conan packages installation. We also provided a bash script to install all custom Conan packages dependencies. It runs Conan recipes that automatically download the dependencies from GitHub and install it at the local Conan. 
 
 The scripts are on the directory "**conan-dependencies-recipes**".  To run this script in Linux, one can run the following command at the **conan-dependencies-recipes** directory:
 
@@ -48,7 +50,7 @@ The scripts are on the directory "**conan-dependencies-recipes**".  To run this 
 $ bash create_dependencies_packages.bash
 ```
 
-We also provide a script that remove all custom conan package dependencies. To run this script, one can run the following command at the **conan-dependencies-recipes** directory:
+We also provide a script that removes all custom Conan package dependencies. To run this script, one can run the following command at the **conan-dependencies-recipes** directory:
 
 ```bash
 $ bash remove_dependencies_packages.bash

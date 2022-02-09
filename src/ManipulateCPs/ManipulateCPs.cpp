@@ -12,6 +12,7 @@ int offsetX, offsetY;
 int selectedCentralX, selectedCentralY;
 bool CutPastedOnce = false;
 bool CutOrCopy = false;
+bool NoItemsInScene = true;
 
 ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
   :QGraphicsView(parent), w(W), h(H) 
@@ -32,6 +33,8 @@ void ManipulateCPs::ShowingCPs(){
   scene->clear();
   
   if(!WholeEdgeList.empty()) WholeEdgeList.clear();
+
+  NoItemsInScene = false;
 
   for(auto it = CPlistMap.begin(); it != CPlistMap.end(); ++it)
   {
@@ -315,6 +318,7 @@ void ManipulateCPs::Press_node(Node_ *node, int radius, int maxDegree, int degre
 
 void ManipulateCPs::Update(){
   scene->clear();
+  NoItemsInScene = true;
   UpdateBackground();
 }
 void ManipulateCPs::UpdateBackground()
@@ -343,7 +347,7 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
   recon->reconFromMovedCPs(CPlistMap);
 
   UpdateBackground();
-
+  
   //if(!MultiCPsDelete.empty()) MultiCPsDelete.clear();//To avoid being deleted next.
   AllItemsUnselected = true;
   AllItemsSelected = false;
@@ -1131,11 +1135,15 @@ void ManipulateCPs::mousePressEvent(QMouseEvent *event) {
         AllItemsSelected = false;
         AllItemsUnselected = false;
         isBranchSelected = false;
+        
         //make edge unselected.
-        for (Edge *edge : qAsConst(WholeEdgeList)){
-          edge->setThickerSignal(false);
-          edge->adjust();
+        if(!NoItemsInScene){
+          for (Edge *edge : qAsConst(WholeEdgeList)){
+            edge->setThickerSignal(false);
+            edge->adjust();
+          }
         }
+        
       }
   QGraphicsView::mousePressEvent(event);
 }

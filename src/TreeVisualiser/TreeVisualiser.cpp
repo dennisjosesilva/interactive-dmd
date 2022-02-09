@@ -175,9 +175,16 @@ QLayout *TreeVisualiser::createButtons()
 
 void TreeVisualiser::updateTransparencyOfTheNodes()
 {
+  using IcicleMorphotreeWidget::GNodeStyle;
+
   for (unsigned int i = 0; i < selectedNodesForRec_.size(); i++) {
-    if (!selectedNodesForRec_[i])
-      treeWidget_->gnodes()[i]->setOpacity(0.35f);
+    if (!selectedNodesForRec_[i]) {
+      if (treeWidget_->treeLayout()->style() == GNodeStyle::BilinearGradientColor)
+        treeWidget_->gnodes()[i]->setOpacity(0.75f);
+      else 
+        treeWidget_->gnodes()[i]->setOpacity(0.35f);
+    }
+    
   }
 }
 
@@ -781,11 +788,18 @@ void TreeVisualiser::incNodeReconBtn_press()
 
 void TreeVisualiser::remNodeReconBtn_press()
 {
+  using IcicleMorphotreeWidget::GNodeStyle;
+
   QList<uint32> nodeIds = selectedNodes_.keys();
 
   for (uint32 id : nodeIds) {
-    GNode *gnode = selectedNodes_[id];
-    gnode->setOpacity(0.35f);
+    GNode *gnode = selectedNodes_[id];    
+
+    if (treeWidget_->treeLayout()->style() == GNodeStyle::BilinearGradientColor)
+      gnode->setOpacity(0.75f);
+    else 
+      gnode->setOpacity(0.35f);
+
     selectedNodesForRec_[id] = false;
   }  
 }

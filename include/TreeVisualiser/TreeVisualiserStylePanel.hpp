@@ -30,6 +30,7 @@ private:
 
   QRadioButton *flatRadioButton_;
   QRadioButton *gradientRadioButton_;
+  QRadioButton *bilinearGradientRadioButton_;
 
   TreeVisualiser *treeVis_;
 };

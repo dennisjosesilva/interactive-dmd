@@ -17,8 +17,8 @@
 #include <QColorDialog>
 #include <QInputDialog>
 #include <QFileDialog>
-
-
+ 
+ 
 InteractiveSdmd::InteractiveSdmd()
 {
   QLayout *mainLayout = new QVBoxLayout;

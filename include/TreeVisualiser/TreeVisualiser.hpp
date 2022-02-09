@@ -75,7 +75,7 @@ public:
   using ColorBar = IcicleMorphotreeWidget::ColorBar;
   using GNode = IcicleMorphotreeWidget::GNode;  
   using uint8 = morphotree::uint8;
-  using uint32 = morphotree::uint32;
+  using uint32 = morphotree::uint32;  
 
   TreeVisualiser(MainWidget *mainWidget);
 
@@ -102,6 +102,7 @@ public:
   std::vector<bool> recFullNode() const;
   std::vector<bool> morphoRecSelectedNodes() const;
 
+  void useBilinearGradientStyle();
   void useGradientGNodeStyle();
   void useFixedColorGNodeStyle();
 
@@ -121,6 +122,8 @@ public:
   QVector<bool> &selectedNodesForReconstruction() { return selectedNodesForRec_; }
 
   void selectNodesForRecBasedOnIntensities(const std::vector<int> &sIntensities);
+
+  IcicleMorphotreeWidget::IcicleMorphotreeWidget *treeWidget() { return treeWidget_; }
 
   void clearNodeSelection();
 

@@ -37,19 +37,21 @@ void dmdReconstruct::GetCPs(QVector<unsigned int> nodesID){
 
 void dmdReconstruct::reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<float>>>> CPlistMap)
 {
+    
     vector<Vector3<float>> movedSample;
     BSplineCurveFitterWindow3 movedSpline;
+
     int inty;
     initOutput(0);
-    renderLayerInit();
-
+    //renderLayerInit();
+    openGLContext.makeCurrent(&surface);
     for(auto it = CPlistMap.begin(); it != CPlistMap.end(); ++it)
     {
         unsigned int NodeId = it.key();
         vector<vector<Vector3<float>>> CPlist = it.value();
-    
+   
         movedSample = movedSpline.ReadIndexingSpline(CPlist);//loadSample();
-        //find intendity.
+        //find intensity.
         for (auto const& it_ : Inty_node) { 
             if(it_.second == (int)NodeId)
                 inty = it_.first;
@@ -374,7 +376,7 @@ void dmdReconstruct::initOutput(int clear_color) {
         for (unsigned int y = 0; y < height; y++)
             output->set(x, y, clear_color);
 
-}
+} 
 
 FIELD<float>* dmdReconstruct::get_dt_of_alpha(FIELD<float>* alpha) {
     auto alpha_dupe = alpha->dupe();
@@ -960,7 +962,7 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID){
 }
 
 void dmdReconstruct::ReconstructIndexingImage_multi(QVector<unsigned int> nodesID){
-
+    openGLContext.makeCurrent(&surface);
     if(!nodesID.empty()){
         //process the background color
         if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
@@ -1037,6 +1039,8 @@ QImage dmdReconstruct::ReconstructImage(bool interpolate){
 }
 
 QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action){
+    openGLContext.makeCurrent(&surface);
+     
     //sort(nodesID.begin(),nodesID.end());//sort it from small num to large num, i,e., from root to leaves
     bool DrawAnything;
     vector<Vector3<float>> SampleForEachCC;

@@ -25,8 +25,10 @@ public:
   inline void setImage(const QImage &newImage) { manipulate_CPs->setImage(newImage); }
   inline void UpdateWH(int width, int height) {manipulate_CPs-> UpdateWH(width, height);}
   inline void Update() {manipulate_CPs-> Update();}
-  inline void transData(dmdReconstruct* recon) 
-  {recon_ = recon; getCPsMap(); }
+  //inline void transData(dmdReconstruct* recon) 
+  //{recon_ = recon; getCPsMap(); }
+  void transData(dmdReconstruct* recon); 
+  
   void getCPsMap();
   
 protected:

@@ -52,13 +52,19 @@ QGroupBox *TreeVisualiserStylePanel::createRenderStyleSection()
   connect(flatRadioButton_, &QRadioButton::toggled, this, 
     &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
   
-  gradientRadioButton_ = new QRadioButton{tr("Gradient")};
-  gradientRadioButton_->setChecked(true);
+  bilinearGradientRadioButton_ = new QRadioButton{tr("Bilinear gradient")};
+  bilinearGradientRadioButton_->setChecked(true);
+  connect(bilinearGradientRadioButton_, &QRadioButton::toggled, this,
+    &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
+
+  gradientRadioButton_ = new QRadioButton{tr("Gradient")};  
   connect(gradientRadioButton_, &QRadioButton::toggled, this,
     &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
 
-  layout->addWidget(flatRadioButton_);
+  
+  layout->addWidget(bilinearGradientRadioButton_);
   layout->addWidget(gradientRadioButton_);
+  layout->addWidget(flatRadioButton_);
 
   groupBox->setLayout(layout);
   return groupBox;
@@ -74,6 +80,9 @@ void TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle(bool checked)
     }
     else if (checkedBtn == gradientRadioButton_) {
       treeVis_->useGradientGNodeStyle();            
+    }
+    else if (checkedBtn == bilinearGradientRadioButton_) {
+      treeVis_->useBilinearGradientStyle();
     }
   }
 }

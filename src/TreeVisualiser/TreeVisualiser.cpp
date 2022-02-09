@@ -1,7 +1,9 @@
   // #include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
 #include <IcicleMorphotreeWidget/Graphics/Node/GNodeEventHandler.hpp>
 #include <IcicleMorphotreeWidget/Graphics/Node/GNodeFactory.hpp>
+#include <IcicleMorphotreeWidget/Graphics/Node/OpenGLGNodeFactory.hpp>
 #include <IcicleMorphotreeWidget/TreeLayout/AutoSizeTreeLayout.hpp>
+
 #include <MainWidget.hpp>
 
 #include "MainWidget.hpp"
@@ -60,6 +62,7 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   using GradientGNodeFactory = IcicleMorphotreeWidget::GradientGNodeFactory; 
   using HGradientGNodeFactory = IcicleMorphotreeWidget::HGradientGNodeFactory;                                                      
   using AutoSizeTreeLayout = IcicleMorphotreeWidget::AutoSizeTreeLayout;
+  using IcicleMorphotreeWidget::OpenGLGNodeFactory;
   using IcicleMorphotreeWidget = IcicleMorphotreeWidget::IcicleMorphotreeWidget;
   
   QLayout *mainLayout = new QVBoxLayout;
@@ -75,7 +78,7 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
 
   treeWidget_ = new IcicleMorphotreeWidget{this, 
     std::make_unique<AutoSizeTreeLayout>(
-      std::make_unique<HGradientGNodeFactory>(), 20.f, 20.f)};
+      std::make_unique<OpenGLGNodeFactory>(), 20.f, 20.f)};
 
   treeWidget_->setNodeSelectionColor(Qt::red);
   controlsLayout->addWidget(treeWidget_);  
@@ -187,6 +190,15 @@ void TreeVisualiser::clearNodeSelection()
 
   curSelectedNodeIndex_ = InvalidNodeIndex;
   selectedNodes_.clear();
+}
+
+void TreeVisualiser::useBilinearGradientStyle()
+{
+  using IcicleMorphotreeWidget::OpenGLGNodeFactory;
+  treeWidget_->setGNodeFactory(std::make_unique<OpenGLGNodeFactory>());
+  treeWidget_->updateTreeRendering();
+  treeWidget_->grayscaleBar()->setShowBorders(false);
+  gradientRenderStyle_ = true;
 }
 
 void TreeVisualiser::useGradientGNodeStyle()
@@ -311,6 +323,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
   domain_ = domain;
   dmd_.setProcessedImage(greyImageToField(f));  
   //dmdrecon_ = new dmdReconstruct();
+  
 }
 
 std::vector<morphotree::uint8> TreeVisualiser::bool2UInt8(
@@ -439,9 +452,10 @@ void TreeVisualiser::registerDMDSkeletons()
   cout<<time.elapsed()<<" ms."<<endl;
 
   nskelCache.closeFile();
+  //dmdrecon_->readIndexingControlPoints(domain_.width(), domain_.height(), 
+  //  dmd_.clear_color, dmd_.getInty_Node()); // pre-upload
   
   dmdrecon_ = new dmdReconstruct(domain_.width(), domain_.height(), dmd_.clear_color);
-  
   dmdrecon_->readIndexingControlPoints(dmd_.getInty_Node());
   //dmdrecon_->readIndexingControlPoints(domain_.width(), domain_.height(), 
   //  dmd_.clear_color, dmd_.getInty_Node()); // pre-upload
@@ -642,6 +656,7 @@ void TreeVisualiser::binRecBtn_press()
 
 void TreeVisualiser::SplineManipulateBtn_press()
 {
+  
   QVector<unsigned int> selectedNodesID = selectedNodes_.keys().toVector();
   
   if (!selectedNodesID.empty()) {
@@ -659,7 +674,6 @@ void TreeVisualiser::SplineManipulateBtn_press()
 
     //NodePtr mnode = curSelectedNode()->mnode();
     
-    //dmdrecon_->ReconstructIndexingImage(mnode->id());
     dmdrecon_->ReconstructIndexingImage_multi(selectedNodesID);
   
   //  if(mnode->id() == 0){
@@ -678,18 +692,17 @@ void TreeVisualiser::SplineManipulateBtn_press()
      cv->transData(dmdrecon_);
    //}
     
-  }
+  } 
   else{
     QMessageBox::information(0, "For your information",
         "Please select a node.");
   }
-
 }
 void TreeVisualiser::skelRecBtn_press()
 {
   emit ChangeCentralWidget(nullptr);
   FirstCreateCpviewer = true;
-  
+
   vector<int> keptNodes;
   for (int i = 0; i < selectedNodesForRec_.size(); ++i) {
     if (selectedNodesForRec_[i]) 
@@ -700,16 +713,17 @@ void TreeVisualiser::skelRecBtn_press()
   time.start();
    
   QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1);
+  cout<<time.elapsed()<<" ms."<<endl;
 
   clearNodeSelection();
   emit nodeSelectionChanged();
 
-  cout<<time.elapsed()<<" ms."<<endl;
+ 
   //QImage img = fieldToQImage(dmdrecon_->getOutput());   
   mainWidget_->setReconMode(ReconMode::SDMD);
   mainWidget_->setImage(img);
   
-  // iv->setImage(img);    
+  // iv->setImage(img); 
 }
 
 void TreeVisualiser::selectDescendantNodes_press()
@@ -733,10 +747,9 @@ void TreeVisualiser::selectDescendantNodes_press()
 
 void TreeVisualiser::removeSkelBtn_press()
 {
-  
   emit ChangeCentralWidget(nullptr);
   FirstCreateCpviewer = true;
-  
+
   vector<int> keptNodes;
   for (int i=0; i < selectedNodesForRec_.size(); ++i) {
     if (selectedNodesForRec_[i])
@@ -752,7 +765,7 @@ void TreeVisualiser::removeSkelBtn_press()
 
   mainWidget_->setReconMode(ReconMode::SDMD);
   mainWidget_->setImage(img);
-  // iv->setImage(img);  
+  
 }
 
 void TreeVisualiser::incNodeReconBtn_press()

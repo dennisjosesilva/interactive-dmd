@@ -339,7 +339,7 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
 {
   //emit setUnSync();
   if(CPlistMap.size() == 1) CPlistMap.insert(nodeIdForOneNode, CPlistForOneNode);
- 
+
   recon->reconFromMovedCPs(CPlistMap);
 
   UpdateBackground();

@@ -162,6 +162,11 @@ QLayout *CpViewer::createTextLayout()
   
   return TextLayout; 
 }
+void CpViewer::transData(dmdReconstruct* recon)
+{
+  recon_ = recon; 
+  getCPsMap();
+}
 
 void CpViewer::getCPsMap(){
   QMap<unsigned int, vector<vector<Vector3<float>>>> CPmap = recon_->getCplistMap();
@@ -179,6 +184,7 @@ void CpViewer::getCPsMap(){
     DeleteCPsBtn->setEnabled(true);
     //DeleteMultiCPsBtn->setEnabled(true);
     DeleteABranchBtn->setEnabled(true);
+
   }
 }
 void CpViewer::showCPsBtn_press()

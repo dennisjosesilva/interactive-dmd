@@ -111,7 +111,7 @@ private:
   QPointF crossPoint;
   QGraphicsLineItem* HoriLine = nullptr;
   QGraphicsLineItem* VerLine = nullptr;
-  float ZoomFactor = 1.0;
+  float RScaleFactor = 1.0;
   ofstream OutLog;
   QList<QGraphicsItem*> selectedList;
   QList<QGraphicsItem*> selectedCPsForCopy;

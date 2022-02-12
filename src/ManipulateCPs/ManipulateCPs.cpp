@@ -277,13 +277,11 @@ void ManipulateCPs::MoveMultiPoint(Node_ *node, QPointF newPos){
     if(CPlistMap.size() == 1){
       CPlistForOneNode[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
       CPlistForOneNode[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
-      CPlistForOneNode[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
     }
     else{
       vector<vector<Vector3<float>>> CPlist = CPlistMap[node->getComponentId()];
       CPlist[node->getIndexM()][node->getIndexN()][0] = newPos.rx() + w/2;
       CPlist[node->getIndexM()][node->getIndexN()][1] = newPos.ry() + h/2;
-      CPlist[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
       //If there is already an item with the key key, that item's value is replaced with value.
       CPlistMap.insert(node->getComponentId(), CPlist);
     }
@@ -351,7 +349,7 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
   //if(!MultiCPsDelete.empty()) MultiCPsDelete.clear();//To avoid being deleted next.
   AllItemsUnselected = true;
   AllItemsSelected = false;
-  ZoomFactor = 1.0;
+  RScaleFactor = 1.0;
   
   if(HoriLine != nullptr)
   {
@@ -870,13 +868,13 @@ void ManipulateCPs::updateCPlist(){
         if(CPlistMap.size() == 1){
           CPlistForOneNode[node->getIndexM()][node->getIndexN()][0] = node->getPos().rx() + w/2;
           CPlistForOneNode[node->getIndexM()][node->getIndexN()][1] = node->getPos().ry() + h/2;
-          CPlistForOneNode[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
+          CPlistForOneNode[node->getIndexM()][node->getIndexN()][2] *= RScaleFactor;
         }
         else{
           vector<vector<Vector3<float>>> CPlist = CPlistMap[node->getComponentId()];
           CPlist[node->getIndexM()][node->getIndexN()][0] = node->getPos().rx() + w/2;
           CPlist[node->getIndexM()][node->getIndexN()][1] = node->getPos().ry() + h/2;
-          CPlist[node->getIndexM()][node->getIndexN()][2] *= ZoomFactor;
+          CPlist[node->getIndexM()][node->getIndexN()][2] *= RScaleFactor;
           //If there is already an item with the key key, that item's value is replaced with value.
           CPlistMap.insert(node->getComponentId(), CPlist);
         }
@@ -1061,25 +1059,30 @@ void ManipulateCPs::wheelEvent(QWheelEvent *event)
     else if(Key_Z_pressed)
       {
         if(RedCrossDrawn){
+          float ScaleFactor;
           selectedList = scene->selectedItems();
           if(!selectedList.empty()){
             Node_ * selectedNode;
             QPointF StartPos, changedPos;
-            ZoomFactor = (event->angleDelta().y() / 120.0) * 0.1 + 1.0;
-            //cout<<"ZoomFactor: "<<ZoomFactor<<endl;
+            ScaleFactor = (event->angleDelta().y() / 120.0) * 0.1 + 1.0;
+            RScaleFactor *= ScaleFactor;
+            //cout<<"ScaleFactor: "<<ScaleFactor<<endl;
             for (auto& selectedItem : selectedList) {
               if (selectedNode = qgraphicsitem_cast<Node_ *>(selectedItem)) {
+                //change position
                   StartPos = selectedNode->getPos();
-                  changedPos.rx() = crossPoint.rx() + (StartPos.rx() - crossPoint.rx()) * ZoomFactor;
-                  changedPos.ry() = crossPoint.ry() + (StartPos.ry() - crossPoint.ry()) * ZoomFactor;
+                  changedPos.rx() = crossPoint.rx() + (StartPos.rx() - crossPoint.rx()) * ScaleFactor;
+                  changedPos.ry() = crossPoint.ry() + (StartPos.ry() - crossPoint.ry()) * ScaleFactor;
                   
                   selectedNode->setPos(changedPos);
                   //then MoveMultiPoint() will be automatically called.
+                  //change radius (there'll be a small error because of 'int')
+                  int setR = selectedNode->getRadius() * ScaleFactor;
+                  selectedNode->setRadius(setR);
               }
             }
-
           }
-          if(ZoomFactor > 1)
+          if(ScaleFactor > 1)
             OutLog<<"Scale-up multiple CPs."<<endl<<endl;
           else OutLog<<"Scale-down multiple CPs."<<endl<<endl;
         }

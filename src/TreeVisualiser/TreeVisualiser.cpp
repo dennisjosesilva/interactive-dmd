@@ -1,10 +1,7 @@
   // #include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
 #include <IcicleMorphotreeWidget/Graphics/Node/GNodeEventHandler.hpp>
 #include <IcicleMorphotreeWidget/Graphics/Node/GNodeFactory.hpp>
-#include <IcicleMorphotreeWidget/Graphics/Node/OpenGLGNodeFactory.hpp>
 #include <IcicleMorphotreeWidget/TreeLayout/AutoSizeTreeLayout.hpp>
-
-#include <MainWidget.hpp>
 
 #include "MainWidget.hpp"
 #include "TreeVisualiser/TreeVisualiser.hpp"
@@ -183,8 +180,7 @@ void TreeVisualiser::updateTransparencyOfTheNodes()
         treeWidget_->gnodes()[i]->setOpacity(0.75f);
       else 
         treeWidget_->gnodes()[i]->setOpacity(0.35f);
-    }
-    
+    }    
   }
 }
 
@@ -199,10 +195,15 @@ void TreeVisualiser::clearNodeSelection()
   selectedNodes_.clear();
 }
 
-void TreeVisualiser::useBilinearGradientStyle()
+void TreeVisualiser::useBilinearGradientStyle(OpenGLFactoryPresetPtr preset)
 {
-  using IcicleMorphotreeWidget::OpenGLGNodeFactory;
-  treeWidget_->setGNodeFactory(std::make_unique<OpenGLGNodeFactory>());
+  using IcicleMorphotreeWidget::OpenGLGNodeFactory;  
+  
+  std::shared_ptr<OpenGLGNodeFactory> factory =
+    std::make_shared<OpenGLGNodeFactory>();
+
+  preset->setUpFactory(factory);
+  treeWidget_->setGNodeFactory(factory);  
   treeWidget_->updateTreeRendering();
   treeWidget_->grayscaleBar()->setShowBorders(false);
   gradientRenderStyle_ = true;

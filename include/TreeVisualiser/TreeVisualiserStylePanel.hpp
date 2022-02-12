@@ -30,7 +30,13 @@ private:
 
   QRadioButton *flatRadioButton_;
   QRadioButton *gradientRadioButton_;
-  QRadioButton *bilinearGradientRadioButton_;
+  QRadioButton *glGradientDefaultRadioButton_;
+  QRadioButton *glGradientFlatRadioButton_;
+  QRadioButton *glGradientHorizontalRadioButton_;
+  QRadioButton *glGradientVerticalRadioButton_;
+  QRadioButton *glGradientSymmetricTentLikeCushionRadioButton_;
+  QRadioButton *glGradientAsymmetricTentLikeCushionRadioButton_;
+
 
   TreeVisualiser *treeVis_;
 };

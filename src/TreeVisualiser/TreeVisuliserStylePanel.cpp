@@ -48,21 +48,48 @@ QGroupBox *TreeVisualiserStylePanel::createRenderStyleSection()
 
   QGroupBox *groupBox = new QGroupBox{tr("Render Style")};
   
-  flatRadioButton_ = new QRadioButton{tr("Flat")};  
-  connect(flatRadioButton_, &QRadioButton::toggled, this, 
+
+  glGradientDefaultRadioButton_ = new QRadioButton{tr("GL Default Bilinear Gradient")};
+  glGradientDefaultRadioButton_->setChecked(true);
+  connect(glGradientDefaultRadioButton_, &QRadioButton::toggled, this,
     &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
-  
-  bilinearGradientRadioButton_ = new QRadioButton{tr("Bilinear gradient")};
-  bilinearGradientRadioButton_->setChecked(true);
-  connect(bilinearGradientRadioButton_, &QRadioButton::toggled, this,
+
+  glGradientFlatRadioButton_ = new QRadioButton{tr("GL flat color")};
+  connect(glGradientFlatRadioButton_, &QRadioButton::toggled, this,
+    &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
+
+  glGradientHorizontalRadioButton_ = new QRadioButton{tr("GL Horizontal Gradient")};
+  connect(glGradientHorizontalRadioButton_, &QRadioButton::toggled, this,
+    &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
+
+  glGradientVerticalRadioButton_ = new QRadioButton{tr("GL Vertical Gradient")};
+  connect(glGradientVerticalRadioButton_, &QRadioButton::toggled, this,
+    &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
+
+  glGradientSymmetricTentLikeCushionRadioButton_ = new QRadioButton{
+    tr("GL Symmetric Tent Like Cushion Gradient")},
+  connect(glGradientSymmetricTentLikeCushionRadioButton_, &QRadioButton::toggled, this,
+    &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
+
+  glGradientAsymmetricTentLikeCushionRadioButton_ = new QRadioButton{
+    tr("GL Asymmetric Tent Like Cushion Gradient")};
+  connect(glGradientAsymmetricTentLikeCushionRadioButton_, &QRadioButton::toggled, this,
     &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
 
   gradientRadioButton_ = new QRadioButton{tr("Gradient")};  
   connect(gradientRadioButton_, &QRadioButton::toggled, this,
     &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
 
+  flatRadioButton_ = new QRadioButton{tr("Flat")};  
+  connect(flatRadioButton_, &QRadioButton::toggled, this, 
+    &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
   
-  layout->addWidget(bilinearGradientRadioButton_);
+  layout->addWidget(glGradientDefaultRadioButton_);
+  layout->addWidget(glGradientFlatRadioButton_);
+  layout->addWidget(glGradientHorizontalRadioButton_);
+  layout->addWidget(glGradientVerticalRadioButton_);
+  layout->addWidget(glGradientSymmetricTentLikeCushionRadioButton_);
+  layout->addWidget(glGradientAsymmetricTentLikeCushionRadioButton_);
   layout->addWidget(gradientRadioButton_);
   layout->addWidget(flatRadioButton_);
 
@@ -72,6 +99,13 @@ QGroupBox *TreeVisualiserStylePanel::createRenderStyleSection()
 
 void TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle(bool checked)
 {
+  using IcicleMorphotreeWidget::DefaultPreset;
+  using IcicleMorphotreeWidget::FlatPreset;
+  using IcicleMorphotreeWidget::HorinzontalPreset;
+  using IcicleMorphotreeWidget::VerticalPreset;
+  using IcicleMorphotreeWidget::SymmetricTentLikeCushion;
+  using IcicleMorphotreeWidget::AsymetricTentLikeCushion;
+
   if (checked) {
     QRadioButton *checkedBtn = static_cast<QRadioButton *>(sender());
     treeVis_->resetCache();
@@ -81,8 +115,29 @@ void TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle(bool checked)
     else if (checkedBtn == gradientRadioButton_) {
       treeVis_->useGradientGNodeStyle();            
     }
-    else if (checkedBtn == bilinearGradientRadioButton_) {
-      treeVis_->useBilinearGradientStyle();
+    else if (checkedBtn == glGradientDefaultRadioButton_) {
+      treeVis_->useBilinearGradientStyle(
+        std::make_shared<DefaultPreset>());
+    }
+    else if (checkedBtn == glGradientFlatRadioButton_) {
+      treeVis_->useBilinearGradientStyle(
+        std::make_shared<FlatPreset>());
+    }
+    else if (checkedBtn == glGradientHorizontalRadioButton_) {
+      treeVis_->useBilinearGradientStyle(
+        std::make_shared<HorinzontalPreset>());
+    }
+    else if (checkedBtn == glGradientVerticalRadioButton_) {
+      treeVis_->useBilinearGradientStyle(
+        std::make_shared<VerticalPreset>());
+    }
+    else if (checkedBtn == glGradientSymmetricTentLikeCushionRadioButton_) {
+      treeVis_->useBilinearGradientStyle(
+        std::make_shared<SymmetricTentLikeCushion>());
+    }
+    else if (checkedBtn == glGradientAsymmetricTentLikeCushionRadioButton_) {
+      treeVis_->useBilinearGradientStyle(
+        std::make_shared<AsymetricTentLikeCushion>());
     }
   }
 }

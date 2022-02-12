@@ -8,6 +8,7 @@
 #include <IcicleMorphotreeWidget/Graphics/Node/GNode.hpp>
 #include <IcicleMorphotreeWidget/IcicleMorphotreeWidget.hpp>
 #include <IcicleMorphotreeWidget/Graphics/ColorBar.hpp>
+#include <IcicleMorphotreeWidget/Graphics/Node/OpenGLGNodeFactory.hpp>
 #include "TreeVisualiser/SimpleImageViewer.hpp"
 #include "TreeVisualiser/AttributeComputer.hpp"
 #include "CustomWidgets/TitleColorBar.hpp"
@@ -27,7 +28,6 @@ class RecNodeButton;
 class QGraphicsSceneMouseEvent;
 class MainWidget;
 class QSlider;
-
 
 class MyDockWidget : public QDockWidget
 {
@@ -76,6 +76,8 @@ public:
   using GNode = IcicleMorphotreeWidget::GNode;  
   using uint8 = morphotree::uint8;
   using uint32 = morphotree::uint32;  
+  using OpenGLFactoryPresetPtr = std::shared_ptr<IcicleMorphotreeWidget::Preset>;
+  using DefaultPreset = IcicleMorphotreeWidget::DefaultPreset;
 
   TreeVisualiser(MainWidget *mainWidget);
 
@@ -102,7 +104,8 @@ public:
   std::vector<bool> recFullNode() const;
   std::vector<bool> morphoRecSelectedNodes() const;
 
-  void useBilinearGradientStyle();
+  void useBilinearGradientStyle(OpenGLFactoryPresetPtr preset=
+    std::make_shared<DefaultPreset>());
   void useGradientGNodeStyle();
   void useFixedColorGNodeStyle();
 

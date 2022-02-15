@@ -64,11 +64,11 @@ There is also a bash script to update an individual Conan package. This script w
 $ bash update_package.bash
 ```
 
-Then, it will ask to chose a package as as shown in the image below:
+Then, it will ask to chose a package as shown in the image below:
 
 ![](images/update-package.png)
 
-we chose the package by typing the index (1-5) correspoding to the package name on the prompt. After the updating, the command to install the conan packages has to be run again and the project rebuilt. 
+we chose the package by typing the index (1-5) correspoding to the package name on the prompt. After the updating, the command to install the conan packages has to be run again and the project rebuilt (see **section 2**). 
 
 # 2. Running
 

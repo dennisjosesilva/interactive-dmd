@@ -58,6 +58,18 @@ $ bash remove_dependencies_packages.bash
 
 Then, enter with yes for the packages to be removed and hit **Enter** (or **Return**).
 
+There is also a bash script to update an individual Conan package. This script will remove the chosen conan package and install the new package from the github repository. To do it, we can run the following command at the **conan-dependencies-recipes** directory:
+
+```bash
+$ bash update_package.bash
+```
+
+Then, it will ask to chose a package as as shown in the image below:
+
+![](images/update-package.png)
+
+we chose the package by typing the index (1-5) correspoding to the package name on the prompt. After the updating, the command to install the conan packages has to be run again and the project rebuilt. 
+
 # 2. Running
 
 mkdir build

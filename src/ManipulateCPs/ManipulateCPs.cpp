@@ -337,12 +337,12 @@ void ManipulateCPs::changeCurrbranchDegree(int d)
   <<" to "<<d<<"."<<endl<<endl;
 } 
 
-void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
+void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, bool upper_state)
 {
   //emit setUnSync();
   if(CPlistMap.size() == 1) CPlistMap.insert(nodeIdForOneNode, CPlistForOneNode);
 
-  recon->reconFromMovedCPs(CPlistMap);
+  recon->reconFromMovedCPs(CPlistMap, upper_state);
 
   UpdateBackground();
   
@@ -360,12 +360,12 @@ void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon)
   }  
   RedCrossDrawn = false;
 }
-void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon)
+void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon, bool upper_state)
 {
   OutLog.close(); 
   vector<int> reconAll;
   reconAll.push_back(10000);//Just make sure reconstruct all nodes.
-  recon->ReconstructMultiNode(false, reconAll, 0);
+  recon->ReconstructMultiNode(false, reconAll, 0, upper_state);
 
   showBackgroundImg = recon->getOutQImage();
   drawQImage = true;

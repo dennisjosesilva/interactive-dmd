@@ -28,7 +28,8 @@ class dmdReconstruct {
     void framebufferSetup();
     void renderLayer(int intensity_index);
     void renderLayer(int intensity, int nodeID);
-    bool renderLayer(int intensity, vector<Vector3<float>> SampleForEachCC, bool OpenGLRenderMethod);//for action = 1 situation.
+    bool renderLayer(int intensity, vector<Vector3<float>> SampleForEachCC, bool OpenGLRenderMethod);
+    void renderToTexture();
     
     FIELD<float>* renderLayer_interp(int i);
 
@@ -39,10 +40,9 @@ class dmdReconstruct {
     //void readIndexingControlPoints(int width, int height, int clear_color, multimap<int,int> Inty_Node);
     void readIndexingControlPoints(multimap<int,int> Inty_Node);
     
-    QImage ReconstructImage(bool interpolate);
-    void ReconstructIndexingImage(int nodeID);
-    void ReconstructIndexingImage_multi(QVector<unsigned int> nodesID);
-    QImage ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action);
+    QImage ReconstructImage(bool interpolate, bool UpperState);
+    void ReconstructIndexingImage_multi(QVector<unsigned int> nodesID, bool upperState);
+    QImage ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action, bool UpperState);
 
 
     void get_interp_layer(int i, bool last_layer);
@@ -58,7 +58,7 @@ class dmdReconstruct {
     inline QImage getOutQImage() { return OutImg; }
     
     void GetCPs(QVector<unsigned int> nodesID);
-    void reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<float>>>> CPlistMap);
+    void reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<float>>>> CPlistMap, bool upperState);
     QImage get_texture_data(); 
     void DrawTheFirstLayer(float ClearColor);
     void RenderOutput(int inty, bool DrawAnything);
@@ -89,5 +89,6 @@ class dmdReconstruct {
     QOpenGLBuffer vertexPositionBuffer;
     QImage OutImg;
     QMap<unsigned int, vector<vector<Vector3<float>>>> SelectedNodesCPlistMap;
+    bool upper_state = true;;
 };
 

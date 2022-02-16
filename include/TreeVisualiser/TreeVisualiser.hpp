@@ -114,7 +114,7 @@ public:
   
   inline uint numberOfSelectedNodes() const { return selectedNodes_.count(); }
 
-  FIELD<float>* SDMDReconstruction(unsigned int id);
+  //FIELD<float>* SDMDReconstruction(unsigned int id);
   std::vector<bool> SDMDRecontructionSelectedNodes();
 
   bool isNodeSelectedForReconstruction(unsigned int id) const { return selectedNodesForRec_[id]; }

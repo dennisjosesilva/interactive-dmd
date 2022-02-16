@@ -32,8 +32,8 @@ public:
   
   void changeCurrNodeRInCplist(int r);
   void changeCurrbranchDegree(int d);
-  void ReconFromMovedCPs(dmdReconstruct *recon);
-  void ReconImageFromMovedCPs(dmdReconstruct *recon);
+  void ReconFromMovedCPs(dmdReconstruct *recon, bool upper_state);
+  void ReconImageFromMovedCPs(dmdReconstruct *recon, bool upper_state);
   void Press_node(Node_ *node, int radius, int maxDegree, int degree);
   //inline void setCurrentNodeIndex(int m, int n) {CurrNodeIndex_m = m; CurrNodeIndex_n = n;}
   //void TranspCurrPoint(Node_ *node);

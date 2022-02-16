@@ -228,11 +228,11 @@ void TreeVisualiser::useFixedColorGNodeStyle()
   gradientRenderStyle_ = false;
 }
 
-FIELD<float> *TreeVisualiser::SDMDReconstruction(unsigned int id)
-{
-  dmdrecon_->ReconstructIndexingImage(id);
-  return dmdrecon_->getOutput();
-}
+// FIELD<float> *TreeVisualiser::SDMDReconstruction(unsigned int id)
+// {
+//   dmdrecon_->ReconstructIndexingImage(id);
+//   return dmdrecon_->getOutput();
+// }
 
 std::vector<bool> TreeVisualiser::SDMDRecontructionSelectedNodes()
 {
@@ -245,7 +245,8 @@ std::vector<bool> TreeVisualiser::SDMDRecontructionSelectedNodes()
   else {
     // else reconstruct the nodes
     std::vector<bool> frec(domain_.numberOfPoints(), false);
-    dmdrecon_->ReconstructIndexingImage_multi(selectedNodesIds);
+    bool upper_state = mainWidget_->getUpperState();
+    dmdrecon_->ReconstructIndexingImage_multi(selectedNodesIds, upper_state);
     dmdrecon_->GetCPs(selectedNodesIds);
 
     FIELD<float> *bimg = dmdrecon_->getOutput();
@@ -435,7 +436,8 @@ void TreeVisualiser::registerDMDSkeletons()
 
   float salVal = mainWidget_->getSaliencyValue(); 
   float HDval = mainWidget_->getHDValue(); 
-  dmd_.Init_indexingSkeletons(salVal, HDval);
+  bool upper_state = mainWidget_->getUpperState();
+  dmd_.Init_indexingSkeletons(salVal, HDval, upper_state);
   NumberOfSkeletonPointCache nskelCache;
   
   FIELD<float> *fnode = nullptr;
@@ -681,8 +683,8 @@ void TreeVisualiser::SplineManipulateBtn_press()
     emit ChangeCentralWidget(cv);
 
     //NodePtr mnode = curSelectedNode()->mnode();
-    
-    dmdrecon_->ReconstructIndexingImage_multi(selectedNodesID);
+    bool upper_state = mainWidget_->getUpperState();
+    dmdrecon_->ReconstructIndexingImage_multi(selectedNodesID, upper_state);
   
   //  if(mnode->id() == 0){
   //    QMessageBox::information(0, "For your information",
@@ -697,7 +699,7 @@ void TreeVisualiser::SplineManipulateBtn_press()
     //  }
     //  else 
      //cv->transData(mnode->level(), dmdrecon_);
-     cv->transData(dmdrecon_);
+     cv->transData(dmdrecon_, upper_state);
    //}
     
   } 
@@ -717,10 +719,10 @@ void TreeVisualiser::skelRecBtn_press()
       keptNodes.push_back(i);
   }
   //cout<<keptNodes.size()<<" keptNodes.size() "<<endl;
+  bool upper_state = mainWidget_->getUpperState();
   QTime time;
   time.start();
-   
-  QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1);
+  QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1, upper_state);
   cout<<time.elapsed()<<" ms."<<endl;
 
   clearNodeSelection();
@@ -763,9 +765,9 @@ void TreeVisualiser::removeSkelBtn_press()
     if (selectedNodesForRec_[i])
       keptNodes.push_back(i);
       
-  }
-      
-  QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 0);
+  }  
+  bool upper_state = mainWidget_->getUpperState();    
+  QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 0, upper_state);
   //QImage img = fieldToQImage(dmdrecon_->getOutput());    
 
   clearNodeSelection();

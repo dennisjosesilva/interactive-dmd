@@ -669,7 +669,7 @@ int dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFile
     return CPnum;
 }
 
-int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, FIELD<float> *sm){
+int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, bool upper_state, FIELD<float> *sm){
     SKELETON_SALIENCY_THRESHOLD = saliency_threshold;
     int TotalcpNum = 0, cpNum;
     spline.clear_IndexingCP_Interactive();
@@ -696,7 +696,8 @@ int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, FIEL
                 // Threshold the image
                 imDupeBack = processedImage->dupe();
                 
-                imDupeBack->threshold(i);
+                if(upper_state) imDupeBack->threshold(i);
+                else imDupeBack->threshold_(i);
 
                  //debug--print layer
                  /*stringstream ss;
@@ -726,9 +727,10 @@ int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, FIEL
 }
 
 
-void dmdProcess::Init_indexingSkeletons(float SalVal, float HDval){
+void dmdProcess::Init_indexingSkeletons(float SalVal, float HDval, bool upper_state){
     SalValForTree = SalVal;
     HDvalForTree = HDval;
+    UpperState = upper_state;
     float *c = OriginalImage->data();
     float *end = OriginalImage->data() + nPix;
     int min_elem = 1e5;
@@ -752,10 +754,17 @@ void dmdProcess::Init_indexingSkeletons(float SalVal, float HDval){
 //CC-connected component.
 //0-foreground; 1- background.
 int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
-     /*std::stringstream ske;
-    ske<<"output/c"<<intensity<<"-"<<index<<".pgm";
-    CC->writePGM(ske.str().c_str());
-   */
+    if(!UpperState){
+        float* CCdata = CC -> data();
+        for (int i = 0; i < nPix; ++i) 
+            CCdata[i] = (CCdata[i] > 0) ? 0 : 1;
+        
+    }
+    
+    // debug
+    // std::stringstream ske;
+    // ske<<"output/c"<<intensity<<"-"<<index<<".pgm";
+    // CC->writePGM(ske.str().c_str());
     
     FIELD<float> *skelCurr = 0;
     int seq = 0, x, y; 

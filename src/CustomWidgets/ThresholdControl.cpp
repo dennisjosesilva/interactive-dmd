@@ -146,6 +146,12 @@ QLayout *ThresholdControl::createRunButtons()
   connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(Interp_onStateChanged(int)));
   btnLayout->addWidget(checkBox);
 
+  QCheckBox *checkBox1 = new QCheckBox(this);
+  checkBox1->setText("Upper");
+  checkBox1->setChecked(true);
+  connect(checkBox1, SIGNAL(stateChanged(int)), this, SLOT(Upper_onStateChanged(int)));
+  btnLayout->addWidget(checkBox1);
+
   QCheckBox *checkBox2 = new QCheckBox(this);
   checkBox2->setText("OrigImg");
   connect(checkBox2, SIGNAL(stateChanged(int)), this, SLOT(DisplayOrigImg_onStateChanged(int)));
@@ -185,6 +191,12 @@ void ThresholdControl::Interp_onStateChanged(int state)
   if(state == 2) InterpState = true;//checked
   else InterpState = false;//0-unchecked
 }
+
+void ThresholdControl::Upper_onStateChanged(int state){
+  if(state == 2) UpperState = true;//checked
+  else UpperState = false;//0-unchecked
+}
+
 void ThresholdControl::DisplayOrigImg_onStateChanged(int state)
 {
   if(state == 2) //checked
@@ -239,7 +251,7 @@ void ThresholdControl::RunBtn_press()
   dmdProcess_.LayerSelection(true, layerVal);
   emit LayerHasBeenSelected(dmdProcess_.get_selected_intensity());
   //bar->showMessage(tr("Computing Skeletons..."));
-  CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, nullptr);
+  CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, UpperState, nullptr);
 
   //bar->showMessage(tr("Reading Control points..."));
   dmdRecon_ = new dmdReconstruct(dmdProcess_.getImgWidth(), dmdProcess_.getImgHeight(), dmdProcess_.clear_color);
@@ -251,7 +263,7 @@ void ThresholdControl::RunBtn_press()
   //cout<<"InterpState: "<<InterpState<<endl;
   QTime time;
   time.start();
-  QImage img = dmdRecon_->ReconstructImage(InterpState);
+  QImage img = dmdRecon_->ReconstructImage(InterpState, UpperState);
   //dmdRecon_.ReconstructImage(InterpState);
   //bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
   //QImage img = fieldToImage(dmdRecon_.getOutput());    

@@ -162,9 +162,10 @@ QLayout *CpViewer::createTextLayout()
   
   return TextLayout; 
 }
-void CpViewer::transData(dmdReconstruct* recon)
+void CpViewer::transData(dmdReconstruct* recon, bool upper_state)
 {
   recon_ = recon; 
+  upperState = upper_state;
   getCPsMap();
 }
 
@@ -201,13 +202,13 @@ void CpViewer::removeCPsBtn_press()
 
 void CpViewer::ReconBtn_press()
 {
-  manipulate_CPs->ReconFromMovedCPs(recon_);
+  manipulate_CPs->ReconFromMovedCPs(recon_, upperState);
   MainWidgetImageViewer->CPviewer_show_message(9);
 }
 
 void CpViewer::ReconImageBtn_press()
 {
-  manipulate_CPs->ReconImageFromMovedCPs(recon_);
+  manipulate_CPs->ReconImageFromMovedCPs(recon_, upperState);
   MainWidgetImageViewer->markTreeAsUnsynchronized();
 }
 

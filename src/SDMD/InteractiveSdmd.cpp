@@ -200,9 +200,9 @@ void InteractiveSdmd::RunBtn_press()
   bar->showMessage(tr("Selecting layers..."));
   dmdProcess_.LayerSelection(true, layerVal);
   bar->showMessage(tr("Computing Skeletons..."));
-  CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, nullptr);
+  // CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, nullptr);
 
-  bar->showMessage(tr("Reading Control points..."));
+  // bar->showMessage(tr("Reading Control points..."));
   // dmdRecon_.readControlPoints(scribble_->image().width(), scribble_->image().height(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
   // bar->showMessage(tr("Reconstruction..."));
   // cout<<"InterpState: "<<InterpState<<endl;
@@ -226,10 +226,10 @@ void InteractiveSdmd::saliencyBtn_press(){
   bar->showMessage(tr("Selecting layers..."));
   dmdProcess_.LayerSelection(true, layerVal);
   bar->showMessage(tr("Computing Skeletons..."));
-  CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, scribble_sm);
+  //CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, scribble_sm);
   //CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, nullptr);
   //
-  bar->showMessage(tr("Reading Control points..."));
+  //bar->showMessage(tr("Reading Control points..."));
   // dmdRecon_.readControlPoints(scribble_->image().width(), scribble_->image().height(), dmdProcess_.clear_color, dmdProcess_.get_gray_levels());
   // bar->showMessage(tr("Reconstruction..."));
   // QImage img = dmdRecon_.ReconstructImage(InterpState);

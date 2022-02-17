@@ -156,6 +156,23 @@ When tree gets unsynchronised (the user apply a skeleton manipulation) the borde
 
 To synchronise the image to the tree, the user can click on <img src="images/sync_morphotree_icon.png" title="" alt="" width="50"> at the toolbar. When the image and tree is synchronised, it cannot go back to the previous status and the whole tree and node skeletons are recomputed.
 
+SDMD reconstruction
+---------
+
+This program also provides a way to run SDMD (Spline-Based Dense Medial Descriptors) reconstruction interactively. User-controllable parameters in the control bar are marked in the red box below.
+
+![](images/SDMD-example.png)
+
+SDMD has four important parameters that affect the trade-off between image size and quality. The meaning of
+these parameters is straightforward: L determines how many layers (image intensities for a grayscale image) are used for the reconstruction; ε controls the maximum size of small-scale details that are removed; σ controls how much to smooth isophote or isochrome contours in an image; and γ tells how accurately B-splines fit the MAT, i.e., how precisely we want to encode the position and shape of objects in an image.
+
+Apart from that, users can also check the 'Interp' checkbox to get an interpolated result; check/uncheck the 'Upper' checkbox to run upper/lower thresholding scheme, see details in this paper. After setting all parameters, one can run 'Run' button to get the SDMD reconstructed result. Users can also click the 'OrigImg' checkbox to check the original image.
+
+There are two benefits to running the SDMD reconstruction. First, it provides an indirect way to select nodes on the morphotree. As shown in the above figure, when L is set to 10, then only 10 gray levels are selected on the morpotree in the right window. Secondly, for some complex grayscale images (such as images with many small details), it will take a lot of time to directly encode all its morpotree nodes. In this case, once can choose to run SDMD first, and then encode, i.e., click on <img src="images/iciclemorphotree_icon.png" alt="drawing" width="50"/>. This way, although not all the information of the original image is encoded, most of the information is retained, and importantly, the encoding time is greatly reduced.
+
+Another thing is that these parameters in the control bar also control the skeletons/splines that represent the node/component, i.e., during the encoding process, each tree node/component generates a skeleton/spline based on these parameters.
+
+
 Shape manipulation
 ---------
 

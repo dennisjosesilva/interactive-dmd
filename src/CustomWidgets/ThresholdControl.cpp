@@ -146,11 +146,11 @@ QLayout *ThresholdControl::createRunButtons()
   connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(Interp_onStateChanged(int)));
   btnLayout->addWidget(checkBox);
 
-  QCheckBox *checkBox1 = new QCheckBox(this);
-  checkBox1->setText("Upper");
-  checkBox1->setChecked(true);
-  connect(checkBox1, SIGNAL(stateChanged(int)), this, SLOT(Upper_onStateChanged(int)));
-  btnLayout->addWidget(checkBox1);
+  // QCheckBox *checkBox1 = new QCheckBox(this);
+  // checkBox1->setText("Upper");
+  // checkBox1->setChecked(true);
+  // connect(checkBox1, SIGNAL(stateChanged(int)), this, SLOT(Upper_onStateChanged(int)));
+  // btnLayout->addWidget(checkBox1);
 
   QCheckBox *checkBox2 = new QCheckBox(this);
   checkBox2->setText("OrigImg");

@@ -78,6 +78,7 @@ public:
   using uint32 = morphotree::uint32;  
   using OpenGLFactoryPresetPtr = std::shared_ptr<IcicleMorphotreeWidget::Preset>;
   using DefaultPreset = IcicleMorphotreeWidget::DefaultPreset;
+  using GrayScaleProfile = IcicleMorphotreeWidget::GrayScaleProfile;  
 
   TreeVisualiser(MainWidget *mainWidget);
 
@@ -205,4 +206,6 @@ private:
   bool gradientRenderStyle_;
   QMap<uint32, GNode *> selectedNodes_;
   bool FirstCreateCpviewer = true;
+
+  GrayScaleProfile grayscaleProfile_;
 };

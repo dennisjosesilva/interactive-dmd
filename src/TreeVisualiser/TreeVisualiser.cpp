@@ -51,7 +51,9 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     curColorBar_{nullptr},
     maxValue_{0},
     gradientRenderStyle_{true},
-    shouldUpdateCustomTreeRedraw_{false}    
+    shouldUpdateCustomTreeRedraw_{false},
+    grayscaleProfile_{IcicleMorphotreeWidget::Range{0, 255}, 
+      IcicleMorphotreeWidget::Range{0, 255}}
 {  
   using GNodeEventHandler = IcicleMorphotreeWidget::GNodeEventHandler;
   using FixedHeightTreeLayout = IcicleMorphotreeWidget::FixedHeightTreeLayout;    
@@ -69,13 +71,12 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   mainLayout->addItem(btnLayout);  
   
   // treeWidget_ = new IcicleMorphotreeWidget{this, 
-  //   std::make_unique<GrayscaleBasedHeightTreeLayout>(
-  //     std::make_unique<GradientGNodeFactory>(),
-  //     20.f, 20.f, 10.f)};
-
-  treeWidget_ = new IcicleMorphotreeWidget{this, 
-    std::make_unique<AutoSizeTreeLayout>(
-      std::make_unique<OpenGLGNodeFactory>(), 20.f, 20.f)};
+  //   std::make_unique<AutoSizeTreeLayout>(
+  //     std::make_unique<OpenGLGNodeFactory>(), 20.f, 20.f)};
+  
+  treeWidget_ = new IcicleMorphotreeWidget{grayscaleProfile_, this, 
+    std::make_shared<AutoSizeTreeLayout>(
+      std::make_shared<OpenGLGNodeFactory>(), grayscaleProfile_)};
 
   treeWidget_->setNodeSelectionColor(Qt::red);
   controlsLayout->addWidget(treeWidget_);  
@@ -300,7 +301,9 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
 {  
   // namespace mw = MorphotreeWidget;
   using AutoSizeTreeLayout = IcicleMorphotreeWidget::AutoSizeTreeLayout;
-  
+  using IcicleMorphotreeWidget::Range;
+  using IcicleMorphotreeWidget::MorphoTreeType;
+
   shouldUpdateCustomTreeRedraw_ = false;
   if (treeWidget_->hasAttributes()) 
     clearAttributes();
@@ -310,7 +313,10 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
   maxValue_ = static_cast<uint32>(*std::max_element(f.begin(), f.end()));
   curSelectedNodeIndex_ = InvalidNodeIndex;
   
-  treeWidget_->loadImage(domain, f);  
+  auto minmax = std::minmax_element(f.begin(), f.end());
+  grayscaleProfile_.setIRange(Range{*minmax.first, *minmax.second});
+  treeWidget_->setGrayScaleProfile(grayscaleProfile_);
+  treeWidget_->loadImage(domain, f, MorphoTreeType::MIN_TREE_8C);
 
   std::shared_ptr<AutoSizeTreeLayout> treeLayout = 
     dynamic_pointer_cast<AutoSizeTreeLayout>(treeWidget_->treeLayout());

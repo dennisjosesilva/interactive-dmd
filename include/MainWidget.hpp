@@ -20,6 +20,7 @@ class MainWidget : public QWidget
   Q_OBJECT
 public:
   using GNode = IcicleMorphotreeWidget::GNode;
+  using MorphoTreeType = IcicleMorphotreeWidget::MorphoTreeType;
 
   MainWidget(MainWindow *mainWindow, QWidget *parent=nullptr);
 
@@ -30,12 +31,13 @@ public:
   QImage& image() { return imageViewer_->image(); }
   
   inline TreeVisualiser *treeVisualiser() { return treeVis_; }
-  QDockWidget *morphotreeDockWidget();
+  QDockWidget *morphotreeDockWidget(
+    MorphoTreeType mtreeType = MorphoTreeType::MAX_TREE_8C);
   QDockWidget *SdmdDockWidget() {return dockWidgetSdmd_;}
 
   MyDockWidget* createDockWidget(const QString &title, QWidget *widget);
 
-  void updateTreeVisualiser();
+  void updateTreeVisualiser(MorphoTreeType mtreeType = MorphoTreeType::MAX_TREE_8C);
 
   void zoomOut();
   void zoomIn();

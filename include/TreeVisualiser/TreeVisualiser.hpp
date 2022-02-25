@@ -28,6 +28,7 @@ class RecNodeButton;
 class QGraphicsSceneMouseEvent;
 class MainWidget;
 class QSlider;
+class QComboBox;
 
 class MyDockWidget : public QDockWidget
 {
@@ -78,11 +79,14 @@ public:
   using uint32 = morphotree::uint32;  
   using OpenGLFactoryPresetPtr = std::shared_ptr<IcicleMorphotreeWidget::Preset>;
   using DefaultPreset = IcicleMorphotreeWidget::DefaultPreset;
+  using MorphoTreeType = IcicleMorphotreeWidget::MorphoTreeType;
   using GrayScaleProfile = IcicleMorphotreeWidget::GrayScaleProfile;  
 
   TreeVisualiser(MainWidget *mainWidget);
 
-  void loadImage(Box domain, const std::vector<morphotree::uint8> &f);
+  void loadImage(Box domain, const std::vector<morphotree::uint8> &f,
+    MorphoTreeType mtreeType = MorphoTreeType::MAX_TREE_8C);
+
   void selectNodeByPixel(int x, int y, bool isCtrlDown=false);  
   inline uint32 numberOfNodesOfTree() { return treeWidget_->mtree().numberOfNodes(); }  
   void registerDMDSkeletons();
@@ -182,7 +186,6 @@ private:
 
   uint32 curSelectedNodeIndex_;
   bool shouldUpdateCustomTreeRedraw_;
-
 
   uint32 maxValue_;
   IcicleMorphotreeWidget::IcicleMorphotreeWidget *treeWidget_;

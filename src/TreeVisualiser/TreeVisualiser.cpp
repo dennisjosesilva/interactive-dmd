@@ -24,6 +24,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QStack>
+#include <QComboBox>
 
 #include "CustomWidgets/CollapsableWidget.hpp"
 #include "TreeVisualiser/TreeVisualiserStylePanel.hpp"
@@ -62,7 +63,9 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   using HGradientGNodeFactory = IcicleMorphotreeWidget::HGradientGNodeFactory;                                                      
   using AutoSizeTreeLayout = IcicleMorphotreeWidget::AutoSizeTreeLayout;
   using IcicleMorphotreeWidget::OpenGLGNodeFactory;
+  using IcicleMorphotreeWidget::MorphoTreeType;
   using IcicleMorphotreeWidget = IcicleMorphotreeWidget::IcicleMorphotreeWidget;
+  
   
   QLayout *mainLayout = new QVBoxLayout;
   QLayout *controlsLayout = new QHBoxLayout;
@@ -297,7 +300,8 @@ void TreeVisualiser::selectNodesForRecBasedOnIntensities(
   updateTransparencyOfTheNodes();
 }
 
-void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
+void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f,
+  MorphoTreeType mtreeType)
 {  
   // namespace mw = MorphotreeWidget;
   using AutoSizeTreeLayout = IcicleMorphotreeWidget::AutoSizeTreeLayout;
@@ -316,7 +320,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f)
   auto minmax = std::minmax_element(f.begin(), f.end());
   grayscaleProfile_.setIRange(Range{*minmax.first, *minmax.second});
   treeWidget_->setGrayScaleProfile(grayscaleProfile_);
-  treeWidget_->loadImage(domain, f, MorphoTreeType::MIN_TREE_8C);
+  treeWidget_->loadImage(domain, f, mtreeType);
 
   std::shared_ptr<AutoSizeTreeLayout> treeLayout = 
     dynamic_pointer_cast<AutoSizeTreeLayout>(treeWidget_->treeLayout());

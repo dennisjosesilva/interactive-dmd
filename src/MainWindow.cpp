@@ -14,6 +14,8 @@
 #include <QToolBar>
 #include <QIcon>
 #include <QStackedWidget>
+#include <QLabel>
+#include <QComboBox>
 
 #include <QStatusBar>
 #include <QProgressBar>
@@ -146,6 +148,8 @@ void MainWindow::uncheckAttrVisActs()
 
 void MainWindow::createToolBar()
 {
+  using IcicleMorphotreeWidget::MorphoTreeType;
+
   QToolBar *toolbar = addToolBar(tr("Main"));
   toolbar->setIconSize(QSize{32, 32});
 
@@ -157,6 +161,19 @@ void MainWindow::createToolBar()
   connect(showTreeVisAct_, &QAction::toggled, this, &MainWindow::treeVisAct_onToggled);
   toolbar->addAction(showTreeVisAct_);
 
+  QLabel* lblMTreeType = new QLabel{tr("Tree Type: "), this};
+  toolbar->addWidget(lblMTreeType);
+
+  mtreeTypeComboBox_ = new QComboBox{this};
+  mtreeTypeComboBox_->addItem(tr("Max-Tree"), 
+    static_cast<int>(MorphoTreeType::MAX_TREE_8C));
+  mtreeTypeComboBox_->addItem(tr("Min-Tree"), 
+    static_cast<int>(MorphoTreeType::MIN_TREE_8C));
+  toolbar->addWidget(mtreeTypeComboBox_);
+  connect(mtreeTypeComboBox_, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+    this,  &MainWindow::mtreeTypeComboBox_onIndexChanged);
+
+  toolbar->addSeparator();
   const QIcon nodeSelectionClickIcon = QIcon(":/images/icicle_node_selection_pixel_icon.png");
   nodeSelectionClickAct_ = new QAction(nodeSelectionClickIcon, 
     tr("Node selection by pixel click"), this);
@@ -254,6 +271,7 @@ void MainWindow::open()
       if (showTreeVisAct_->isChecked()) {
         showProgressBar();
         attrVisMenu_->setEnabled(true);
+        // TODO: include mtree type here.
         mainWidget_->updateTreeVisualiser();
       }
     }
@@ -290,18 +308,36 @@ void MainWindow::dmdProcessAct_onTrigged()
 
 void MainWindow::treeVisAct_onToggled(bool checked)
 {  
+  using IcicleMorphotreeWidget::MorphoTreeType;
+
   if (shouldUpdateProgressBar_) {
     showProgressBar();
     attrVisMenu_->setEnabled(true);
   }
 
-  QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget();
+  MorphoTreeType mt =  static_cast<MorphoTreeType>(
+    mtreeTypeComboBox_->currentData().value<int>());
+  QDockWidget *dockMorphotreeWidget = mainWidget_->morphotreeDockWidget(mt);
   
   if (checked) {
     dockMorphotreeWidget->setVisible(true);    
   }
   else 
     dockMorphotreeWidget->setVisible(false);
+}
+
+void MainWindow::mtreeTypeComboBox_onIndexChanged(int index)
+{
+  using IcicleMorphotreeWidget::MorphoTreeType;
+
+  shouldUpdateProgressBar_ = true;
+  if (showTreeVisAct_->isChecked()) {
+    MorphoTreeType mt = static_cast<MorphoTreeType>(
+      mtreeTypeComboBox_->currentData().value<int>());
+    showProgressBar();
+    attrVisMenu_->setEnabled(true);    
+    mainWidget_->updateTreeVisualiser(mt);
+  }  
 }
 
 void MainWindow::nodeSelectionClickAct_onToggled(bool checked)

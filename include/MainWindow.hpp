@@ -11,6 +11,7 @@ class QStackedWidget;
 class QDockWidget;
 class QAction;
 class QProgressBar;
+class QComboBox;
 
 class MainWindow : public QMainWindow
 {
@@ -29,6 +30,7 @@ private slots:
   void dmdProcessAct_onTrigged();
 
   void treeVisAct_onToggled(bool checked=true);
+  void mtreeTypeComboBox_onIndexChanged(int index);
   void nodeSelectionClickAct_onToggled(bool checked);  
   void syncTreeAct_onTrigged();
   void imageZoomInAct_onTrigged();
@@ -61,6 +63,7 @@ private:
   QDockWidget *dockTreeVis_;
   
   QAction *showTreeVisAct_;
+  QComboBox *mtreeTypeComboBox_;
   QAction *nodeSelectionClickAct_;
   QAction *imageZoomInAct_;
   QAction *imageZoomOutAct_;

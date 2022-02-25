@@ -104,7 +104,7 @@ bool MainWidget::saveImage(const QString &filename)
   return true;
 }
 
-void MainWidget::updateTreeVisualiser()
+void MainWidget::updateTreeVisualiser(MorphoTreeType mtreeType)
 {
   namespace mt = morphotree;
   namespace mw = IcicleMorphotreeWidget;
@@ -118,7 +118,7 @@ void MainWidget::updateTreeVisualiser()
   std::vector<mt::uint8> f{ bits, bits + domain.numberOfPoints() };
 
   treeVis_->clearNodeSelection();
-  treeVis_->loadImage(domain, f);
+  treeVis_->loadImage(domain, f, mtreeType);
   
   needTreeVisualiserUpdate_ = false;
   
@@ -232,11 +232,12 @@ void MainWidget::highlightNodes()
   }
 }
 
-QDockWidget *MainWidget::morphotreeDockWidget()
+QDockWidget *MainWidget::morphotreeDockWidget(MorphoTreeType mtreeType)
 {
-  if (needTreeVisualiserUpdate_) 
-    updateTreeVisualiser();
-  
+  if (needTreeVisualiserUpdate_) {
+    updateTreeVisualiser(mtreeType);
+  }
+      
   return dockTreeVisualiser_;
 }
 

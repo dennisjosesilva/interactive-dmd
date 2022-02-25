@@ -240,6 +240,8 @@ void TreeVisualiser::useFixedColorGNodeStyle()
 
 std::vector<bool> TreeVisualiser::SDMDRecontructionSelectedNodes()
 {
+  using IcicleMorphotreeWidget::MorphoTreeType;
+
   QVector<uint32> selectedNodesIds = selectedNodes_.keys().toVector();    
   
   if (selectedNodesIds.contains(0)) { 
@@ -249,7 +251,10 @@ std::vector<bool> TreeVisualiser::SDMDRecontructionSelectedNodes()
   else {
     // else reconstruct the nodes
     std::vector<bool> frec(domain_.numberOfPoints(), false);
-    bool upper_state = mainWidget_->getUpperState();
+    //bool upper_state = mainWidget_->getUpperState();
+    MorphoTreeType mt = treeWidget_->treeType();
+    bool upper_state = (mt == MorphoTreeType::MAX_TREE_8C);
+
     dmdrecon_->ReconstructIndexingImage_multi(selectedNodesIds, upper_state);
     dmdrecon_->GetCPs(selectedNodesIds);
 
@@ -441,12 +446,18 @@ QImage TreeVisualiser::fieldToQImage(FIELD<float> *fimg) const
 
 void TreeVisualiser::registerDMDSkeletons()
 {
+  using IcicleMorphotreeWidget::MorphoTreeType;
+
   // const MTree &tree = treeWidget_->tree();
   const MTree &tree = treeWidget_->mtree();
 
   float salVal = mainWidget_->getSaliencyValue(); 
   float HDval = mainWidget_->getHDValue(); 
-  bool upper_state = mainWidget_->getUpperState();
+  
+  // bool upper_state = mainWidget_->getUpperState();
+  MorphoTreeType mt = treeWidget_->treeType();
+  bool upper_state = (mt == MorphoTreeType::MAX_TREE_8C);
+
   dmd_.Init_indexingSkeletons(salVal, HDval, upper_state);
   NumberOfSkeletonPointCache nskelCache;
   
@@ -676,7 +687,8 @@ void TreeVisualiser::binRecBtn_press()
 
 void TreeVisualiser::SplineManipulateBtn_press()
 {
-  
+  using IcicleMorphotreeWidget::MorphoTreeType;
+
   QVector<unsigned int> selectedNodesID = selectedNodes_.keys().toVector();
   
   if (!selectedNodesID.empty()) {
@@ -693,7 +705,9 @@ void TreeVisualiser::SplineManipulateBtn_press()
     emit ChangeCentralWidget(cv);
 
     //NodePtr mnode = curSelectedNode()->mnode();
-    bool upper_state = mainWidget_->getUpperState();
+    // bool upper_state = mainWidget_->getUpperState();
+    MorphoTreeType mt = treeWidget_->treeType();
+    bool upper_state = (mt == MorphoTreeType::MAX_TREE_8C);
     dmdrecon_->ReconstructIndexingImage_multi(selectedNodesID, upper_state);
   
   //  if(mnode->id() == 0){
@@ -720,6 +734,8 @@ void TreeVisualiser::SplineManipulateBtn_press()
 }
 void TreeVisualiser::skelRecBtn_press()
 {
+  using IcicleMorphotreeWidget::MorphoTreeType;
+
   emit ChangeCentralWidget(nullptr);
   FirstCreateCpviewer = true;
 
@@ -729,7 +745,10 @@ void TreeVisualiser::skelRecBtn_press()
       keptNodes.push_back(i);
   }
   //cout<<keptNodes.size()<<" keptNodes.size() "<<endl;
-  bool upper_state = mainWidget_->getUpperState();
+  // bool upper_state = mainWidget_->getUpperState();
+  MorphoTreeType mt = treeWidget_->treeType();
+  bool upper_state = (mt == MorphoTreeType::MAX_TREE_8C);
+
   QTime time;
   time.start();
   QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1, upper_state);
@@ -767,6 +786,8 @@ void TreeVisualiser::selectDescendantNodes_press()
 
 void TreeVisualiser::removeSkelBtn_press()
 {
+  using IcicleMorphotreeWidget::MorphoTreeType;
+
   emit ChangeCentralWidget(nullptr);
   FirstCreateCpviewer = true;
 
@@ -776,7 +797,10 @@ void TreeVisualiser::removeSkelBtn_press()
       keptNodes.push_back(i);
       
   }  
-  bool upper_state = mainWidget_->getUpperState();    
+  // bool upper_state = mainWidget_->getUpperState();  
+  MorphoTreeType mt = treeWidget_->treeType();
+
+  bool upper_state = (mt == MorphoTreeType::MAX_TREE_8C);
   QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 0, upper_state);
   //QImage img = fieldToQImage(dmdrecon_->getOutput());    
 

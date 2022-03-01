@@ -17,7 +17,7 @@ public:
   inline void readImgIntoSdmd(const char *c_str) { dmdProcess_.readFromFile(c_str); }
   void readQImgIntoSdmd(const QImage &img);
   inline bool getInterpState() {return InterpState;}
-  inline bool getUpperState() {return UpperState;}
+  inline bool getNonComplementSet() {return NonComplementSet;}
   inline float getSaliencyVal() {return SaliencyVal;}
   inline float getHDVal() {return HDVal;}
 
@@ -54,7 +54,7 @@ private:
   QDoubleSpinBox *hausdorffThresSpinBox_;
   QLayout *layout_;
   bool InterpState = false;
-  bool UpperState = true;
+  bool NonComplementSet = true;
   int layerVal;
   float IslandsVal, SaliencyVal, HDVal;
 

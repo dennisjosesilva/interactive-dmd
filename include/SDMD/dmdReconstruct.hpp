@@ -40,9 +40,9 @@ class dmdReconstruct {
     //void readIndexingControlPoints(int width, int height, int clear_color, multimap<int,int> Inty_Node);
     void readIndexingControlPoints(multimap<int,int> Inty_Node);
     
-    QImage ReconstructImage(bool interpolate, bool UpperState);
-    void ReconstructIndexingImage_multi(QVector<unsigned int> nodesID, bool upperState);
-    QImage ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action, bool UpperState);
+    QImage ReconstructImage(bool interpolate, bool NonComplementSet);
+    void ReconstructIndexingImage_multi(QVector<unsigned int> nodesID, bool max_tree);
+    QImage ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action, bool maxTree);
 
 
     void get_interp_layer(int i, bool last_layer);
@@ -58,7 +58,7 @@ class dmdReconstruct {
     inline QImage getOutQImage() { return OutImg; }
     
     void GetCPs(QVector<unsigned int> nodesID);
-    void reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<float>>>> CPlistMap, bool upperState);
+    void reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<float>>>> CPlistMap, bool maxTree);
     QImage get_texture_data(); 
     void DrawTheFirstLayer(float ClearColor);
     void RenderOutput(int inty, bool DrawAnything);
@@ -89,6 +89,7 @@ class dmdReconstruct {
     QOpenGLBuffer vertexPositionBuffer;
     QImage OutImg;
     QMap<unsigned int, vector<vector<Vector3<float>>>> SelectedNodesCPlistMap;
-    bool upper_state = true;;
+    bool non_complement_set = true;
+    bool max_tree = true;
 };
 

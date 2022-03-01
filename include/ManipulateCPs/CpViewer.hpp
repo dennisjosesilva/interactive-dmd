@@ -27,7 +27,7 @@ public:
   inline void Update() {manipulate_CPs-> Update();}
   //inline void transData(dmdReconstruct* recon) 
   //{recon_ = recon; getCPsMap(); }
-  void transData(dmdReconstruct* recon, bool upper_state); 
+  void transData(dmdReconstruct* recon, bool MaxTree); 
   
   void getCPsMap();
   
@@ -59,7 +59,7 @@ private:
   int w, h;
   
   dmdReconstruct *recon_;
-  bool upperState;
+  bool Max_Tree;
   
   QDoubleSpinBox *DegreeSpinBox_;
 

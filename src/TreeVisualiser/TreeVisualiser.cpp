@@ -251,11 +251,11 @@ std::vector<bool> TreeVisualiser::SDMDRecontructionSelectedNodes()
   else {
     // else reconstruct the nodes
     std::vector<bool> frec(domain_.numberOfPoints(), false);
-    //bool upper_state = mainWidget_->getUpperState();
+    //bool non_complement_set = mainWidget_->getNonComplementSet();
     MorphoTreeType mt = treeWidget_->treeType();
-    bool upper_state = (mt == MorphoTreeType::MAX_TREE_8C);
+    bool max_tree = (mt == MorphoTreeType::MAX_TREE_8C);
 
-    dmdrecon_->ReconstructIndexingImage_multi(selectedNodesIds, upper_state);
+    dmdrecon_->ReconstructIndexingImage_multi(selectedNodesIds, max_tree);
     dmdrecon_->GetCPs(selectedNodesIds);
 
     FIELD<float> *bimg = dmdrecon_->getOutput();
@@ -454,11 +454,11 @@ void TreeVisualiser::registerDMDSkeletons()
   float salVal = mainWidget_->getSaliencyValue(); 
   float HDval = mainWidget_->getHDValue(); 
   
-  // bool upper_state = mainWidget_->getUpperState();
+  // bool non_complement_set = mainWidget_->getNonComplementSet();
   MorphoTreeType mt = treeWidget_->treeType();
-  bool upper_state = (mt == MorphoTreeType::MAX_TREE_8C);
+  bool max_tree = (mt == MorphoTreeType::MAX_TREE_8C);
 
-  dmd_.Init_indexingSkeletons(salVal, HDval, upper_state);
+  dmd_.Init_indexingSkeletons(salVal, HDval, max_tree);
   NumberOfSkeletonPointCache nskelCache;
   
   FIELD<float> *fnode = nullptr;
@@ -705,10 +705,10 @@ void TreeVisualiser::SplineManipulateBtn_press()
     emit ChangeCentralWidget(cv);
 
     //NodePtr mnode = curSelectedNode()->mnode();
-    // bool upper_state = mainWidget_->getUpperState();
+    //bool non_complement_set = mainWidget_->getNonComplementSet();
     MorphoTreeType mt = treeWidget_->treeType();
-    bool upper_state = (mt == MorphoTreeType::MAX_TREE_8C);
-    dmdrecon_->ReconstructIndexingImage_multi(selectedNodesID, upper_state);
+    bool max_tree = (mt == MorphoTreeType::MAX_TREE_8C);
+    dmdrecon_->ReconstructIndexingImage_multi(selectedNodesID, max_tree);
   
   //  if(mnode->id() == 0){
   //    QMessageBox::information(0, "For your information",
@@ -723,7 +723,9 @@ void TreeVisualiser::SplineManipulateBtn_press()
     //  }
     //  else 
      //cv->transData(mnode->level(), dmdrecon_);
-     cv->transData(dmdrecon_, upper_state);
+
+    
+    cv->transData(dmdrecon_, max_tree);
    //}
     
   } 
@@ -745,13 +747,13 @@ void TreeVisualiser::skelRecBtn_press()
       keptNodes.push_back(i);
   }
   //cout<<keptNodes.size()<<" keptNodes.size() "<<endl;
-  // bool upper_state = mainWidget_->getUpperState();
-  MorphoTreeType mt = treeWidget_->treeType();
-  bool upper_state = (mt == MorphoTreeType::MAX_TREE_8C);
+   //bool non_complement_set = mainWidget_->getNonComplementSet();
+   MorphoTreeType mt = treeWidget_->treeType();
+   bool max_tree = (mt == MorphoTreeType::MAX_TREE_8C);
 
   QTime time;
   time.start();
-  QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1, upper_state);
+  QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 1, max_tree);
   cout<<time.elapsed()<<" ms."<<endl;
 
   clearNodeSelection();
@@ -797,11 +799,10 @@ void TreeVisualiser::removeSkelBtn_press()
       keptNodes.push_back(i);
       
   }  
-  // bool upper_state = mainWidget_->getUpperState();  
+   //bool non_complement_set = mainWidget_->getNonComplementSet();  
   MorphoTreeType mt = treeWidget_->treeType();
-
-  bool upper_state = (mt == MorphoTreeType::MAX_TREE_8C);
-  QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 0, upper_state);
+  bool max_tree = (mt == MorphoTreeType::MAX_TREE_8C);
+  QImage img = dmdrecon_->ReconstructMultiNode(mainWidget_->GetInterpState(), keptNodes, 0, max_tree);
   //QImage img = fieldToQImage(dmdrecon_->getOutput());    
 
   clearNodeSelection();

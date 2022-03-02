@@ -355,9 +355,14 @@ void MainWindow::syncTreeAct_onTrigged()
   mainWidget_->clearNodeHighlight();
   
   if (showTreeVisAct_->isChecked()) {
+    using IcicleMorphotreeWidget::MorphoTreeType;
+
+    MorphoTreeType mtreeType = static_cast<MorphoTreeType>(
+      mtreeTypeComboBox_->currentData().value<int>());
+
     showProgressBar();
     attrVisMenu_->setEnabled(true);
-    mainWidget_->updateTreeVisualiser();    
+    mainWidget_->updateTreeVisualiser(mtreeType);    
   }
 }
 

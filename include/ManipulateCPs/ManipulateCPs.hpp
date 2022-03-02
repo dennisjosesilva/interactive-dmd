@@ -32,13 +32,14 @@ public:
   
   void changeCurrNodeRInCplist(int r);
   void changeCurrbranchDegree(int d);
-  void ReconFromMovedCPs(dmdReconstruct *recon, bool upper_state);
-  void ReconImageFromMovedCPs(dmdReconstruct *recon, bool upper_state);
+  void ReconFromMovedCPs(dmdReconstruct *recon, bool max_tree);
+  bool ReconImageFromMovedCPs(dmdReconstruct *recon, bool max_tree);
   void Press_node(Node_ *node, int radius, int maxDegree, int degree);
   //inline void setCurrentNodeIndex(int m, int n) {CurrNodeIndex_m = m; CurrNodeIndex_n = n;}
   //void TranspCurrPoint(Node_ *node);
   void MoveMultiPoint(Node_ *node, QPointF newPos);
-  inline void getCPmap(QMap<unsigned int, vector<vector<Vector3<float>>>> CPmap) {CPlistMap = CPmap;}
+  inline void getCPmap(QMap<unsigned int, vector<vector<Vector3<float>>>> CPmap) 
+      {CPlistMap = CPmap; HaveShownCP = false;}
   void deleteCurrCp();
   void deleteMultiCp();
   void rotateCPsBtnPressed();
@@ -115,4 +116,5 @@ private:
   ofstream OutLog;
   QList<QGraphicsItem*> selectedList;
   QList<QGraphicsItem*> selectedCPsForCopy;
+  bool HaveShownCP = false;
 };

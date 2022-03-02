@@ -40,8 +40,8 @@ QLayout *ThresholdControl::createLayerThresholdLayout()
   layerThresSpinBox_ = new QDoubleSpinBox{this};
   layerThresSpinBox_->setRange(1, 255);
   layerThresSpinBox_->setSingleStep(1);
-  layerThresSpinBox_->setValue(15);
-  layerVal = 15;
+  layerVal = 10;
+  layerThresSpinBox_->setValue(layerVal);
 
   layerThresLayout->addWidget(layerThresLabel);
   layerThresLayout->addWidget(layerThresSpinBox_);
@@ -193,8 +193,8 @@ void ThresholdControl::Interp_onStateChanged(int state)
 }
 
 void ThresholdControl::Upper_onStateChanged(int state){
-  if(state == 2) UpperState = true;//checked
-  else UpperState = false;//0-unchecked
+  if(state == 2) NonComplementSet = true;//checked
+  else NonComplementSet = false;//0-unchecked
 }
 
 void ThresholdControl::DisplayOrigImg_onStateChanged(int state)
@@ -251,7 +251,7 @@ void ThresholdControl::RunBtn_press()
   dmdProcess_.LayerSelection(true, layerVal);
   emit LayerHasBeenSelected(dmdProcess_.get_selected_intensity());
   //bar->showMessage(tr("Computing Skeletons..."));
-  CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, UpperState, nullptr);
+  CPnum = dmdProcess_.computeSkeletons(SaliencyVal, HDVal, NonComplementSet, nullptr);
 
   //bar->showMessage(tr("Reading Control points..."));
   dmdRecon_ = new dmdReconstruct(dmdProcess_.getImgWidth(), dmdProcess_.getImgHeight(), dmdProcess_.clear_color);
@@ -263,7 +263,7 @@ void ThresholdControl::RunBtn_press()
   //cout<<"InterpState: "<<InterpState<<endl;
   QTime time;
   time.start();
-  QImage img = dmdRecon_->ReconstructImage(InterpState, UpperState);
+  QImage img = dmdRecon_->ReconstructImage(InterpState, NonComplementSet);
   //dmdRecon_.ReconstructImage(InterpState);
   //bar->showMessage("Reconstruction finished! Total CPs: " + QString::number(CPnum));
   //QImage img = fieldToImage(dmdRecon_.getOutput());    

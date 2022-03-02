@@ -669,7 +669,7 @@ int dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFile
     return CPnum;
 }
 
-int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, bool upper_state, FIELD<float> *sm){
+int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, bool non_complement_set, FIELD<float> *sm){
     SKELETON_SALIENCY_THRESHOLD = saliency_threshold;
     int TotalcpNum = 0, cpNum;
     spline.clear_IndexingCP_Interactive();
@@ -696,7 +696,7 @@ int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, bool
                 // Threshold the image
                 imDupeBack = processedImage->dupe();
                 
-                if(upper_state) imDupeBack->threshold(i);
+                if(non_complement_set) imDupeBack->threshold(i);
                 else imDupeBack->threshold_(i);
 
                  //debug--print layer
@@ -727,26 +727,39 @@ int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, bool
 }
 
 
-void dmdProcess::Init_indexingSkeletons(float SalVal, float HDval, bool upper_state){
+void dmdProcess::Init_indexingSkeletons(float SalVal, float HDval, bool maxTree){
     SalValForTree = SalVal;
     HDvalForTree = HDval;
-    UpperState = upper_state;
+   
     float *c = OriginalImage->data();
     float *end = OriginalImage->data() + nPix;
-    int min_elem = 1e5;
-    while (c != end){
-        min_elem = (min_elem<*c)? min_elem : *c;
-        c++;
+
+//get the clear_color / background color.
+    if(maxTree){
+        int min_elem = 1e5;
+        while (c != end){
+            min_elem = (min_elem < *c)? min_elem : *c;
+            c++;
+        }
+        clear_color = min_elem;
     }
-    clear_color = min_elem;
+    else{
+        int max_elem = 0;
+        while (c != end){
+            max_elem = (max_elem > *c)? max_elem : *c;
+            c++;
+        }
+        clear_color = max_elem;
+    }
     
     int width = OriginalImage->dimX();
     int height = OriginalImage->dimY();
     diagonal  = sqrt((float)(width * width + height * height));
     
+    //clear all before using them.
     spline.clear_IndexingCP();
-    //if(!IntensityOfNode.empty()) IntensityOfNode.clear();
     if(!Inty_node.empty()) Inty_node.clear();
+    BranchSet.clear();
     
     int fboSize = initialize_skeletonization(OriginalImage);
 
@@ -754,14 +767,13 @@ void dmdProcess::Init_indexingSkeletons(float SalVal, float HDval, bool upper_st
 //CC-connected component.
 //0-foreground; 1- background.
 int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
-    if(!UpperState){
+    if(!NonComplementSet){
         float* CCdata = CC -> data();
         for (int i = 0; i < nPix; ++i) 
             CCdata[i] = (CCdata[i] > 0) ? 0 : 1;
-        
     }
     
-    // debug
+    //debug
     // std::stringstream ske;
     // ske<<"output/c"<<intensity<<"-"<<index<<".pgm";
     // CC->writePGM(ske.str().c_str());
@@ -794,8 +806,7 @@ int dmdProcess::indexingSkeletons(FIELD<float> * CC, int intensity, int index){
         }
     }
  
-    if(intensity == clear_color) BranchSet.clear();//nodeTD=0
-    else{
+    if(intensity != clear_color){ //Do not need to process the background layer again.
         if(SkelPoints != 0)  
         {
             ///////segment and store into the BranchSets;

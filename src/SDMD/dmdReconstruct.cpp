@@ -29,20 +29,21 @@ void dmdReconstruct::GetCPs(QVector<unsigned int> nodesID){
     if(!SelectedNodesCPlistMap.empty()) SelectedNodesCPlistMap.clear();
     QVector<unsigned int>::iterator it;
     for(it = nodesID.begin();it!=nodesID.end();it++){
-        //SelectedNodesCPlistMap.insert(pair <unsigned int, vector<vector<Vector3<float>>> > (*it, IndexingCP.at(IndexingCP.size() - *it)));
-        SelectedNodesCPlistMap.insert(*it, IndexingCP.at(IndexingCP.size() - *it) );
+        if(*it != 0)//when *it == 0, it corresponds to the background layer. We didn't store CP for the background layer.
+            SelectedNodesCPlistMap.insert(*it, IndexingCP.at(IndexingCP.size() - *it) );
     }
     //cout<<"SelectedNodesCPlistMap "<<SelectedNodesCPlistMap.size();
 }
 
-void dmdReconstruct::reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<float>>>> CPlistMap, bool upperState)
+void dmdReconstruct::reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<float>>>> CPlistMap, bool maxTree)
 {
-    upper_state = upperState;
+    max_tree = maxTree;
     vector<Vector3<float>> movedSample;
     BSplineCurveFitterWindow3 movedSpline;
 
     int inty;
-    initOutput(0);
+    if(max_tree) initOutput(0);
+    else initOutput(255);
     //renderLayerInit();
     openGLContext.makeCurrent(&surface);
     for(auto it = CPlistMap.begin(); it != CPlistMap.end(); ++it)
@@ -67,7 +68,6 @@ void dmdReconstruct::reconFromMovedCPs(QMap<unsigned int, vector<vector<Vector3<
     }
     output->NewwritePGM("output.pgm");      
     delete output;
- 
 }
 
 void dmdReconstruct::openglSetup(){
@@ -223,7 +223,7 @@ void dmdReconstruct::renderLayer(int intensity_index){
         contextFunc->glDrawArrays(GL_QUADS, 0, 4);
 
     }
-    if(!upper_state){
+    if(!non_complement_set){
         float *data = (float *) malloc(width * height * sizeof (float));
     
         contextFunc->glEnable(GL_TEXTURE_2D);
@@ -260,7 +260,6 @@ void dmdReconstruct::RenderOutput(int inty, bool DrawAnything)
         contextFunc->glEnable(GL_BLEND);
         contextFunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-        //program2.link();
         program2.bind();
 
         QOpenGLBuffer vertexPositionBuffer2(QOpenGLBuffer::VertexBuffer);
@@ -300,9 +299,7 @@ void dmdReconstruct::RenderOutput(int inty, bool DrawAnything)
         vertexPositionBuffer2.release();
         
         contextFunc->glBindFramebuffer(GL_FRAMEBUFFER, 0); 
-    
-    }
-    
+    } 
 }
 
 FIELD<float>* dmdReconstruct::renderLayer_interp(int i){
@@ -359,7 +356,7 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int i){
         for (unsigned int y = 0; y < height; ++y)
         {
             //unsigned int y_ = height - 1 -y;
-            if(upper_state){
+            if(non_complement_set){
                 if(*(data + y * width + x))
                     CrtLayer->set(x, y, 1);
                 else CrtLayer->set(x, y, 0); 
@@ -634,7 +631,7 @@ FIELD<float>* dmdReconstruct::renderLayer_interp(int intensity, vector<int> node
             for (unsigned int x = 0; x < width; ++x) 
                 for (unsigned int y = 0; y < height; ++y)
                 {
-                    if(upper_state){
+                    if(non_complement_set){
                         if(*(data + y * width + x))
                             CrtLayer->set(x, y, 1);
                     }
@@ -835,7 +832,7 @@ bool dmdReconstruct::renderLayer(int intensity, vector<Vector3<float>> SampleFor
                 unsigned int y_;
                 if(OpenGLRenderMethod) y_ = y;
                 else y_ = height - 1 -y;
-                if(upper_state){
+                if(non_complement_set){
                     if(*(data + y * width + x))
                         output->set(x, y_, intensity);
                 }
@@ -866,15 +863,20 @@ void dmdReconstruct::renderToTexture()
     unsigned char *texdata = (unsigned char *) calloc(width * height * 4, sizeof (char));
    
     for(int i = 0; i < width*height; ++i){
-        if(outputData[i] > 0) {SET_TEXTURE(texdata, i, 255);}
-        else {SET_TEXTURE(texdata, i, 0);}
+        if(max_tree){
+            if(outputData[i] > 0) {SET_TEXTURE(texdata, i, 255);}
+            else {SET_TEXTURE(texdata, i, 0);}
+        }
+        else{
+            if(outputData[i] < 255) {SET_TEXTURE(texdata, i, 255);}
+            else {SET_TEXTURE(texdata, i, 0);}
+        } 
     }
 
     contextFunc->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
             GL_RGBA, GL_UNSIGNED_BYTE, texdata);
 
     free(texdata); 
-          
 }
 void dmdReconstruct::renderLayer(int intensity, int nodeID){
     //cout<<"nodeID: "<<nodeID<<endl;
@@ -951,9 +953,9 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID){
         for (unsigned int x = 0; x < width; ++x) 
             for (unsigned int y = 0; y < height; ++y)
             {
-                unsigned int y_ = height - 1 -y;
+                unsigned int y_ = height - 1 - y;
 
-                if(upper_state){
+                if(non_complement_set){
                     if(*(data + y * width + x))
                         output->set(x, y_, intensity);
                 }
@@ -973,20 +975,24 @@ void dmdReconstruct::renderLayer(int intensity, int nodeID){
     else cout<<"The component of Node-"<<nodeID<<" is too small to generate any skeletons."<<endl;
 }
 
-void dmdReconstruct::ReconstructIndexingImage_multi(QVector<unsigned int> nodesID, bool upperState){
+void dmdReconstruct::ReconstructIndexingImage_multi(QVector<unsigned int> nodesID, bool max_tree){
+   
     openGLContext.makeCurrent(&surface);
-    upper_state = upperState;
+    
     if(!nodesID.empty()){
         //process the background color
         if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
             initOutput(clearColor);
-        else initOutput(0);
-        
+        else{
+            if(max_tree) initOutput(0);
+            else initOutput(255);
+        } 
         
         if(!IndexingSample.empty()){
             
             int LastInty = 256;
             for (auto const& it : Inty_node) { //for each graylevel(from small num to large num).
+            
                 if(LastInty != it.first){//for each graylevel, only enter once.
                     LastInty = it.first;
                    
@@ -995,7 +1001,7 @@ void dmdReconstruct::ReconstructIndexingImage_multi(QVector<unsigned int> nodesI
                     while(it1 != it2){//process all nodes for the current intensity
                         int node_id = it1->second;
                         if(std::find(nodesID.begin(), nodesID.end(), node_id) != nodesID.end()){//if nodesID contains node_id
-                            renderLayer(it.first, node_id);  
+                            renderLayer(it.first, node_id);
                         }
                         ++it1;
                     } 
@@ -1010,8 +1016,8 @@ void dmdReconstruct::ReconstructIndexingImage_multi(QVector<unsigned int> nodesI
     else printf("Nothing is selected!");
 }
 
-QImage dmdReconstruct::ReconstructImage(bool interpolate, bool UpperState){
-    upper_state = UpperState;
+QImage dmdReconstruct::ReconstructImage(bool interpolate, bool NonComplementSet){
+    non_complement_set = NonComplementSet;
     QImage outImg;
     
     if(interpolate){
@@ -1050,15 +1056,13 @@ QImage dmdReconstruct::ReconstructImage(bool interpolate, bool UpperState){
     return outImg;
 }
 
-QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action, bool UpperState){
+QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesID, int action, bool maxTree){
     openGLContext.makeCurrent(&surface);
-    upper_state = UpperState;
+    max_tree = maxTree;
     //sort(nodesID.begin(),nodesID.end());//sort it from small num to large num, i,e., from root to leaves
     bool DrawAnything;
     vector<Vector3<float>> SampleForEachCC;
-    
     if(!nodesID.empty()){
-
         if(interpolate){
             firstTime = true;//for interpolation process.
             prev_layer = new FIELD<float>(width, height);
@@ -1069,81 +1073,158 @@ QImage dmdReconstruct::ReconstructMultiNode(bool interpolate, vector<int> nodesI
         {
             if(std::find(nodesID.begin(), nodesID.end(), 0) != nodesID.end()) //if nodesID contains 0
                 DrawTheFirstLayer(clearColor);
-            else DrawTheFirstLayer(0);
+            else{
+                if(max_tree) DrawTheFirstLayer(0);
+                else DrawTheFirstLayer(255);
+            } 
         } 
         else{
             if(std::find(nodesID.begin(), nodesID.end(), 0) == nodesID.end()) //if nodesID doesn't contains 0
                 DrawTheFirstLayer(clearColor); 
-            else DrawTheFirstLayer(0);
+            else{
+                if(max_tree) DrawTheFirstLayer(0);
+                else DrawTheFirstLayer(255);
+            }
         }
         
         if(!IndexingSample.empty()){
             
             int LastInty = 256;
-            for (auto const& it : Inty_node) { //for each graylevel(from small num to large num).
-                if(LastInty != it.first){//for each graylevel, only enter once.
-                    LastInty = it.first;
-                    initOutput(0);//just for one layer.
-                    if(action){//highlight
-                        if(interpolate){
-                            bool last_layer = false; 
-                            auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
-                            
-                            if(it.first == (int)max_level) last_layer = true;
-                            DrawAnything = get_interp_layer(it.first, nodesID, 1, last_layer);
-                        }
-                        else 
-                        {
-                            auto it1 = Inty_node.lower_bound(it.first);
-                            auto it2 = Inty_node.upper_bound(it.first);
-                            DrawAnything = false;
-                            
-                            while(it1 != it2){//process all nodes for the current intensity
-                                int node_id = it1->second;
-                                SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
-    
-                                if(std::find(nodesID.begin(), nodesID.end(), node_id) != nodesID.end()){//if nodesID contains node_id
-                                    renderLayerInit();
-                                    if(renderLayer(it.first, SampleForEachCC, true)) DrawAnything = true;
-                                }
-                                ++it1;
+            if(max_tree){
+                for (auto const& it : Inty_node) { //for each graylevel(from small num to large num).
+                    if(LastInty != it.first){//for each graylevel, only enter once.
+                        //cout<<"intensity "<<it.first<<endl;
+                        LastInty = it.first;
+                        initOutput(0);//just for one layer. (one layer may have several CCs)
+                        if(action){//highlight
+                            if(interpolate){
+                                bool last_layer = false; 
+                                auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
+                                
+                                if(it.first == (int)max_level) last_layer = true;
+                                DrawAnything = get_interp_layer(it.first, nodesID, 1, last_layer);
+                            }
+                            else 
+                            {
+                                auto it1 = Inty_node.lower_bound(it.first);
+                                auto it2 = Inty_node.upper_bound(it.first);
+                                DrawAnything = false;
+                                
+                                while(it1 != it2){//process all nodes for the current intensity
+                                    int node_id = it1->second;
+                                    SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
+        
+                                    if(std::find(nodesID.begin(), nodesID.end(), node_id) != nodesID.end()){//if nodesID contains node_id
+                                        renderLayerInit();
+                                        if(renderLayer(it.first, SampleForEachCC, true)) DrawAnything = true;
+                                    }
+                                    ++it1;
+                                } 
+                                renderToTexture();
                             } 
-                            renderToTexture();
-                        } 
-                        RenderOutput(it.first, DrawAnything);
-                    }
-                    else{//else recon without the selected nodes-CCs
-                        if(interpolate){//Add interpolate later
-                            bool last_layer = false; 
-                            auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
-                            //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());
-                            
-                            if(it.first == (int)max_level) last_layer = true;
-                            DrawAnything = get_interp_layer(it.first, nodesID, 0, last_layer);
-                    
+                            RenderOutput(it.first, DrawAnything);
                         }
-                        else{
-                            auto it1 = Inty_node.lower_bound(it.first);
-                            auto it2 = Inty_node.upper_bound(it.first);
-                            DrawAnything = false;
-                            
-                            while(it1 != it2){//process all nodes for the current intensity
-                                int node_id = it1->second;
-                                SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
-                                if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()){//if nodesID doesn't contain node_id
-                                    renderLayerInit();
-                                    if(renderLayer(it.first, SampleForEachCC, true)) DrawAnything = true;
-                                    //cout<< "node_id: "<<node_id<<endl;
-                                }
-                                ++it1;
-                            } 
-                            renderToTexture();
+                        else{//else recon without the selected nodes-CCs
+                            if(interpolate){//Add interpolate later
+                                bool last_layer = false; 
+                                auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
+                                //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());
+                                
+                                if(it.first == (int)max_level) last_layer = true;
+                                DrawAnything = get_interp_layer(it.first, nodesID, 0, last_layer);
+                        
+                            }
+                            else{
+                                auto it1 = Inty_node.lower_bound(it.first);
+                                auto it2 = Inty_node.upper_bound(it.first);
+                                DrawAnything = false;
+                                
+                                while(it1 != it2){//process all nodes for the current intensity
+                                    int node_id = it1->second;
+                                    SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
+                                    if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()){//if nodesID doesn't contain node_id
+                                        renderLayerInit();
+                                        if(renderLayer(it.first, SampleForEachCC, true)) DrawAnything = true;
+                                        //cout<< "node_id: "<<node_id<<endl;
+                                    }
+                                    ++it1;
+                                } 
+                                renderToTexture();
+                            }
+                            RenderOutput(it.first, DrawAnything);
                         }
-                        RenderOutput(it.first, DrawAnything);
+                        delete output;
                     }
-                    delete output;
                 }
             }
+            else{//min-tree
+                for(auto it_ = Inty_node.rbegin(); it_!=Inty_node.rend();++it_){//from large inty to small inty.
+                    if(LastInty != (*it_).first){//for each graylevel, only enter once.
+                        //cout<<"intensity "<<(*it_).first<<endl;
+                        LastInty = (*it_).first;
+                        initOutput(255);//just for one layer. (one layer may have several CCs)
+                        if(action){//highlight
+                            if(interpolate){
+                                bool last_layer = false; 
+                                auto [min_level, min] = *std::min_element(Inty_node.begin(), Inty_node.end());
+                                
+                                if((*it_).first == (int)min_level) last_layer = true;
+                                DrawAnything = get_interp_layer((*it_).first, nodesID, 1, last_layer);
+                            }
+                            else 
+                            {
+                                auto it1 = Inty_node.lower_bound((*it_).first);
+                                auto it2 = Inty_node.upper_bound((*it_).first);
+                                DrawAnything = false;
+                                
+                                while(it1 != it2){//process all nodes for the current intensity
+                                    int node_id = it1->second;
+                                    SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
+        
+                                    if(std::find(nodesID.begin(), nodesID.end(), node_id) != nodesID.end()){//if nodesID contains node_id
+                                        renderLayerInit();
+                                        if(renderLayer((*it_).first, SampleForEachCC, true)) DrawAnything = true;
+                                    }
+                                    ++it1;
+                                } 
+                                renderToTexture();
+                            } 
+                            RenderOutput((*it_).first, DrawAnything);
+                        }
+                        else{//else recon without the selected nodes-CCs
+                            if(interpolate){//Add interpolate later
+                                bool last_layer = false; 
+                                auto [max_level, max] = *std::max_element(Inty_node.begin(), Inty_node.end());
+                                //int max_level = std::max_element(Inty_node.begin(), Inty_node.end());
+                                
+                                if((*it_).first == (int)max_level) last_layer = true;
+                                DrawAnything = get_interp_layer((*it_).first, nodesID, 0, last_layer);
+                        
+                            }
+                            else{
+                                auto it1 = Inty_node.lower_bound((*it_).first);
+                                auto it2 = Inty_node.upper_bound((*it_).first);
+                                DrawAnything = false;
+                                
+                                while(it1 != it2){//process all nodes for the current intensity
+                                    int node_id = it1->second;
+                                    SampleForEachCC = IndexingSample.at(IndexingSample.size() - node_id);
+                                    if(std::find(nodesID.begin(), nodesID.end(), node_id) == nodesID.end()){//if nodesID doesn't contain node_id
+                                        renderLayerInit();
+                                        if(renderLayer((*it_).first, SampleForEachCC, true)) DrawAnything = true;
+                                        //cout<< "node_id: "<<node_id<<endl;
+                                    }
+                                    ++it1;
+                                } 
+                                renderToTexture();
+                            }
+                            RenderOutput((*it_).first, DrawAnything);
+                        }
+                        delete output;
+                    }
+                }
+            }
+
             OutImg = get_texture_data();
            
             //output->NewwritePGM("output.pgm");

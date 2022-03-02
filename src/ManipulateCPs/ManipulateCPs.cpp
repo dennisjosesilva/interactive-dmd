@@ -30,6 +30,7 @@ ManipulateCPs::ManipulateCPs(int W, int H, QWidget *parent)
 }
 
 void ManipulateCPs::ShowingCPs(){
+  HaveShownCP = true;
   scene->clear();
   
   if(!WholeEdgeList.empty()) WholeEdgeList.clear();
@@ -337,40 +338,49 @@ void ManipulateCPs::changeCurrbranchDegree(int d)
   <<" to "<<d<<"."<<endl<<endl;
 } 
 
-void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, bool upper_state)
+void ManipulateCPs::ReconFromMovedCPs(dmdReconstruct *recon, bool max_tree)
 {
-  //emit setUnSync();
-  if(CPlistMap.size() == 1) CPlistMap.insert(nodeIdForOneNode, CPlistForOneNode);
-
-  recon->reconFromMovedCPs(CPlistMap, upper_state);
-
-  UpdateBackground();
-  
-  //if(!MultiCPsDelete.empty()) MultiCPsDelete.clear();//To avoid being deleted next.
-  AllItemsUnselected = true;
-  AllItemsSelected = false;
-  RScaleFactor = 1.0;
-  
-  if(HoriLine != nullptr)
+  if(HaveShownCP)
   {
-    scene->removeItem(HoriLine);
-    scene->removeItem(VerLine);
-    HoriLine = nullptr;
-    VerLine = nullptr;
-  }  
-  RedCrossDrawn = false;
+    if(CPlistMap.size() == 1) CPlistMap.insert(nodeIdForOneNode, CPlistForOneNode);
+
+    recon->reconFromMovedCPs(CPlistMap, max_tree);
+
+    UpdateBackground();
+    
+    //if(!MultiCPsDelete.empty()) MultiCPsDelete.clear();//To avoid being deleted next.
+    AllItemsUnselected = true;
+    AllItemsSelected = false;
+    RScaleFactor = 1.0;
+    
+    if(HoriLine != nullptr)
+    {
+      scene->removeItem(HoriLine);
+      scene->removeItem(VerLine);
+      HoriLine = nullptr;
+      VerLine = nullptr;
+    }  
+    RedCrossDrawn = false;
+  }
+  
 }
-void ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon, bool upper_state)
+
+bool ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon, bool max_tree)
 {
-  OutLog.close(); 
-  vector<int> reconAll;
-  reconAll.push_back(10000);//Just make sure reconstruct all nodes.
-  recon->ReconstructMultiNode(false, reconAll, 0, upper_state);
+  if(HaveShownCP)
+  {
+    OutLog.close(); 
+    vector<int> reconAll;
+    reconAll.push_back(10000);//Just make sure reconstruct all nodes.
+    recon->ReconstructMultiNode(false, reconAll, 0, max_tree);
 
-  showBackgroundImg = recon->getOutQImage();
-  drawQImage = true;
+    showBackgroundImg = recon->getOutQImage();
+    drawQImage = true;
 
-  scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
+    scaleView(pow(2.0, -0.1 / 240.0));//Just make background update
+    return true;
+  }
+  else return false;
 }
 
 QRectF getBoundingRect(QPointF sourcePoint, QPointF destPoint) 

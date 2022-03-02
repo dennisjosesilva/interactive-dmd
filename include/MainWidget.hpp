@@ -61,7 +61,7 @@ public:
   ReconMode reconMode() const { return reconMode_; }
   void setReconMode(ReconMode reconMode) { reconMode_ = reconMode; }
   inline bool GetInterpState(){return ThresCtl->getInterpState();}
-  inline bool getUpperState() {return ThresCtl->getUpperState();}
+  inline bool getNonComplementSet() {return ThresCtl->getNonComplementSet();}
   inline float getSaliencyValue() {return ThresCtl->getSaliencyVal();}
   inline float getHDValue() {return ThresCtl->getHDVal();}
    

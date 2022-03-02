@@ -96,7 +96,7 @@ QLayout *ThresholdControl::createSaliencyThresholdLayout()
   saliencyThresSpinBox_ = new QDoubleSpinBox{this};
   saliencyThresSpinBox_->setRange(0.1, 3);
   saliencyThresSpinBox_->setSingleStep(0.05);
-  SaliencyVal = 1.5;
+  SaliencyVal = 1.0;
   saliencyThresSpinBox_->setValue(SaliencyVal);
   
 
@@ -146,11 +146,11 @@ QLayout *ThresholdControl::createRunButtons()
   connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(Interp_onStateChanged(int)));
   btnLayout->addWidget(checkBox);
 
-  QCheckBox *checkBox1 = new QCheckBox(this);
-  checkBox1->setText("Upper");
-  checkBox1->setChecked(true);
-  connect(checkBox1, SIGNAL(stateChanged(int)), this, SLOT(Upper_onStateChanged(int)));
-  btnLayout->addWidget(checkBox1);
+  // QCheckBox *checkBox1 = new QCheckBox(this);
+  // checkBox1->setText("Upper");
+  // checkBox1->setChecked(true);
+  // connect(checkBox1, SIGNAL(stateChanged(int)), this, SLOT(Upper_onStateChanged(int)));
+  // btnLayout->addWidget(checkBox1);
 
   QCheckBox *checkBox2 = new QCheckBox(this);
   checkBox2->setText("OrigImg");

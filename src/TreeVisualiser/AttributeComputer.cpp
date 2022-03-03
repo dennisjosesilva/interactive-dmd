@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <math.h>
 
+#include <QDebug>
+
 void NumberOfSkeletonPointCache::openFile(const std::string 
   &cachePath)
 {
@@ -34,7 +36,8 @@ void NumberOfSkeletonPointCache::closeFile()
   file_.close();
 }
 
-NormalisedAttributeMeta AttributeComputer::computeArea(Box domain, const MTree &tree) const
+NormalisedAttributeMeta AttributeComputer::computeArea(Box domain, 
+  const MTree &tree, MTreeType mtreeType) const
 {
   using Quads = morphotree::Quads;
   using AttributeComputer = morphotree::AttributeComputer<Quads, ImageType>;
@@ -42,10 +45,18 @@ NormalisedAttributeMeta AttributeComputer::computeArea(Box domain, const MTree &
   
   std::vector<ImageType> f = tree.reconstructImage();
 
-  std::vector<Quads> quads = 
-    std::make_unique<QuadCountComputer>(domain, f, "../resource/quads/dt-max-tree-8c.dat")
-    ->computeAttribute(tree);
-
+  std::vector<Quads> quads;
+  if (mtreeType == MTreeType::MAX_TREE_8C) {
+    quads = 
+      std::make_unique<QuadCountComputer>(domain, f, "../resource/quads/dt-max-tree-8c.dat")
+        ->computeAttribute(tree);
+  }
+  else { // mtree == MTreeType::MIN_TREE_8C
+    quads = 
+      std::make_unique<QuadCountComputer>(domain, f, "../resource/quads/dt-min-tree-8c.dat")
+        ->computeAttribute(tree);
+  }
+  
   NormalisedAttributePtr narea = 
     std::make_unique<std::vector<float>>(tree.numberOfNodes());
 
@@ -67,7 +78,7 @@ NormalisedAttributeMeta AttributeComputer::computeArea(Box domain, const MTree &
 }
 
 NormalisedAttributeMeta AttributeComputer::computePerimeter(Box domain, 
-  const MTree &tree) const
+  const MTree &tree, MTreeType mtreeType) const
 {
   using Quads = morphotree::Quads;
   using AttributeComputer = morphotree::AttributeComputer<Quads, ImageType>;
@@ -75,9 +86,17 @@ NormalisedAttributeMeta AttributeComputer::computePerimeter(Box domain,
 
   std::vector<ImageType> f = tree.reconstructImage();
 
-  std::vector<Quads> quads =                       
-    std::make_unique<QuadCountComputer>(domain, f, "../resource/quads/dt-max-tree-8c.dat")
-    ->computeAttribute(tree);
+  std::vector<Quads> quads;
+  if (mtreeType == MTreeType::MAX_TREE_8C) {
+    quads = 
+      std::make_unique<QuadCountComputer>(domain, f, "../resource/quads/dt-max-tree-8c.dat")
+        ->computeAttribute(tree);
+  }
+  else { // mtreeType == MTreeType::MIN_TREE_8C
+    quads = 
+      std::make_unique<QuadCountComputer>(domain, f, "../resource/quads/dt-min-tree-8c.dat")
+        ->computeAttribute(tree);
+  }
 
   NormalisedAttributePtr nperimeter = 
     std::make_unique<std::vector<float>>(tree.numberOfNodes());
@@ -99,10 +118,11 @@ NormalisedAttributeMeta AttributeComputer::computePerimeter(Box domain,
   return NormalisedAttributeMeta{ std::move(nperimeter), maxValue, minValue };
 }
 
-NormalisedAttributeMeta AttributeComputer::computeVolume(Box domain, const MTree &tree) const
+NormalisedAttributeMeta AttributeComputer::computeVolume(Box domain, 
+  const MTree &tree) const
 {  
   using AttributeComputer = morphotree::AttributeComputer<float, ImageType>;
-  using VolumeComputer = morphotree::MaxTreeVolumeComputer<ImageType>;  
+  using VolumeComputer = morphotree::VolumeComputer<ImageType>;  
 
   std::vector<float> volume = 
     std::make_unique<VolumeComputer>()->computeAttribute(tree);
@@ -127,7 +147,7 @@ NormalisedAttributeMeta AttributeComputer::computeVolume(Box domain, const MTree
 }
 
 NormalisedAttributeMeta AttributeComputer::computeCircularity(Box domain, 
-  const MTree &tree) const 
+  const MTree &tree, MTreeType mtreeType) const 
 {
   using Quads = morphotree::Quads;
   using AttributeComputer = morphotree::AttributeComputer<Quads, ImageType>;
@@ -135,8 +155,16 @@ NormalisedAttributeMeta AttributeComputer::computeCircularity(Box domain,
 
   std::vector<ImageType> f = tree.reconstructImage();
 
-  std::vector<Quads> quads = std::make_unique<QuadCountComputer>(domain, f,
-    "../resource/quads/dt-max-tree-8c.dat")->computeAttribute(tree);
+  std::vector<Quads> quads;
+  if (mtreeType == MTreeType::MAX_TREE_8C) {
+    quads = std::make_unique<QuadCountComputer>(domain, f,
+      "../resource/quads/dt-max-tree-8c.dat")->computeAttribute(tree);
+  }
+  else { // mtreeType == MIN_TREE_8C
+    quads = std::make_unique<QuadCountComputer>(domain, f,
+      "../resource/quads/dt-min-tree-8c.dat")->computeAttribute(tree);
+  }
+  
 
   std::vector<float> circularity(tree.numberOfNodes());
   float maxValue = std::numeric_limits<float>::min();
@@ -146,8 +174,10 @@ NormalisedAttributeMeta AttributeComputer::computeCircularity(Box domain,
     std::make_unique<std::vector<float>>(tree.numberOfNodes());
 
   for (unsigned int i = 0; i < tree.numberOfNodes(); i++) {
+    float perimeter = static_cast<float>(quads[i].perimeter());
     circularity[i] = (4.f * M_PI * static_cast<float>(quads[i].area())) 
-      / static_cast<float>(quads[i] .perimeter());
+      / static_cast<float>(perimeter * perimeter);
+    qDebug() << circularity[i] << "\n";
     if (circularity[i] > maxValue) maxValue = circularity[i];
     if (circularity[i] < minValue) minValue = circularity[i];
   }
@@ -160,7 +190,7 @@ NormalisedAttributeMeta AttributeComputer::computeCircularity(Box domain,
 }
 
 NormalisedAttributeMeta AttributeComputer::computeComplexity(Box domain, 
-  const MTree &tree) const 
+  const MTree &tree, MTreeType mtreeType) const 
 {
   using Quads = morphotree::Quads;
   using AttributeComputer = morphotree::AttributeComputer<Quads, ImageType>;
@@ -168,8 +198,16 @@ NormalisedAttributeMeta AttributeComputer::computeComplexity(Box domain,
 
   std::vector<ImageType> f = tree.reconstructImage();
 
-  std::vector<Quads> quads = std::make_unique<QuadCountComputer>(domain, f,
-    "../resource/quads/dt-max-tree-8c.dat")->computeAttribute(tree);
+  std::vector<Quads> quads;
+  
+  if (mtreeType == MTreeType::MAX_TREE_8C) {
+    quads = std::make_unique<QuadCountComputer>(domain, f,
+      "../resource/quads/dt-max-tree-8c.dat")->computeAttribute(tree);
+  }
+  else {
+    quads = std::make_unique<QuadCountComputer>(domain, f,
+      "../resource/quads/dt-min-tree-8c.dat")->computeAttribute(tree);
+  }
   
   std::vector<float> complexity(tree.numberOfNodes());
   float maxValue = std::numeric_limits<float>::min();

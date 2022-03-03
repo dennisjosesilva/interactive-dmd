@@ -269,10 +269,15 @@ void MainWindow::open()
       attrVisMenu_->setEnabled(false);      
       uncheckAttrVisActs();
       if (showTreeVisAct_->isChecked()) {
+        using IcicleMorphotreeWidget::MorphoTreeType;
+
+        MorphoTreeType mt = static_cast<MorphoTreeType>(
+            mtreeTypeComboBox_->currentData().value<int>());
+            
         showProgressBar();
         attrVisMenu_->setEnabled(true);
         // TODO: include mtree type here.
-        mainWidget_->updateTreeVisualiser();
+        mainWidget_->updateTreeVisualiser(mt);
       }
     }
   }
@@ -329,6 +334,9 @@ void MainWindow::treeVisAct_onToggled(bool checked)
 void MainWindow::mtreeTypeComboBox_onIndexChanged(int index)
 {
   using IcicleMorphotreeWidget::MorphoTreeType;
+
+  uncheckAttrVisActs();
+  mainWidget_->clearNodeHighlight();
 
   shouldUpdateProgressBar_ = true;
   if (showTreeVisAct_->isChecked()) {

@@ -496,7 +496,7 @@ void TreeVisualiser::showArea()
 {
   // NormalisedAttributeMeta areaInfo = attrCompueter_.computeArea(domain_, treeWidget_->tree());
   NormalisedAttributeMeta areaInfo = attrCompueter_.computeArea(domain_,
-    treeWidget_->mtree());
+    treeWidget_->mtree(), treeWidget_->treeType());
 
   treeWidget_->loadAttributes(std::move(areaInfo.nattr_));
   
@@ -518,7 +518,7 @@ void TreeVisualiser::showPerimeter()
   // NormalisedAttributeMeta perimeterInfo = attrCompueter_.computePerimeter(
   //   domain_, treeWidget_->tree());
   NormalisedAttributeMeta perimeterInfo = attrCompueter_.computePerimeter(
-    domain_, treeWidget_->mtree());
+    domain_, treeWidget_->mtree(), treeWidget_->treeType());
 
   treeWidget_->loadAttributes(std::move(perimeterInfo.nattr_));
 
@@ -561,8 +561,8 @@ void TreeVisualiser::showCircularity()
 {
   // NormalisedAttributeMeta circularityInfo = attrCompueter_.computeComplexity(
   //   domain_, treeWidget_->tree());
-  NormalisedAttributeMeta circularityInfo = attrCompueter_.computeComplexity(
-    domain_, treeWidget_->mtree());
+  NormalisedAttributeMeta circularityInfo = attrCompueter_.computeCircularity(
+    domain_, treeWidget_->mtree(), treeWidget_->treeType());
 
   treeWidget_->loadAttributes(std::move(circularityInfo.nattr_));
 
@@ -583,8 +583,8 @@ void TreeVisualiser::showComplexity()
 {
   // NormalisedAttributeMeta complexityInfo = attrCompueter_.computeComplexity(
   //   domain_, treeWidget_->tree());
-  NormalisedAttributeMeta complexityInfo = attrCompueter_.computeCircularity(
-      domain_, treeWidget_->mtree());
+  NormalisedAttributeMeta complexityInfo = attrCompueter_.computeComplexity(
+      domain_, treeWidget_->mtree(), treeWidget_->treeType());
 
   treeWidget_->loadAttributes(std::move(complexityInfo.nattr_));
 

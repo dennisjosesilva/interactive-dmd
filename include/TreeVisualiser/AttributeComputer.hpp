@@ -6,6 +6,8 @@
 
 #include <morphotree/tree/mtree.hpp>
 
+#include <IcicleMorphotreeWidget/MorphoTreeType.hpp>
+
 struct NormalisedAttributeMeta
 {
   std::unique_ptr<std::vector<float>> nattr_;
@@ -32,12 +34,22 @@ public:
   using Box = morphotree::Box;
   using ImageType = morphotree::uint8;
   using NormalisedAttributePtr = std::unique_ptr<std::vector<float>>;
+  using MTreeType = IcicleMorphotreeWidget::MorphoTreeType;
 
-  NormalisedAttributeMeta computeArea(Box domain, const MTree &tree) const;
-  NormalisedAttributeMeta computePerimeter(Box domain, const MTree &tree) const;
+  NormalisedAttributeMeta computeArea(Box domain, 
+    const MTree &tree, MTreeType mtreeType = MTreeType::MAX_TREE_8C) const;
+
+  NormalisedAttributeMeta computePerimeter(Box domain, 
+    const MTree &tree, MTreeType mtreeType = MTreeType::MAX_TREE_8C) const;
+
   NormalisedAttributeMeta computeVolume(Box domain, const MTree &tree) const;
-  NormalisedAttributeMeta computeCircularity(Box domain, const MTree &tree) const;
-  NormalisedAttributeMeta computeComplexity(Box domain, const MTree &tree) const;
+
+  NormalisedAttributeMeta computeCircularity(Box domain, 
+    const MTree &tree, MTreeType mtreeType = MTreeType::MAX_TREE_8C) const;
+
+  NormalisedAttributeMeta computeComplexity(Box domain, 
+    const MTree &tree, MTreeType mtreeType = MTreeType::MAX_TREE_8C) const;
+    
   NormalisedAttributeMeta compueteNumberOfSkeletonPoints(const MTree &tree) const;
 
 private:

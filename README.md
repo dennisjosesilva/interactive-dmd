@@ -172,7 +172,6 @@ There are two benefits to running the SDMD reconstruction. First, it provides an
 
 Another thing is that these parameters in the control bar also control the skeletons/splines that represent the node/component, i.e., during the encoding process, each tree node/component generates a skeleton/spline based on these parameters.
 
-
 Shape manipulation
 ---------
 

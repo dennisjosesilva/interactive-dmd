@@ -262,7 +262,7 @@ std::vector<bool> TreeVisualiser::SDMDRecontructionSelectedNodes()
 
     for (int y = 0; y < bimg->dimY(); y++) {
       for (int x = 0; x < bimg->dimX(); x++) {
-        if (bimg->value(x, y))
+        if ((max_tree &&  bimg->value(x, y)) || (!max_tree && bimg->value(x,y) < 255))
           frec[domain_.pointToIndex(x, y)] = true;
       }
     }

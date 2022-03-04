@@ -98,7 +98,7 @@ In this figure, we can see tree nodes representing the connected components in w
 
 ### Show morphological tree
 
-To show the morphological tree of the current image one can click on <img src="images/morphotree_icon.png" title="" alt="" width="50">  button. The image shows depends on the selected  tree type. We can chose between min-tree (to edit dark objects on bright background) or max-tree (to edit bright objects on dark background) by change the value of the tree type combo box as shown in the figure below:
+To show the morphological tree of the current image one can click on <img src="images/morphotree_icon.png" title="" alt="" width="50">  button. The rendered tree depends on the selected  tree type. We can chose between min-tree (to edit dark objects on bright background) or max-tree (to edit bright objects on dark background) by change the value of the tree type combo box as shown in the figure below:
 
 ![](images/min-tree.png)
 

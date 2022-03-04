@@ -88,13 +88,19 @@ make
 
 ### Morphotree widget and node selection
 
-The morphotree widget is an alternative representation of the image. In this widget, we render a max-tree (one of the types of common morphological trees). In this tree, each node represents a connected component of an upper-threshold. The child nodes are connected components that are subsets of their parent node. An simple example is shown down below:
+The morphotree widget is an alternative representation of the image. In this widget, we render a morphhological tree (either a max-tree or a min-tree). In this tree, each node represents a connected component of an upper-threshold or lower-thresdhold. The child nodes are connected components that are subsets of their parent node. An simple example is shown down below:
 
 ![](images/simple-tree-example.png)
 
 In this figure, we can see tree nodes representing the connected components in white that span from gray to white at the graphical representation of tree. These nodes are children of a bigger node that spans from black to gray. This node contains the previously small tree nodes. Finally the root node in black that contains the bigger node.
 
 ### Usage:
+
+### Show morphological tree
+
+To show the morphological tree of the current image one can click on <img src="images/morphotree_icon.png" title="" alt="" width="50">  button. The image shows depends on the selected  tree type. We can chose between min-tree (to edit dark objects on bright background) or max-tree (to edit bright objects on dark background) by change the value of the tree type combo box as shown in the figure below:
+
+![](images/min-tree.png)
 
 #### Node selection and unselection
 

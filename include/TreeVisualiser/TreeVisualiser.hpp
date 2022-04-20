@@ -113,6 +113,7 @@ public:
     std::make_shared<DefaultPreset>());
   void useGradientGNodeStyle();
   void useFixedColorGNodeStyle();
+  void useBezierFuncGNodeStyle();
 
   inline void resetCache() { treeWidget_->resetCachedContent(); }
   inline void updateTreeRendering() { treeWidget_->updateTreeRendering(); }

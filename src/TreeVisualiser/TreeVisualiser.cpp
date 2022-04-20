@@ -1,6 +1,7 @@
   // #include <MorphotreeWidget/Graphics/GNodeEventHandler.hpp>
 #include <IcicleMorphotreeWidget/Graphics/Node/GNodeEventHandler.hpp>
 #include <IcicleMorphotreeWidget/Graphics/Node/GNodeFactory.hpp>
+#include <IcicleMorphotreeWidget/Graphics/Node/BezierFuncNodeFactory.hpp>
 #include <IcicleMorphotreeWidget/TreeLayout/AutoSizeTreeLayout.hpp>
 
 #include "MainWidget.hpp"
@@ -230,6 +231,12 @@ void TreeVisualiser::useFixedColorGNodeStyle()
   treeWidget_->updateTreeRendering();  
   treeWidget_->grayscaleBar()->setShowBorders(true);
   gradientRenderStyle_ = false;
+}
+
+void TreeVisualiser::useBezierFuncGNodeStyle()
+{
+  using IcicleMorphotreeWidget::BezierFuncNodeFactory;
+  // TODO: Implement it.
 }
 
 // FIELD<float> *TreeVisualiser::SDMDReconstruction(unsigned int id)

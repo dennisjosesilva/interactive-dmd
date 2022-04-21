@@ -49,8 +49,12 @@ QGroupBox *TreeVisualiserStylePanel::createRenderStyleSection()
   QGroupBox *groupBox = new QGroupBox{tr("Render Style")};
   
 
+  bezierFuncLuminanceRadioButton_ = new QRadioButton{tr("Bezier Function Luminane Gradient")};
+  bezierFuncLuminanceRadioButton_->setChecked(true);
+  connect(bezierFuncLuminanceRadioButton_, &QRadioButton::toggled, this, 
+    &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
+
   glGradientDefaultRadioButton_ = new QRadioButton{tr("GL Default Bilinear Gradient")};
-  glGradientDefaultRadioButton_->setChecked(true);
   connect(glGradientDefaultRadioButton_, &QRadioButton::toggled, this,
     &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
 
@@ -84,6 +88,7 @@ QGroupBox *TreeVisualiserStylePanel::createRenderStyleSection()
   connect(flatRadioButton_, &QRadioButton::toggled, this, 
     &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);
   
+  layout->addWidget(bezierFuncLuminanceRadioButton_);
   layout->addWidget(glGradientDefaultRadioButton_);
   layout->addWidget(glGradientFlatRadioButton_);
   layout->addWidget(glGradientHorizontalRadioButton_);
@@ -109,6 +114,9 @@ void TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle(bool checked)
   if (checked) {
     QRadioButton *checkedBtn = static_cast<QRadioButton *>(sender());
     treeVis_->resetCache();
+    if (checkedBtn == bezierFuncLuminanceRadioButton_) {
+      treeVis_->useBezierFuncGNodeStyle();
+    }
     if (checkedBtn == flatRadioButton_) {
       treeVis_->useFixedColorGNodeStyle();      
     }

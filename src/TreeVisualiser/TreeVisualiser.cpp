@@ -65,6 +65,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   using AutoSizeTreeLayout = IcicleMorphotreeWidget::AutoSizeTreeLayout;
   using IcicleMorphotreeWidget::OpenGLGNodeFactory;
   using IcicleMorphotreeWidget::MorphoTreeType;
+  using IcicleMorphotreeWidget::BezierFuncNodeFactory;
+  using IcicleMorphotreeWidget::CETColorMap;
   using IcicleMorphotreeWidget = IcicleMorphotreeWidget::IcicleMorphotreeWidget;
   
   
@@ -80,7 +82,9 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
   
   treeWidget_ = new IcicleMorphotreeWidget{grayscaleProfile_, this, 
     std::make_shared<AutoSizeTreeLayout>(
-      std::make_shared<OpenGLGNodeFactory>(), grayscaleProfile_)};
+      std::make_shared<BezierFuncNodeFactory>(nullptr,
+        1.0, 1.0f, 0.45f, 1.0f, 1.0f, 0.45f), grayscaleProfile_)};
+  treeWidget_->setColorMap(std::make_unique<CETColorMap>());
 
   treeWidget_->setNodeSelectionColor(Qt::red);
   controlsLayout->addWidget(treeWidget_);  
@@ -236,7 +240,11 @@ void TreeVisualiser::useFixedColorGNodeStyle()
 void TreeVisualiser::useBezierFuncGNodeStyle()
 {
   using IcicleMorphotreeWidget::BezierFuncNodeFactory;
-  // TODO: Implement it.
+  treeWidget_->setGNodeFactory(std::make_unique<BezierFuncNodeFactory>(
+    nullptr, 1.0f, 1.0f, 0.45f, 1.0f, 1.0f, 0.45f));
+  treeWidget_->updateTreeRendering();
+  treeWidget_->grayscaleBar()->setShowBorders(false);
+  gradientRenderStyle_ = true;
 }
 
 // FIELD<float> *TreeVisualiser::SDMDReconstruction(unsigned int id)

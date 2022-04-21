@@ -28,6 +28,7 @@ protected slots:
 private:
   QLabel *title_;
 
+  QRadioButton *bezierFuncLuminanceRadioButton_;
   QRadioButton *flatRadioButton_;
   QRadioButton *gradientRadioButton_;
   QRadioButton *glGradientDefaultRadioButton_;
@@ -36,7 +37,6 @@ private:
   QRadioButton *glGradientVerticalRadioButton_;
   QRadioButton *glGradientSymmetricTentLikeCushionRadioButton_;
   QRadioButton *glGradientAsymmetricTentLikeCushionRadioButton_;
-
 
   TreeVisualiser *treeVis_;
 };

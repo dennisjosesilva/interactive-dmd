@@ -96,8 +96,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
     &TreeVisualiser::updateCustomTreeVisualisationWhenRedraw);
 
   TreeVisualiserStylePanel *tl = new TreeVisualiserStylePanel{this, nullptr};  
-  CollapsableWidget *cw = new CollapsableWidget{"Style", tl, this};  
-  controlsLayout->addWidget(cw);    
+  collapsableStyle_ = new CollapsableWidget{"Style", tl, this};  
+  controlsLayout->addWidget(collapsableStyle_);    
 
   mainLayout->addItem(controlsLayout);
   setLayout(mainLayout);
@@ -362,7 +362,7 @@ void TreeVisualiser::loadImage(Box domain, const std::vector<uint8> &f,
   domain_ = domain;
   dmd_.setProcessedImage(greyImageToField(f));  
   //dmdrecon_ = new dmdReconstruct();
-  
+  collapsableStyle_->refresh();
 }
 
 std::vector<morphotree::uint8> TreeVisualiser::bool2UInt8(

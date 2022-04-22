@@ -9,9 +9,11 @@
 #include <QDoubleSpinBox>
 #include <QDebug>
 
-
 TreeVisualiserStylePanel::TreeVisualiserStylePanel(TreeVisualiser *treeVis, 
-  QWidget *parent): QFrame{parent}, treeVis_{treeVis}
+  QWidget *parent): 
+  CollapsableMainWidget{parent}, 
+  treeVis_{treeVis}, 
+  bottomPanel_{nullptr}
 {
   QVBoxLayout *layout = new QVBoxLayout;
   layout->addItem(createTitle());
@@ -47,7 +49,6 @@ QGroupBox *TreeVisualiserStylePanel::createRenderStyleSection()
   QLayout *layout = new QVBoxLayout;
 
   QGroupBox *groupBox = new QGroupBox{tr("Render Style")};
-  
 
   bezierFuncLuminanceRadioButton_ = new QRadioButton{tr("Bezier Function Luminane Gradient")};
   bezierFuncLuminanceRadioButton_->setChecked(true);
@@ -114,8 +115,10 @@ void TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle(bool checked)
   if (checked) {
     QRadioButton *checkedBtn = static_cast<QRadioButton *>(sender());
     treeVis_->resetCache();
+    removeBottomPanel();
     if (checkedBtn == bezierFuncLuminanceRadioButton_) {
       treeVis_->useBezierFuncGNodeStyle();
+      addBottomPanel(new BezierControlPanel{treeVis_});
     }
     if (checkedBtn == flatRadioButton_) {
       treeVis_->useFixedColorGNodeStyle();      
@@ -148,4 +151,87 @@ void TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle(bool checked)
         std::make_shared<AsymetricTentLikeCushion>());
     }
   }
+}
+
+void TreeVisualiserStylePanel::refresh()
+{
+  addBottomPanel(new BezierControlPanel{treeVis_});
+}
+
+void TreeVisualiserStylePanel::addBottomPanel(QWidget *panel)
+{
+  if (bottomPanel_ != nullptr) 
+    removeBottomPanel();
+    
+  bottomPanel_ = panel;
+  layout()->addWidget(bottomPanel_);
+}
+
+void TreeVisualiserStylePanel::removeBottomPanel()
+{
+  if (bottomPanel_ != nullptr) {
+    layout()->removeWidget(bottomPanel_);
+    bottomPanel_->deleteLater();
+    bottomPanel_ = nullptr;
+  }
+}
+
+// Bezier Panel
+BezierControlPanel::BezierControlPanel(TreeVisualiser *treeVis)
+  : treeVis_{treeVis},  
+    factory_{std::dynamic_pointer_cast<BezierFuncNodeFactory>(treeVis->treeWidget()->gnodeFactory())}
+{
+  QVBoxLayout *mainLayout = new QVBoxLayout;
+
+  QHBoxLayout *spinBoxTopLeftLayout = new QHBoxLayout;
+
+  // Top left square spin box   
+  QLabel *topLeftSquareLabel = new QLabel{tr("top left square intensity: "), this};
+  spinBoxTopLeftLayout->addWidget(topLeftSquareLabel);
+
+  topLeftSquareIntSpinBox_ = new QDoubleSpinBox{this};
+  topLeftSquareIntSpinBox_->setRange(0, 1);
+  topLeftSquareIntSpinBox_->setSingleStep(0.05f);
+  topLeftSquareIntSpinBox_->setValue(factory_->vtop());
+  connect(topLeftSquareIntSpinBox_, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
+    &BezierControlPanel::topLeftSquareIntSpinBox_onValueChanged);
+  spinBoxTopLeftLayout->addWidget(topLeftSquareIntSpinBox_);
+
+  mainLayout->addItem(spinBoxTopLeftLayout);
+
+  // bottom right edge spog box 
+  QHBoxLayout *bottomRightEdgesLayout = new QHBoxLayout;
+
+  QLabel *bottomRightEdgesLabel = new QLabel{tr("bottom right edges intensity: "), this};
+  bottomRightEdgesLayout->addWidget(bottomRightEdgesLabel);
+
+  bottomRightEdgesIntSpinBox_ = new QDoubleSpinBox{this};
+  bottomRightEdgesIntSpinBox_->setRange(0, 1);
+  bottomRightEdgesIntSpinBox_->setSingleStep(0.05f);
+  bottomRightEdgesIntSpinBox_->setValue(factory_->vbottom());
+  connect(bottomRightEdgesIntSpinBox_, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
+    &BezierControlPanel::bottomRightEdgesIntSpinBox_inValueChanged);
+  bottomRightEdgesLayout->addWidget(bottomRightEdgesIntSpinBox_);
+  
+  mainLayout->addItem(bottomRightEdgesLayout);
+
+  setLayout(mainLayout);
+} 
+
+void BezierControlPanel::topLeftSquareIntSpinBox_onValueChanged(double val)
+{
+  float fval = static_cast<float>(val);
+  factory_->setHLeft(fval);
+  factory_->setHMiddle(fval);
+  factory_->setVTop(fval);
+  factory_->setVMiddle(fval);
+  treeVis_->updateTreeRendering();
+}
+
+void BezierControlPanel::bottomRightEdgesIntSpinBox_inValueChanged(double val)
+{
+  float fval = static_cast<float>(val);
+  factory_->setVBottom(fval);
+  factory_->setHRight(fval);
+  treeVis_->updateTreeRendering();
 }

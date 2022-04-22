@@ -25,6 +25,7 @@
 #include "SDMD/dmdReconstruct.hpp"
 
 class RecNodeButton;
+class CollapsableWidget;
 class QGraphicsSceneMouseEvent;
 class MainWidget;
 class QSlider;
@@ -210,6 +211,8 @@ private:
   bool gradientRenderStyle_;
   QMap<uint32, GNode *> selectedNodes_;
   bool FirstCreateCpviewer = true;
+
+  CollapsableWidget *collapsableStyle_;
 
   GrayScaleProfile grayscaleProfile_;
 };

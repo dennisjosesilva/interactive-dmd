@@ -1,22 +1,31 @@
 #pragma once 
 
 #include <QWidget>
+#include <QFrame>
 
 class OrientablePushButton;
 class QLayout;
 
+class CollapsableMainWidget : public QFrame 
+{
+public:
+  CollapsableMainWidget(QWidget *parent=nullptr):QFrame{parent} {}
+
+  virtual void refresh() = 0;
+};
+
+
 class CollapsableWidget : public QWidget
 {
   Q_OBJECT
-  
 public:
   enum Status { Expanded, Collapsed };
 
   CollapsableWidget(const QString &title,
-    QWidget *mainWidget, QWidget *parent=nullptr);
+    CollapsableMainWidget *mainWidget, QWidget *parent=nullptr);
 
   inline QWidget *mainWidget() { return mainWidget_; }
-  void setMainWidget(QWidget *mainWidget);
+  inline void refresh() { mainWidget_->refresh(); }
 
   void collapse();
   void expand();
@@ -28,7 +37,7 @@ protected:
   
 private:
   OrientablePushButton *expandableBtn_;
-  QWidget *mainWidget_;
+  CollapsableMainWidget *mainWidget_;
   QLayout *layout_;
 
   Status status_;

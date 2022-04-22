@@ -6,7 +6,7 @@
 
 #include <QDebug>
 
-CollapsableWidget::CollapsableWidget(const QString &title, QWidget *mainWidget, 
+CollapsableWidget::CollapsableWidget(const QString &title, CollapsableMainWidget *mainWidget, 
   QWidget *parent)
   :QWidget{parent},
    mainWidget_{mainWidget},

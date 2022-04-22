@@ -1,6 +1,9 @@
 #pragma once 
 
 #include <QFrame>
+#include "CustomWidgets/CollapsableWidget.hpp"
+
+#include <IcicleMorphotreeWidget/Graphics/Node/BezierFuncNodeFactory.hpp>
 
 class QLabel;
 class QGroupBox;
@@ -9,7 +12,7 @@ class TreeVisualiser;
 class QDoubleSpinBox;
 class QLayout;
 
-class TreeVisualiserStylePanel : public QFrame
+class TreeVisualiserStylePanel : public CollapsableMainWidget
 {
 Q_OBJECT
 public:  
@@ -21,6 +24,13 @@ protected:
   QLayout *createMeasuresSection();
 
   QWidget *createHLine();
+
+  void refresh() override;
+
+  void addBottomPanel(QWidget *panel);
+  void removeBottomPanel();
+
+
 
 protected slots:
   void radioButtonRenderStyle_onToogle(bool checked);
@@ -38,5 +48,31 @@ private:
   QRadioButton *glGradientSymmetricTentLikeCushionRadioButton_;
   QRadioButton *glGradientAsymmetricTentLikeCushionRadioButton_;
 
+  QWidget *bottomPanel_;
+
+  TreeVisualiser *treeVis_;
+};
+
+class BezierControlPanel : public QWidget 
+{
+Q_OBJECT
+public:
+  using BezierFuncNodeFactory  = IcicleMorphotreeWidget::BezierFuncNodeFactory;
+  using BezierFuncNodeFactoryPtr = std::shared_ptr<BezierFuncNodeFactory>;
+
+  BezierControlPanel(TreeVisualiser* treeVis);
+
+public slots:
+  void topLeftSquareIntSpinBox_onValueChanged(double val);
+  void bottomRightEdgesIntSpinBox_inValueChanged(double val);
+
+private:
+  QLayout* createSpinBox(const QString &labelTxt);
+
+private:
+  QDoubleSpinBox *topLeftSquareIntSpinBox_;
+  QDoubleSpinBox *bottomRightEdgesIntSpinBox_;
+
+  BezierFuncNodeFactoryPtr factory_;
   TreeVisualiser *treeVis_;
 };

@@ -50,7 +50,7 @@ QGroupBox *TreeVisualiserStylePanel::createRenderStyleSection()
 
   QGroupBox *groupBox = new QGroupBox{tr("Render Style")};
 
-  bezierFuncLuminanceRadioButton_ = new QRadioButton{tr("Bezier Function Luminane Gradient")};
+  bezierFuncLuminanceRadioButton_ = new QRadioButton{tr("Bezier Function Luminance Gradient")};
   bezierFuncLuminanceRadioButton_->setChecked(true);
   connect(bezierFuncLuminanceRadioButton_, &QRadioButton::toggled, this, 
     &TreeVisualiserStylePanel::radioButtonRenderStyle_onToogle);

@@ -7,3 +7,4 @@ Skel/0.0.1@jieyingwang/dmd
 
 [generators]
 cmake
+txt

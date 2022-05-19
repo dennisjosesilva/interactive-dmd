@@ -38,6 +38,8 @@ private slots:
 
   void treeVis_onNodeSkeletonAssociation(int numberOfNodes);
 
+  void showAreaFilteringDialog();
+
   void areaAct_onTriggered(bool checked);
   void perimeterAct_onTriggered(bool checked);
   void volumeAct_onTriggered(bool checked);
@@ -50,6 +52,7 @@ private slots:
   
 private:
   void createMenus();  
+  void createTreeFilteringMenu();
   void createTreeAttributeVisualitionMenus();  
   void uncheckAttrVisActs();
 
@@ -74,6 +77,9 @@ private:
 
   LabelWithProgressBar *progressBar_;
   bool shouldUpdateProgressBar_;
+
+  QMenu *preprocessImageMenu_;
+  QAction *areaFilteringAct_;
 
   QMenu *attrVisMenu_;
   QAction *areaAct_;

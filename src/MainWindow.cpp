@@ -17,6 +17,8 @@
 #include <QLabel>
 #include <QComboBox>
 
+#include "CustomWidgets/AreaTreeFilteringDialog.hpp"
+
 #include <QStatusBar>
 #include <QProgressBar>
 #include <QApplication>
@@ -101,7 +103,16 @@ void MainWindow::createMenus()
   exitAct->setToolTip("Finalise the application");
   exitAct->setShortcut(tr("Ctrl+Q"));
 
+  createTreeFilteringMenu();
   createTreeAttributeVisualitionMenus();  
+}
+
+void MainWindow::createTreeFilteringMenu()
+{
+  preprocessImageMenu_ = menuBar()->addMenu(tr("Pre-process"));
+
+  areaFilteringAct_ = preprocessImageMenu_->addAction(tr("Area filtering ..."), this,
+    &MainWindow::showAreaFilteringDialog);
 }
 
 void MainWindow::createTreeAttributeVisualitionMenus()
@@ -387,6 +398,22 @@ void MainWindow::imageZoomOutAct_onTrigged()
 void MainWindow::treeVis_onNodeSkeletonAssociation(int numberOfNodes)
 {    
   progressBar_->setValue(numberOfNodes); 
+}
+
+void MainWindow::showAreaFilteringDialog()
+{
+  using morphotree::Box;
+  using morphotree::uint8;
+  using morphotree::UI32Point;
+
+  const QImage &img = mainWidget_->image();
+  Box domain = Box::fromSize(UI32Point{img.width(), img.height()});
+
+  std::vector<uint8> f(img.bits(), img.bits() + domain.numberOfPoints());
+
+  AreaTreeFilteringDialog dialog{domain, f, this};
+  if (dialog.exec())
+    mainWidget_->setImage(dialog.resultImage());
 }
 
 void MainWindow::showProgressBar()

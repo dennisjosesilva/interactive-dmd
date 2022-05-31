@@ -1,4 +1,5 @@
 #include "ManipulateCPs/CpViewer.hpp"
+#include "ManipulateCPs/DataAugmentationDialog.hpp"
 
 #include "MainWidget.hpp"
 
@@ -30,6 +31,11 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
    QIcon{":/images/Remove_SplineCPs_icon.png"}, tr(""), this};
   removeCPsBtn->setIconSize(QSize{32, 32});
   connect(removeCPsBtn, &QPushButton::clicked, this, &CpViewer::removeCPsBtn_press);
+
+  RandomChangeGenBtn = new AddHoverInfoPushButton{tr("Generate random changes"), 
+    QIcon{":images/RandomChangeGen_icon.png"}, tr(""), this};
+  RandomChangeGenBtn->setIconSize(QSize{32, 32});
+  connect(RandomChangeGenBtn, &QPushButton::clicked, this, &CpViewer::RandomChangeGenBtn_press);  
 
   AddCPsBtn = new AddHoverInfoPushButton {tr("Add a CP. Select a branch (CP) first"), 
    QIcon{":/images/AddCP_icon.png"}, tr(""), this};
@@ -81,6 +87,7 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
 
   btnLayout->addWidget(showCPsBtn);
   btnLayout->addWidget(removeCPsBtn);
+  btnLayout->addWidget(RandomChangeGenBtn);
   btnLayout->addWidget(AddCPsBtn);
   btnLayout->addWidget(DeleteCPsBtn);
   btnLayout->addWidget(DeleteABranchBtn);
@@ -211,6 +218,13 @@ void CpViewer::ReconImageBtn_press()
   bool HaveProcessed = manipulate_CPs->ReconImageFromMovedCPs(recon_, Max_Tree);
   if(HaveProcessed)
     MainWidgetImageViewer->markTreeAsUnsynchronized();
+}
+
+void CpViewer::RandomChangeGenBtn_press()
+{
+  DataAugmentationDialog dialog;
+
+  dialog.exec(); 
 }
 
 void CpViewer::ChangeValueDisplay(int radius, int degree)

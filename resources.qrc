@@ -37,5 +37,6 @@
   <file>images/zoom_in_out.png</file>
   <file>images/select_descendants_icon.png</file>
   <file>images/sync_morphotree_icon.png</file>
+  <file>images/RandomChangeGen_icon.png</file>
 </qresource>
 </RCC>

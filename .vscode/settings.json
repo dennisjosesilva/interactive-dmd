@@ -59,6 +59,7 @@
     "iostream": "cpp",
     "mutex": "cpp",
     "thread": "cpp",
-    "future": "cpp"
+    "future": "cpp",
+    "qpushbutton": "cpp"
   }
 }

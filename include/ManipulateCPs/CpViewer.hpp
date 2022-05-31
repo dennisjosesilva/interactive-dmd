@@ -41,6 +41,7 @@ protected slots:
   void removeCPsBtn_press();
   void ReconBtn_press();
   void ReconImageBtn_press();
+  void RandomChangeGenBtn_press();
   void AddCPsBtn_press(); 
   void DeleteCPsBtn_press();
   void DeleteMultiCPsBtn_press();
@@ -66,6 +67,8 @@ private:
   AddHoverInfoPushButton *AddCPsBtn;
   AddHoverInfoPushButton *DeleteCPsBtn;
   AddHoverInfoPushButton *DeleteABranchBtn;  
+
+  AddHoverInfoPushButton *RandomChangeGenBtn;
 
   MainWidget *MainWidgetImageViewer;
   

@@ -30,6 +30,8 @@ public:
   void UpdateBackground();
   void ShowingCPs();
   
+  bool SaveBackgroundImage(const QString &filename);
+
   void changeCurrNodeRInCplist(int r);
   void changeCurrbranchDegree(int d);
   void ReconFromMovedCPs(dmdReconstruct *recon, bool max_tree);

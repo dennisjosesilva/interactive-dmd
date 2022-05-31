@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+  <file>images/Save_Image_icon.png</file>
   <file>images/Remove_Skel_icon.png</file>
   <file>images/Skel_icon.png</file>
   <file>images/morphotree_icon.png</file>

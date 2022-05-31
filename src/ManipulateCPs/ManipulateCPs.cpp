@@ -6,6 +6,10 @@
 #include <QList>
 #include <QtMath>
 #include <QPair>
+#include <QImageWriter>
+#include <QGuiApplication>
+#include <QDir>
+#include <QPen>
 //#include <QRandomGenerator>          
 //using namespace std;
 int offsetX, offsetY;
@@ -94,6 +98,33 @@ void ManipulateCPs::ShowingCPs(){
   }
   
 }
+
+bool ManipulateCPs::SaveBackgroundImage(const QString &filename)
+{
+  update();
+
+  QPixmap pixmap;
+  QPainter painter{&pixmap};
+  scene->render(&painter);
+  painter.end();
+  if(!pixmap.save(filename)) {
+    QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+      tr("Cannot write %1").arg(QDir::toNativeSeparators(filename)));
+    
+    return false;
+  }
+
+  // const QPixmap &viewPixMap = grab();
+
+  // if (!viewPixMap.save(filename)) {
+  //   QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+  //     tr("Cannot write %1").arg(QDir::toNativeSeparators(filename)));
+  //   return false;
+  // }
+
+  return true;
+}
+
 void ManipulateCPs::AddOneCp(){
   AddCPbuttonPressed = true;
 }
@@ -1177,6 +1208,9 @@ void ManipulateCPs::drawBackground(QPainter *painter, const QRectF &rect)
 
   QRectF sceneRect = this->sceneRect();
   
+  painter->setPen(QPen{Qt::red, 5});
+  painter->drawRect(sceneRect);
+
   if(drawQImage) 
   {
     painter->drawImage(sceneRect, showBackgroundImg);

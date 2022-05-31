@@ -4,8 +4,11 @@
 
 #include <QPushButton>
 #include <QScrollArea>
-
+#include <QFileDialog>
+#include <QImageReader>
 #include <QWheelEvent>
+#include <QImageWriter>
+#include <QStandardPaths>
 
 #include <cmath>
 
@@ -20,6 +23,11 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
 
 // -------------------- First Row - buttons  ------------------------
   QLayout *btnLayout = new QHBoxLayout; 
+
+  AddHoverInfoPushButton *saveImgBtn = new AddHoverInfoPushButton{tr("Save image"),
+    QIcon{":/images/Save_Image_icon.png"}, tr(""), this};
+  saveImgBtn->setIconSize(QSize{32, 32});
+  connect(saveImgBtn, &QPushButton::clicked, this, &CpViewer::saveImage_press);
 
   AddHoverInfoPushButton *showCPsBtn = new AddHoverInfoPushButton {tr("Show all CPs"),
    QIcon{":/images/Spline_CPs_icon.png"}, tr(""), this};
@@ -79,6 +87,7 @@ CpViewer::CpViewer(int W, int H, MainWidget *imageViewer, QWidget *parent)
   skelRecBtn_->setFixedSize(QSize{90, 38});//?
   connect(skelRecBtn_, &QPushButton::clicked, this, &CpViewer::ReconImageBtn_press);
 
+  btnLayout->addWidget(saveImgBtn);
   btnLayout->addWidget(showCPsBtn);
   btnLayout->addWidget(removeCPsBtn);
   btnLayout->addWidget(AddCPsBtn);
@@ -188,6 +197,46 @@ void CpViewer::getCPsMap(){
 
   }
 }
+
+static void initialiseImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode)
+{
+  static bool firstDialog = true;
+
+  if (firstDialog) {
+    firstDialog = false;
+    const QStringList picturesLocations = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
+    dialog.setDirectory(picturesLocations.isEmpty() ? QDir::currentPath() : picturesLocations.last());
+  }
+
+  QStringList mimeTypeFilters;
+  const QByteArrayList supportedMimeTypes = acceptMode == QFileDialog::AcceptOpen
+    ? QImageReader::supportedMimeTypes() : QImageWriter::supportedMimeTypes();
+  
+  for (const QByteArray &mimeTypeName : supportedMimeTypes)
+    mimeTypeFilters.append(mimeTypeName);
+
+  mimeTypeFilters.sort();
+  dialog.setMimeTypeFilters(mimeTypeFilters);
+  dialog.selectMimeTypeFilter("image/jpeg");
+  dialog.setAcceptMode(acceptMode);
+  if (acceptMode == QFileDialog::AcceptSave)
+    dialog.setDefaultSuffix("jpg");
+}
+
+void CpViewer::saveImage_press()
+{
+  // TODO: Implement it.
+  QFileDialog dialog(this, tr("Save File As"));
+  initialiseImageFileDialog(dialog, QFileDialog::AcceptSave);
+
+  bool accepted = dialog.exec();
+  
+  if (accepted && dialog.selectedFiles().count() > 0) {
+    const QString filename = dialog.selectedFiles().constFirst();
+    manipulate_CPs->SaveBackgroundImage(filename);
+  }
+}
+
 void CpViewer::showCPsBtn_press()
 {
   manipulate_CPs->ShowingCPs();

@@ -37,6 +37,7 @@ protected:
 
  
 protected slots:
+  void saveImage_press();  // Included by dennis
   void showCPsBtn_press();
   void removeCPsBtn_press();
   void ReconBtn_press();

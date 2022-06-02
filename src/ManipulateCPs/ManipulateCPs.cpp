@@ -1207,3 +1207,54 @@ void ManipulateCPs::zoomOut()
 {
   scaleView(1 / qreal(1.2));
 }
+
+QList<Node_ *> ManipulateCPs::selectedCPs()
+{
+  QList<Node_ *> selectedNodes;
+  
+  for (QGraphicsItem *item : scene->selectedItems()) {
+    Node_ *node = qgraphicsitem_cast<Node_ *>(item);
+    if (node != nullptr)
+      selectedNodes.append(node);
+  }
+  return selectedNodes;
+}
+
+QList<Node_ *> ManipulateCPs::allCPs()
+{
+  QList<Node_ *> all;
+  for (QGraphicsItem *item : scene->items()) {
+    Node_ *node = qgraphicsitem_cast<Node_ *>(item);
+    if (node != nullptr)
+      all.append(node);
+  }
+  return all;
+}
+
+void ManipulateCPs::translateCP(Node_ *cp, qreal dx, qreal dy)
+{
+  using ControlPoint = vector<Vector3<float>>;
+  vector<ControlPoint> &CPlist = CPlistMap[cp->getComponentId()];
+
+  cp->setX(cp->x() + dx);
+  cp->setY(cp->y() + dy);
+
+  CPlist[cp->getIndexM()][cp->getIndexN()][0] = cp->x() + (w / 2);
+  CPlist[cp->getIndexM()][cp->getIndexN()][1] = cp->y() + (h / 2);
+  CPlistMap.insert(cp->getComponentId(), CPlist);
+}
+
+void ManipulateCPs::scaleRadius(Node_ *cp, qreal scale)
+{
+  cp->setRadius(cp->getRadius() * scale);
+}
+
+void ManipulateCPs::rotateCP(Node_ *cp, qreal cx, qreal cy, qreal angle)
+{
+  QPointF rotatedPoint;
+  const QPointF &pos = cp->getPos();
+  rotatedPoint.rx() = (pos.x() - cx)*qCos(angle) - (pos.y() - cy)*qSin(angle) + cx;
+  rotatedPoint.ry() = (pos.x() - cx)*qSin(angle) + (pos.y() - cy)*qCos(angle) + cy;
+
+  cp->setPos(rotatedPoint);  
+}

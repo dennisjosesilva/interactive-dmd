@@ -5,11 +5,15 @@
 
 #include <random>
 
+
 class QDoubleSpinBox;
 class QLabel;
 class QCheckBox;
 class QGridLayout;
 class QPushButton;
+
+class ManipulateCPs;
+class Node_;
 
 // Class and implementation based on 
 // https://stackoverflow.com/questions/28618900/c-generate-random-numbers-following-normal-distribution-within-range
@@ -33,7 +37,7 @@ private:
 class DataAugmentationDialog : public QDialog
 {
 public:
-  DataAugmentationDialog(QWidget *parent=nullptr);
+  DataAugmentationDialog(ManipulateCPs *manipulateCPs_, QWidget *parent=nullptr);
 
 private:
   void createDXInput();
@@ -43,12 +47,10 @@ private:
   void createScaleInput();
 
   void createGenerateBtn();
-
-  void generateDX();
-  void generateDY();
-  void generateRadius();
-  void generateRotation();
-  void generateScale();
+  void generateTranslation(const QList<Node_ *> cps);
+  void generateRadius(const QList<Node_ *> &cps);
+  void generateRotation(const QList<Node_ *> &cps);
+  void generateScale(const QList<Node_ *> &cps);
 
 protected slots:
   void dxCheckBox_stateChanged(int state);
@@ -83,4 +85,6 @@ private:
   QDoubleSpinBox *scaleEndSpinBox_;
 
   QPushButton *generateBtn_;
+
+  ManipulateCPs *manipulateCPs_;
 };

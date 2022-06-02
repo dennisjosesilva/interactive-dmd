@@ -59,6 +59,16 @@ public:
   Node_ * addPastedCPIntoScene (Node_ *CurrNode);
   void DeleteSelectedBranch();
 
+// ========================================================
+// Code based manipulation functions
+// ========================================================
+  QList<Node_ *> selectedCPs();
+  QList<Node_ *> allCPs();
+
+  void translateCP(Node_ *cp, qreal dx, qreal dy);
+  void scaleRadius(Node_ *cp, qreal scale);
+  void rotateCP(Node_ *cp, qreal cx, qreal cy, qreal angle);
+
 public: 
 signals: 
   void PressNode(int radius, int degree); 

@@ -1,4 +1,6 @@
 #include "ManipulateCPs/DataAugmentationDialog.hpp"
+#include "ManipulateCPs/ManipulateCPs.hpp"
+#include "ManipulateCPs/node.hpp"
 
 #include <QDoubleSpinBox>
 #include <QLabel>
@@ -7,16 +9,19 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 
+#include <QGraphicsScene>
+
 #include <random>
+#include <chrono>
 
 // ======================================================================
 // MinMaxRandomNumGenerator 
-// ======================================================================
+// ============================================== ========================
 MinMaxRandomNumGenerator::MinMaxRandomNumGenerator(float min, float max)
   : min_{min}, max_{max},
-    dist_{(min + max) / 2.0f, max-min}
+    dist_{(min + max) / 2.0f, max-min},
+    generator_{std::chrono::system_clock::now().time_since_epoch().count()}
 {
-
 }
 
 MinMaxRandomNumGenerator::MinMaxRandomNumGenerator(unsigned int seed, 
@@ -38,11 +43,12 @@ float MinMaxRandomNumGenerator::gen()
   return val;
 }
 
-// ========================================================================
+// ===========================================================================
 // DataAugmentationDialog 
-// ========================================================================
-DataAugmentationDialog::DataAugmentationDialog(QWidget *parent)
-  : QDialog{parent}
+// ===========================================================================
+DataAugmentationDialog::DataAugmentationDialog(ManipulateCPs *manipulateCPs,
+  QWidget *parent)
+  : QDialog{parent}, manipulateCPs_{manipulateCPs}
 {
   QVBoxLayout *layout = new QVBoxLayout;
   inputLayout_ = new QGridLayout;
@@ -176,6 +182,8 @@ void DataAugmentationDialog::createScaleInput()
 void DataAugmentationDialog::createGenerateBtn()
 {
   generateBtn_ = new QPushButton(tr("Generate changes"), this);
+  connect(generateBtn_, &QPushButton::clicked, this, 
+    &DataAugmentationDialog::generateBtn_onClicked);
   inputLayout_->addWidget(generateBtn_, 5, 5);
 }
 
@@ -247,58 +255,94 @@ void DataAugmentationDialog::scaleCheckBox_stateChanged(int state)
 // =============================================================================
 void DataAugmentationDialog::generateBtn_onClicked()
 {
-  if (dxCheckBox_->isChecked())
-    generateDX();
-  
-  if (dyCheckBox_->isChecked())
-    generateDY();
+  QList<Node_ *> cps = manipulateCPs_->selectedCPs();
+  if (cps.size() == 0)
+    cps = manipulateCPs_->allCPs();
+
+  generateTranslation(cps);
 
   if (radiusCheckBox_->isChecked())
-    generateRadius();
+    generateRadius(cps);
 
   if (rotationCheckBox_->isChecked())
-    generateRotation();
+    generateRotation(cps);
 
   if (scaleCheckBox_->isChecked())
-    generateScale();
+    generateScale(cps);
 }
 
-void DataAugmentationDialog::generateDX()
+void DataAugmentationDialog::generateTranslation(const QList<Node_ *> cps)
 {
-  MinMaxRandomNumGenerator randGen{dxStartSpinBox_->value(), 
-    dxEndSpinBox_->value()};
-
-  // TODO: implement
-}
-
-void DataAugmentationDialog::generateDY()
-{
-  MinMaxRandomNumGenerator randGen{dyStartSpinBox_->value(), 
+  MinMaxRandomNumGenerator dyRandGen{dyStartSpinBox_->value(), 
     dyEndSpinBox_->value()};
+
+  MinMaxRandomNumGenerator dxRandGen{dxStartSpinBox_->value(), 
+    dxEndSpinBox_->value()};
   
-  // TODO: implement it
+  for (Node_ *cp : cps) {
+    qreal dx = 0.0f;
+    qreal dy = 0.0f;
+
+    if (dxCheckBox_->isChecked()) {
+      dx = dxRandGen.gen();
+    }
+    else if (dyCheckBox_->isChecked()) {      
+      dy = dyRandGen.gen();
+    }
+    manipulateCPs_->translateCP(cp, dx, dy);
+  }
 }
 
-void DataAugmentationDialog::generateRadius()
+void DataAugmentationDialog::generateRadius(const QList<Node_ *> &cps)
 {
   MinMaxRandomNumGenerator randGen{ radiusStartSpinBox_->value(),
     radiusEndSpinBox_->value() };
-  
-  // TODO: implement it
+
+  for (Node_ *cp : cps){
+    manipulateCPs_->scaleRadius(cp, randGen.gen());
+  }
 }
 
-void DataAugmentationDialog::generateRotation()
+void DataAugmentationDialog::generateRotation(const QList<Node_ *> &cps)
 {
   MinMaxRandomNumGenerator randGen{ rotationStartSpinBox_->value(), 
     rotationEndSpinBox_->value() };
 
-  // TODO: implement it 
+  qreal cx = 0;
+  qreal cy = 0;
+
+  for (Node_ *cp : cps) {
+    cx += cp->x();
+    cy += cp->y();
+  }
+
+  cx /= static_cast<qreal>(cps.size());
+  cy /= static_cast<qreal>(cps.size());
+
+  for (Node_ *cp : cps) {
+    qreal angle = randGen.gen();
+    manipulateCPs_->rotateCP(cp, cx, cy, angle);
+  }
 }
 
-void DataAugmentationDialog::generateScale()
+void DataAugmentationDialog::generateScale(const QList<Node_ *> &cps)
 {
   MinMaxRandomNumGenerator randGen{ scaleStartSpinBox_->value(), 
     scaleEndSpinBox_->value() };
 
-  // TODO: implement it
+  qreal cx = 0;
+  qreal cy = 0;
+
+  for (Node_ *cp : cps) {
+    cx += cp->x();
+    cy += cp->y();
+  }
+
+  cx /= static_cast<qreal>(cps.size());
+  cy /= static_cast<qreal>(cps.size());
+
+  for (Node_ *cp : cps) {
+    qreal angle = randGen.gen();
+    manipulateCPs_->rotateCP(cp, cx, cy, angle);
+  }
 }

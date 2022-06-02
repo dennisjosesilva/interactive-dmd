@@ -1246,7 +1246,14 @@ void ManipulateCPs::translateCP(Node_ *cp, qreal dx, qreal dy)
 
 void ManipulateCPs::scaleRadius(Node_ *cp, qreal scale)
 {
-  cp->setRadius(cp->getRadius() * scale);
+  using ControlPoint = vector<Vector3<float>>;
+  vector<ControlPoint> &CPlist = CPlistMap[cp->getComponentId()];
+
+  int setR = cp->getRadius() * scale;
+  cp->setRadius(setR);
+  cp->update();
+  CPlist[cp->getIndexM()][cp->getIndexN()][2] = setR;
+  CPlistMap.insert(cp->getComponentId(), CPlist);
 }
 
 void ManipulateCPs::rotateCP(Node_ *cp, qreal cx, qreal cy, qreal angle)

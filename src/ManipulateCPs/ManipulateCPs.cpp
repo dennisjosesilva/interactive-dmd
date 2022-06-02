@@ -1253,8 +1253,38 @@ void ManipulateCPs::rotateCP(Node_ *cp, qreal cx, qreal cy, qreal angle)
 {
   QPointF rotatedPoint;
   const QPointF &pos = cp->getPos();
-  rotatedPoint.rx() = (pos.x() - cx)*qCos(angle) - (pos.y() - cy)*qSin(angle) + cx;
-  rotatedPoint.ry() = (pos.x() - cx)*qSin(angle) + (pos.y() - cy)*qCos(angle) + cy;
+
+  qreal rangle = qDegreesToRadians(angle);
+
+  rotatedPoint.rx() = (pos.x() - cx)*qCos(rangle) - (pos.y() - cy)*qSin(rangle) + cx;
+  rotatedPoint.ry() = (pos.x() - cx)*qSin(rangle) + (pos.y() - cy)*qCos(rangle) + cy;
 
   cp->setPos(rotatedPoint);  
+}
+
+void ManipulateCPs::scaleCP(Node_ *cp, qreal cx, qreal cy, qreal scale)
+{
+  RScaleFactor *= scale;
+  const QPointF &p = cp->getPos();
+  QPointF changedPos;
+
+  changedPos.rx() = cx + (p.x() - cx) * scale;
+  changedPos.ry() = cy + (p.y() - cy) * scale;
+
+  cp->setPos(changedPos);
+
+  int setR = cp->getRadius() * scale;
+  cp->setRadius(setR);
+}
+
+void ManipulateCPs::drawPoint(qreal px, qreal py)
+{
+  QPointF scenePoint{px, py};
+  HoriLine = new QGraphicsLineItem(scenePoint.x()-5, scenePoint.y(), scenePoint.x()+5, scenePoint.y());
+  HoriLine->setPen(QPen(Qt::red, 2));
+  scene->addItem(HoriLine);
+
+  VerLine = new QGraphicsLineItem(scenePoint.x(), scenePoint.y()-5, scenePoint.x(), scenePoint.y()+5);
+  VerLine->setPen(QPen(Qt::red, 2));
+  scene->addItem(VerLine);
 }

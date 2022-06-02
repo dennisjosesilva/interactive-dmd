@@ -319,8 +319,8 @@ void DataAugmentationDialog::generateRotation(const QList<Node_ *> &cps)
   cx /= static_cast<qreal>(cps.size());
   cy /= static_cast<qreal>(cps.size());
 
+  qreal angle = randGen.gen();
   for (Node_ *cp : cps) {
-    qreal angle = randGen.gen();
     manipulateCPs_->rotateCP(cp, cx, cy, angle);
   }
 }
@@ -341,8 +341,8 @@ void DataAugmentationDialog::generateScale(const QList<Node_ *> &cps)
   cx /= static_cast<qreal>(cps.size());
   cy /= static_cast<qreal>(cps.size());
 
+  qreal scale = randGen.gen();
   for (Node_ *cp : cps) {
-    qreal angle = randGen.gen();
-    manipulateCPs_->rotateCP(cp, cx, cy, angle);
+    manipulateCPs_->scaleCP(cp, cx, cy, scale);
   }
 }

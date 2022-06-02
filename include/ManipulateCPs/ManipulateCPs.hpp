@@ -68,6 +68,9 @@ public:
   void translateCP(Node_ *cp, qreal dx, qreal dy);
   void scaleRadius(Node_ *cp, qreal scale);
   void rotateCP(Node_ *cp, qreal cx, qreal cy, qreal angle);
+  void scaleCP(Node_ *cp, qreal cx, qreal cy, qreal scale);
+
+  void drawPoint(qreal px, qreal py);
 
 public: 
 signals: 

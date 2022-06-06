@@ -38,7 +38,10 @@ float MinMaxRandomNumGenerator::gen()
   float val;
   do {
     val = dist_(generator_);
-  } while (min_ <= val && val <= max_);
+
+    // while val is outside [min,max] interval,
+    // we should still generating samples.
+  } while (!(min_ <= val && val <= max_));
 
   return val;
 }
@@ -298,9 +301,9 @@ void DataAugmentationDialog::generateRadius(const QList<Node_ *> &cps)
   MinMaxRandomNumGenerator randGen{ radiusStartSpinBox_->value(),
     radiusEndSpinBox_->value() };
   
-  qDebug()<<" randValue: "<<randGen.gen();
-
   for (Node_ *cp : cps){
+    float r = randGen.gen();
+    qDebug()<<" randValue: " << r;
     manipulateCPs_->scaleRadius(cp, randGen.gen());
   }
 }

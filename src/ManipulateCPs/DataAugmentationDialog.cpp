@@ -297,6 +297,8 @@ void DataAugmentationDialog::generateRadius(const QList<Node_ *> &cps)
 {
   MinMaxRandomNumGenerator randGen{ radiusStartSpinBox_->value(),
     radiusEndSpinBox_->value() };
+  
+  qDebug()<<" randValue: "<<randGen.gen();
 
   for (Node_ *cp : cps){
     manipulateCPs_->scaleRadius(cp, randGen.gen());

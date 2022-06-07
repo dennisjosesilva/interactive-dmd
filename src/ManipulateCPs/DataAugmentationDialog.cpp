@@ -20,18 +20,15 @@
 MinMaxRandomNumGenerator::MinMaxRandomNumGenerator(float min, float max)
   : min_{min}, max_{max},
     dist_{(min + max) / 2.0f, max-min},
-    generator_{std::chrono::system_clock::now().time_since_epoch().count()}
-{
-}
+    generator_{std::random_device()()}
+{ }
 
 MinMaxRandomNumGenerator::MinMaxRandomNumGenerator(unsigned int seed, 
   float min, float max)
   : min_{min}, max_{max},
     dist_{(min + max) / 2.0f, max-min},
     generator_{seed}
-{
-
-}
+{ }
 
 float MinMaxRandomNumGenerator::gen() 
 {
@@ -276,11 +273,13 @@ void DataAugmentationDialog::generateBtn_onClicked()
 
 void DataAugmentationDialog::generateTranslation(const QList<Node_ *> cps)
 {
-  MinMaxRandomNumGenerator dyRandGen{dyStartSpinBox_->value(), 
-    dyEndSpinBox_->value()};
+  MinMaxRandomNumGenerator dyRandGen{
+    static_cast<float>(dyStartSpinBox_->value()), 
+    static_cast<float>(dyEndSpinBox_->value())};
 
-  MinMaxRandomNumGenerator dxRandGen{dxStartSpinBox_->value(), 
-    dxEndSpinBox_->value()};
+  MinMaxRandomNumGenerator dxRandGen{
+    static_cast<float>(dxStartSpinBox_->value()), 
+    static_cast<float>(dxEndSpinBox_->value())};
   
   for (Node_ *cp : cps) {
     qreal dx = 0.0f;
@@ -298,8 +297,9 @@ void DataAugmentationDialog::generateTranslation(const QList<Node_ *> cps)
 
 void DataAugmentationDialog::generateRadius(const QList<Node_ *> &cps)
 {
-  MinMaxRandomNumGenerator randGen{ radiusStartSpinBox_->value(),
-    radiusEndSpinBox_->value() };
+  MinMaxRandomNumGenerator randGen{ 
+    static_cast<float>(radiusStartSpinBox_->value()),
+    static_cast<float>(radiusEndSpinBox_->value())};
   
   for (Node_ *cp : cps){
     float r = randGen.gen();
@@ -310,8 +310,9 @@ void DataAugmentationDialog::generateRadius(const QList<Node_ *> &cps)
 
 void DataAugmentationDialog::generateRotation(const QList<Node_ *> &cps)
 {
-  MinMaxRandomNumGenerator randGen{ rotationStartSpinBox_->value(), 
-    rotationEndSpinBox_->value() };
+  MinMaxRandomNumGenerator randGen{ 
+    static_cast<float>(rotationStartSpinBox_->value()), 
+    static_cast<float>(rotationEndSpinBox_->value()) };
 
   qreal cx = 0;
   qreal cy = 0;
@@ -332,8 +333,9 @@ void DataAugmentationDialog::generateRotation(const QList<Node_ *> &cps)
 
 void DataAugmentationDialog::generateScale(const QList<Node_ *> &cps)
 {
-  MinMaxRandomNumGenerator randGen{ scaleStartSpinBox_->value(), 
-    scaleEndSpinBox_->value() };
+  MinMaxRandomNumGenerator randGen{ 
+    static_cast<float>(scaleStartSpinBox_->value()), 
+    static_cast<float>(scaleEndSpinBox_->value()) };
 
   qreal cx = 0;
   qreal cy = 0;

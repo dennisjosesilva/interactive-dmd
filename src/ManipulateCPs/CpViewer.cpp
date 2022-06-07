@@ -222,7 +222,7 @@ void CpViewer::ReconImageBtn_press()
 
 void CpViewer::RandomChangeGenBtn_press()
 {
-  DataAugmentationDialog dialog{manipulate_CPs};
+  DataAugmentationDialog dialog{manipulate_CPs, Max_Tree, recon_, this};
 
   dialog.exec(); 
 }

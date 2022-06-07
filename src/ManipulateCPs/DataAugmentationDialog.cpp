@@ -2,12 +2,21 @@
 #include "ManipulateCPs/ManipulateCPs.hpp"
 #include "ManipulateCPs/node.hpp"
 
+#include "SDMD/dmdReconstruct.hpp"
+
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QCheckBox>
 #include <QGridLayout>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QFrame>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <limits>
+#include <QFileDialog>
+#include <QComboBox>
+#include <QDir>
 
 #include <QGraphicsScene>
 
@@ -47,8 +56,9 @@ float MinMaxRandomNumGenerator::gen()
 // DataAugmentationDialog 
 // ===========================================================================
 DataAugmentationDialog::DataAugmentationDialog(ManipulateCPs *manipulateCPs,
-  QWidget *parent)
-  : QDialog{parent}, manipulateCPs_{manipulateCPs}
+  bool maxTree, dmdReconstruct *recon, QWidget *parent)
+  : QDialog{parent}, manipulateCPs_{manipulateCPs}, 
+    recon_{recon}, maxTree_{maxTree}
 {
   QVBoxLayout *layout = new QVBoxLayout;
   inputLayout_ = new QGridLayout;
@@ -58,9 +68,15 @@ DataAugmentationDialog::DataAugmentationDialog(ManipulateCPs *manipulateCPs,
   createRadiusInput();
   createRotationInput();
   createScaleInput();
-  createGenerateBtn();
   
   layout->addLayout(inputLayout_);
+
+  layout->addItem(createGenerateBtn());
+
+  layout->addWidget(createHLineFrame());
+  layout->addSpacing(18);
+  layout->addItem(createMultiSampleGeneratorPanel());
+
   setLayout(layout);
 }
 
@@ -179,12 +195,17 @@ void DataAugmentationDialog::createScaleInput()
   inputLayout_->addWidget(new QLabel{"times", this}, 4, 5);
 }
 
-void DataAugmentationDialog::createGenerateBtn()
+QLayout *DataAugmentationDialog::createGenerateBtn()
 {
+  QHBoxLayout *hlayout = new QHBoxLayout;
+
+  hlayout->setAlignment(Qt::AlignRight);
+
   generateBtn_ = new QPushButton(tr("Generate changes"), this);
   connect(generateBtn_, &QPushButton::clicked, this, 
     &DataAugmentationDialog::generateBtn_onClicked);
-  inputLayout_->addWidget(generateBtn_, 5, 5);
+  hlayout->addWidget(generateBtn_);
+  return hlayout;
 }
 
 // ============================================================
@@ -255,20 +276,7 @@ void DataAugmentationDialog::scaleCheckBox_stateChanged(int state)
 // =============================================================================
 void DataAugmentationDialog::generateBtn_onClicked()
 {
-  QList<Node_ *> cps = manipulateCPs_->selectedCPs();
-  if (cps.size() == 0)
-    cps = manipulateCPs_->allCPs();
-
-  generateTranslation(cps);
-
-  if (radiusCheckBox_->isChecked())
-    generateRadius(cps);
-
-  if (rotationCheckBox_->isChecked())
-    generateRotation(cps);
-
-  if (scaleCheckBox_->isChecked())
-    generateScale(cps);
+  generateRandomChanges();
 }
 
 void DataAugmentationDialog::generateTranslation(const QList<Node_ *> cps)
@@ -352,4 +360,150 @@ void DataAugmentationDialog::generateScale(const QList<Node_ *> &cps)
   for (Node_ *cp : cps) {
     manipulateCPs_->scaleCP(cp, cx, cy, scale);
   }
+}
+
+QLayout *DataAugmentationDialog::createMultiSampleGeneratorPanel()
+{
+  QVBoxLayout *vlayout = new QVBoxLayout;
+  
+  QLabel *titleLabel = new QLabel{tr("Multi Sample Generation"), this};
+  QFont font = titleLabel->font();
+  font.setPointSize(18);
+  font.setBold(true);
+  font.setUnderline(true);
+  titleLabel->setFont(font);
+  titleLabel->setAlignment(Qt::AlignCenter);
+  vlayout->addWidget(titleLabel);
+  
+  vlayout->addSpacing(12);
+
+  QGridLayout *gridLayout = new QGridLayout;
+  gridLayout->setSpacing(5);
+
+  QLabel *directoryLabel = new QLabel{"directory: ", this};
+  directoryLineEdit_ = new QLineEdit{this};
+  directoryLineEdit_->setText(tr("resized-image"));
+  QPushButton *browserBtn = new QPushButton{this};
+  browserBtn->setText(tr("Browser..."));
+  connect(browserBtn, &QPushButton::clicked, this, 
+    &DataAugmentationDialog::browserBtn_onClick);
+  gridLayout->addWidget(directoryLabel, 0, 0);
+  gridLayout->addWidget(directoryLineEdit_, 0, 1);
+  gridLayout->addWidget(browserBtn, 0, 2);
+
+  QLabel *basenameLabel = new QLabel{"basename: ", this};
+  basenameLineEdit_ = new QLineEdit{this};
+  basenameLineEdit_->setText("");
+  gridLayout->addWidget(basenameLabel, 1, 0);
+  gridLayout->addWidget(basenameLineEdit_);
+
+  QLabel *fileExtLabel = new QLabel{tr("file extension: "), this};
+  fileExtComboBox_ = new QComboBox{this};
+  fileExtComboBox_->addItems({"png", "pgm", "jpg", "tif", "gif"});
+  fileExtComboBox_->setCurrentIndex(0);
+  gridLayout->addWidget(fileExtLabel, 2, 0);
+  gridLayout->addWidget(fileExtComboBox_, 2, 1);
+
+  QLabel *startIndexLabel = new QLabel{"start index: ", this};
+  startIndexSpinBox_ = new QSpinBox{this};
+  startIndexSpinBox_->setRange(0, std::numeric_limits<int>::max());
+  startIndexSpinBox_->setValue(0);
+  startIndexSpinBox_->setSingleStep(1);
+  gridLayout->addWidget(startIndexLabel, 3, 0);
+  gridLayout->addWidget(startIndexSpinBox_, 3, 1);
+
+  QLabel *numberOfSamplesLabel = new QLabel{"number of samples: ", this};
+  numberOfSamplesSpinBox_ = new QSpinBox{this};
+  numberOfSamplesSpinBox_->setRange(1, 100);
+  numberOfSamplesSpinBox_->setSingleStep(1);
+  gridLayout->addWidget(numberOfSamplesLabel, 4, 0);
+  gridLayout->addWidget(numberOfSamplesSpinBox_, 4, 1);
+
+  QHBoxLayout *hlayout = new QHBoxLayout;
+  hlayout->setAlignment(Qt::AlignRight);
+
+  generateMultiBtn_ = new QPushButton{tr("Generate multi samples"), this};
+  connect(generateMultiBtn_, &QPushButton::clicked, this, 
+    &DataAugmentationDialog::generateMultiBtn_onClick);
+  hlayout->addWidget(generateMultiBtn_);
+
+  vlayout->addLayout(gridLayout);
+  vlayout->addSpacing(18);
+  vlayout->addLayout(hlayout);
+  return vlayout;
+}
+
+QFrame *DataAugmentationDialog::createHLineFrame()
+{
+  QFrame *hline = new QFrame;
+  hline->setFrameShape(QFrame::HLine);
+  return hline;
+}
+
+void DataAugmentationDialog::browserBtn_onClick()
+{
+  // QFileDialog dialog{this};
+  // dialog.setOption(QFileDialog::Option::ShowDirsOnly, true);
+  // dialog.setAcceptMode(QFileDialog::AcceptOpen);
+  // dialog.setFileMode(QFileDialog::Directory);
+  
+  
+  // bool accept = dialog.exec() == QFileDialog::Accepted;
+
+  // if (accept && dialog.selectedFiles().count() > 0) {
+  //   const QString directory = dialog.selectedFiles().constFirst();
+  //   directoryLineEdit_->setText(directory);
+  // }
+
+  QString directory = QFileDialog::getExistingDirectory(0, 
+    tr("Select output directory"), QDir::currentPath(), QFileDialog::Option::ShowDirsOnly);
+  directoryLineEdit_->setText(directory);
+}
+
+void DataAugmentationDialog::generateMultiBtn_onClick()
+{
+  int startIndex = startIndexSpinBox_->value();
+  int numberOfSamples = numberOfSamplesSpinBox_->value();
+  QString directory = directoryLineEdit_->text();
+  QString basename = basenameLineEdit_->text();
+
+  for (int i=0; i < numberOfSamples; ++i) {
+    int curIdx = startIndex + i;
+    QString imgExt = fileExtComboBox_->currentText();
+    QString ofile = tr("%0/%1%2.%3").arg(directory, basename, 
+      QString::number(curIdx), imgExt);
+    
+    generateRandomChanges();
+    QImage img = reconImage();
+
+    img.save(ofile);
+
+    qDebug() << tr("{ofile} produced with random changes.") ;
+  }
+}
+
+void DataAugmentationDialog::generateRandomChanges()
+{
+  QList<Node_ *> cps = manipulateCPs_->selectedCPs();
+  if (cps.size() == 0)
+    cps = manipulateCPs_->allCPs();
+
+  generateTranslation(cps);
+
+  if (radiusCheckBox_->isChecked())
+    generateRadius(cps);
+
+  if (rotationCheckBox_->isChecked())
+    generateRotation(cps);
+
+  if (scaleCheckBox_->isChecked())
+    generateScale(cps);
+}
+
+QImage DataAugmentationDialog::reconImage()
+{
+  manipulateCPs_->ReconFromMovedCPs(recon_, maxTree_);
+  manipulateCPs_->ReconImageFromMovedCPs(recon_, maxTree_);
+
+  return recon_->getOutQImage();
 }

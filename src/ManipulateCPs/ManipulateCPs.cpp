@@ -1293,6 +1293,8 @@ void ManipulateCPs::scaleCP(Node_ *cp, qreal cx, qreal cy, qreal scale)
   cp->setRadius(setR);
 }
 
+
+
 void ManipulateCPs::drawPoint(qreal px, qreal py)
 {
   QPointF scenePoint{px, py};

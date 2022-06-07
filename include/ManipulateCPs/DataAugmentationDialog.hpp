@@ -7,13 +7,19 @@
 
 
 class QDoubleSpinBox;
+class QSpinBox;
 class QLabel;
 class QCheckBox;
 class QGridLayout;
 class QPushButton;
+class QLineEdit;
+class QFrame;
+class QComboBox; 
 
 class ManipulateCPs;
 class Node_;
+
+class dmdReconstruct;
 
 // Class and implementation based on 
 // https://stackoverflow.com/questions/28618900/c-generate-random-numbers-following-normal-distribution-within-range
@@ -37,7 +43,8 @@ private:
 class DataAugmentationDialog : public QDialog
 {
 public:
-  DataAugmentationDialog(ManipulateCPs *manipulateCPs_, QWidget *parent=nullptr);
+  DataAugmentationDialog(ManipulateCPs *manipulateCPs_, 
+    bool maxTree, dmdReconstruct *recon, QWidget *parent=nullptr);
 
 private:
   void createDXInput();
@@ -46,11 +53,19 @@ private:
   void createRotationInput();
   void createScaleInput();
 
-  void createGenerateBtn();
+  QLayout *createGenerateBtn();
   void generateTranslation(const QList<Node_ *> cps);
   void generateRadius(const QList<Node_ *> &cps);
   void generateRotation(const QList<Node_ *> &cps);
   void generateScale(const QList<Node_ *> &cps);
+
+  QFrame *createHLineFrame();
+  QLayout *createMultiSampleGeneratorPanel();
+
+  void generateRandomChanges();
+
+
+  QImage reconImage();
 
 protected slots:
   void dxCheckBox_stateChanged(int state);
@@ -60,6 +75,10 @@ protected slots:
   void scaleCheckBox_stateChanged(int state);
 
   void generateBtn_onClicked();
+
+  // Multi samples generation
+  void browserBtn_onClick();
+  void generateMultiBtn_onClick();
 
 private:
   QGridLayout *inputLayout_;
@@ -86,5 +105,15 @@ private:
 
   QPushButton *generateBtn_;
 
+  QLineEdit *directoryLineEdit_;
+  QLineEdit *basenameLineEdit_;
+  QComboBox *fileExtComboBox_;
+  QSpinBox *startIndexSpinBox_;
+  QSpinBox *numberOfSamplesSpinBox_;
+  QPushButton *generateMultiBtn_;
+  
   ManipulateCPs *manipulateCPs_;
+
+  dmdReconstruct *recon_;
+  bool maxTree_;
 };

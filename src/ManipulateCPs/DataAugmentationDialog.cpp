@@ -478,8 +478,10 @@ void DataAugmentationDialog::generateMultiBtn_onClick()
 
     img.save(ofile);
 
-    qDebug() << tr("{ofile} produced with random changes.") ;
+    qDebug() << tr("%0 produced with random changes.").arg(ofile);
   }
+
+  accept();
 }
 
 void DataAugmentationDialog::generateRandomChanges()

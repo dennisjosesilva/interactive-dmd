@@ -1233,36 +1233,37 @@ QList<Node_ *> ManipulateCPs::allCPs()
 
 void ManipulateCPs::translateCP(Node_ *cp, qreal dx, qreal dy)
 {
-  using ControlPoint = vector<Vector3<float>>;
-  vector<ControlPoint> &CPlist = CPlistMap[cp->getComponentId()];
+  //using ControlPoint = vector<Vector3<float>>;
+  //vector<ControlPoint> &CPlist = CPlistMap[cp->getComponentId()];
 
-  cp->setX(cp->x() + dx);
-  cp->setY(cp->y() + dy);
-
-  CPlist[cp->getIndexM()][cp->getIndexN()][0] = cp->x() + (w / 2);
-  CPlist[cp->getIndexM()][cp->getIndexN()][1] = cp->y() + (h / 2);
-  CPlistMap.insert(cp->getComponentId(), CPlist);
+  //cp->setX(cp->x() + dx);
+  //cp->setY(cp->y() + dy);
+  if(CPlistMap.size() == 1){
+    CPlistForOneNode[cp->getIndexM()][cp->getIndexN()][0] = cp->x() + dx + (w / 2);
+    CPlistForOneNode[cp->getIndexM()][cp->getIndexN()][1] = cp->y() + dy + (h / 2);
+  }
+  else{
+    vector<vector<Vector3<float>>> CPlist = CPlistMap[cp->getComponentId()];
+    CPlist[cp->getIndexM()][cp->getIndexN()][0] = cp->x() + dx + (w / 2);
+    CPlist[cp->getIndexM()][cp->getIndexN()][1] = cp->y() + dy + (h / 2);
+    CPlistMap.insert(cp->getComponentId(), CPlist);
+  }
 }
 
 void ManipulateCPs::scaleRadius(Node_ *cp, qreal scale)
 {
-  
   int setR = cp->getRadius() * scale;
-  cp->setRadius(setR);
-  cp->update();
+  //cp->setRadius(setR);
+  //cp->update();
   
-  if(CPlistMap.size() == 1){
+  if(CPlistMap.size() == 1)
     CPlistForOneNode[cp->getIndexM()][cp->getIndexN()][2] = setR;
-    emit PressNode(setR, 0);
-  }
   else{
     using ControlPoint = vector<Vector3<float>>;
     vector<ControlPoint> &CPlist = CPlistMap[cp->getComponentId()];
     CPlist[cp->getIndexM()][cp->getIndexN()][2] = setR;
     CPlistMap.insert(cp->getComponentId(), CPlist);
-    emit PressNode(setR, 0);
   }
-
 }
 
 void ManipulateCPs::rotateCP(Node_ *cp, qreal cx, qreal cy, qreal angle)
@@ -1275,7 +1276,20 @@ void ManipulateCPs::rotateCP(Node_ *cp, qreal cx, qreal cy, qreal angle)
   rotatedPoint.rx() = (pos.x() - cx)*qCos(rangle) - (pos.y() - cy)*qSin(rangle) + cx;
   rotatedPoint.ry() = (pos.x() - cx)*qSin(rangle) + (pos.y() - cy)*qCos(rangle) + cy;
 
-  cp->setPos(rotatedPoint);  
+  //cp->setPos(rotatedPoint);  
+
+  if(CPlistMap.size() == 1){
+    CPlistForOneNode[cp->getIndexM()][cp->getIndexN()][0] = rotatedPoint.rx() + w/2;
+    CPlistForOneNode[cp->getIndexM()][cp->getIndexN()][1] = rotatedPoint.ry() + h/2;
+  }
+  else{
+    vector<vector<Vector3<float>>> CPlist = CPlistMap[cp->getComponentId()];
+    CPlist[cp->getIndexM()][cp->getIndexN()][0] = rotatedPoint.rx() + w/2;
+    CPlist[cp->getIndexM()][cp->getIndexN()][1] = rotatedPoint.ry() + h/2;
+    //If there is already an item with the key key, that item's value is replaced with value.
+    CPlistMap.insert(cp->getComponentId(), CPlist);
+  }
+
 }
 
 void ManipulateCPs::scaleCP(Node_ *cp, qreal cx, qreal cy, qreal scale)
@@ -1287,10 +1301,24 @@ void ManipulateCPs::scaleCP(Node_ *cp, qreal cx, qreal cy, qreal scale)
   changedPos.rx() = cx + (p.x() - cx) * scale;
   changedPos.ry() = cy + (p.y() - cy) * scale;
 
-  cp->setPos(changedPos);
+  //cp->setPos(changedPos);
 
   int setR = cp->getRadius() * scale;
-  cp->setRadius(setR);
+  //cp->setRadius(setR);
+
+  if(CPlistMap.size() == 1){
+    CPlistForOneNode[cp->getIndexM()][cp->getIndexN()][0] = changedPos.rx() + w/2;
+    CPlistForOneNode[cp->getIndexM()][cp->getIndexN()][1] = changedPos.ry() + h/2;
+    CPlistForOneNode[cp->getIndexM()][cp->getIndexN()][2] = setR;
+  }
+  else{
+    vector<vector<Vector3<float>>> CPlist = CPlistMap[cp->getComponentId()];
+    CPlist[cp->getIndexM()][cp->getIndexN()][0] = changedPos.rx() + w/2;
+    CPlist[cp->getIndexM()][cp->getIndexN()][1] = changedPos.ry() + h/2;
+    CPlist[cp->getIndexM()][cp->getIndexN()][2] = setR;
+    //If there is already an item with the key key, that item's value is replaced with value.
+    CPlistMap.insert(cp->getComponentId(), CPlist);
+  }
 }
 
 

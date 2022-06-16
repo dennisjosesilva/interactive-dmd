@@ -47,8 +47,7 @@ public:
     bool maxTree, dmdReconstruct *recon, QWidget *parent=nullptr);
 
 private:
-  void createDXInput();
-  void createDYInput();
+  void createDisplacementInput();
   void createRadiusInput();
   void createRotationInput();
   void createScaleInput();
@@ -64,12 +63,10 @@ private:
 
   void generateRandomChanges();
 
-
   QImage reconImage();
 
 protected slots:
-  void dxCheckBox_stateChanged(int state);
-  void dyCheckBox_stateChanged(int state);
+  void displacementCheckBox_stateChanged(int state);
   void radiusCheckBox_stateChanged(int state);
   void rotationCheckBox_stateChanged(int state);
   void scaleCheckBox_stateChanged(int state);
@@ -83,13 +80,8 @@ protected slots:
 private:
   QGridLayout *inputLayout_;
 
-  QCheckBox *dxCheckBox_;
-  QDoubleSpinBox *dxStartSpinBox_;
-  QDoubleSpinBox *dxEndSpinBox_;
-
-  QCheckBox *dyCheckBox_;
-  QDoubleSpinBox *dyStartSpinBox_;
-  QDoubleSpinBox *dyEndSpinBox_;
+  QCheckBox *displacementCheckBox_;
+  QDoubleSpinBox *displacementSpinBox_;
 
   QCheckBox *radiusCheckBox_;
   QDoubleSpinBox *radiusStartSpinBox_;

@@ -63,8 +63,7 @@ DataAugmentationDialog::DataAugmentationDialog(ManipulateCPs *manipulateCPs,
   QVBoxLayout *layout = new QVBoxLayout;
   inputLayout_ = new QGridLayout;
 
-  createDXInput();
-  createDYInput();
+  createDisplacementInput();
   createRadiusInput();
   createRotationInput();
   createScaleInput();
@@ -80,50 +79,21 @@ DataAugmentationDialog::DataAugmentationDialog(ManipulateCPs *manipulateCPs,
   setLayout(layout);
 }
 
-void DataAugmentationDialog::createDXInput()
+void DataAugmentationDialog::createDisplacementInput()
 {
-  dxCheckBox_ = new QCheckBox{tr("dx"), this};
-  dxCheckBox_->setChecked(true);
-  connect(dxCheckBox_, &QCheckBox::stateChanged, this, 
-    &DataAugmentationDialog::dxCheckBox_stateChanged);
+  displacementCheckBox_ = new QCheckBox{tr("displacement"), this};
+  displacementCheckBox_->setChecked(true);
+  connect(displacementCheckBox_, &QCheckBox::stateChanged, this,
+    &DataAugmentationDialog::displacementCheckBox_stateChanged);
 
-  dxStartSpinBox_ = new QDoubleSpinBox{this};
-  dxStartSpinBox_->setRange(-99.99, 99.99);
-  dxStartSpinBox_->setValue(-0.5);
+  displacementSpinBox_ = new QDoubleSpinBox{this};
+  displacementSpinBox_->setRange(0, 1000);
+  displacementSpinBox_->setValue(5);
 
-  dxEndSpinBox_ = new QDoubleSpinBox{this};
-  dxEndSpinBox_->setRange(-99.99, 99.99);
-  dxEndSpinBox_->setValue(0.5);
-
-  inputLayout_->addWidget(dxCheckBox_, 0, 0);
-  inputLayout_->addWidget(new QLabel{"from", this}, 0, 1);
-  inputLayout_->addWidget(dxStartSpinBox_, 0, 2);
-  inputLayout_->addWidget(new QLabel{"to", this}, 0, 3);
-  inputLayout_->addWidget(dxEndSpinBox_, 0, 4);
-  inputLayout_->addWidget(new QLabel{"pixels", this}, 0, 5);
-}
-
-void DataAugmentationDialog::createDYInput()
-{
-  dyCheckBox_ = new QCheckBox{tr("dy"), this};
-  dyCheckBox_->setChecked(true);
-  connect(dyCheckBox_, &QCheckBox::stateChanged, this, 
-    &DataAugmentationDialog::dyCheckBox_stateChanged);
-
-  dyStartSpinBox_ = new QDoubleSpinBox{this}; 
-  dyStartSpinBox_->setRange(-99.99, 99.99);
-  dyStartSpinBox_->setValue(-0.5);
-
-  dyEndSpinBox_ = new QDoubleSpinBox{this};
-  dyEndSpinBox_->setRange(-99.99, 99.99);
-  dyEndSpinBox_->setValue(0.5);
-
-  inputLayout_->addWidget(dyCheckBox_, 1, 0);
-  inputLayout_->addWidget(new QLabel{"from", this}, 1, 1);
-  inputLayout_->addWidget(dyStartSpinBox_, 1, 2);
-  inputLayout_->addWidget(new QLabel{"to", this}, 1, 3);
-  inputLayout_->addWidget(dyEndSpinBox_, 1, 4);
-  inputLayout_->addWidget(new QLabel{"pixels", this}, 1, 5);
+  inputLayout_->addWidget(displacementCheckBox_, 0, 0);
+  inputLayout_->addWidget(new QLabel{"radius"}, 0, 1);
+  inputLayout_->addWidget(displacementSpinBox_, 0, 2);
+  inputLayout_->addWidget(new QLabel{"pixels"}, 0, 3);
 }
 
 void DataAugmentationDialog::createRadiusInput()
@@ -208,30 +178,16 @@ QLayout *DataAugmentationDialog::createGenerateBtn()
   return hlayout;
 }
 
-// ============================================================
+// =======================================================================
 // CHECK BOX EVENT 
-// ============================================================
-void DataAugmentationDialog::dxCheckBox_stateChanged(int state)
+// =======================================================================
+void DataAugmentationDialog::displacementCheckBox_stateChanged(int state)
 {
   if (state == Qt::Checked) {
-    dxStartSpinBox_->setEnabled(true);
-    dxEndSpinBox_->setEnabled(true);
+    displacementSpinBox_->setEnabled(true);
   }
   else {
-    dxStartSpinBox_->setEnabled(false);
-    dxEndSpinBox_->setEnabled(false);
-  }
-}
-
-void DataAugmentationDialog::dyCheckBox_stateChanged(int state)
-{
-  if (state == Qt::Checked) {
-    dyStartSpinBox_->setEnabled(true);
-    dyEndSpinBox_->setEnabled(true);
-  }
-  else {
-    dyStartSpinBox_->setEnabled(false);
-    dyEndSpinBox_->setEnabled(false);
+    displacementSpinBox_->setEnabled(false);
   }
 }
 
@@ -281,24 +237,18 @@ void DataAugmentationDialog::generateBtn_onClicked()
 
 void DataAugmentationDialog::generateTranslation(const QList<Node_ *> cps)
 {
-  MinMaxRandomNumGenerator dyRandGen{
-    static_cast<float>(dyStartSpinBox_->value()), 
-    static_cast<float>(dyEndSpinBox_->value())};
+  float disRadius = static_cast<float>(displacementSpinBox_->value());
 
-  MinMaxRandomNumGenerator dxRandGen{
-    static_cast<float>(dxStartSpinBox_->value()), 
-    static_cast<float>(dxEndSpinBox_->value())};
-  
+  MinMaxRandomNumGenerator dispRandGenDX{-disRadius, disRadius};
+  MinMaxRandomNumGenerator dispRandGenDY{-disRadius, disRadius};
+
   for (Node_ *cp : cps) {
     qreal dx = 0.0f;
     qreal dy = 0.0f;
 
-    if (dxCheckBox_->isChecked()) {
-      dx = dxRandGen.gen();
-    }
-    else if (dyCheckBox_->isChecked()) {      
-      dy = dyRandGen.gen();
-    }
+    dx = dispRandGenDX.gen();
+    dy = dispRandGenDY.gen();
+  
     manipulateCPs_->translateCP(cp, dx, dy);
   }
 }
@@ -490,7 +440,8 @@ void DataAugmentationDialog::generateRandomChanges()
   if (cps.size() == 0)
     cps = manipulateCPs_->allCPs();
 
-  generateTranslation(cps);
+  if (displacementCheckBox_->isChecked())
+    generateTranslation(cps);
 
   if (radiusCheckBox_->isChecked())
     generateRadius(cps);

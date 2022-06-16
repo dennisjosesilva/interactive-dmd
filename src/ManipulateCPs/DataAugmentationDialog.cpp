@@ -157,12 +157,12 @@ void DataAugmentationDialog::createRotationInput()
     &DataAugmentationDialog::rotationCheckBox_stateChanged);
 
   rotationStartSpinBox_ = new QDoubleSpinBox{this};
-  rotationStartSpinBox_->setRange(0.0, 360.0);
-  rotationStartSpinBox_->setValue(0.0);
+  rotationStartSpinBox_->setRange(-360.0, 360.0);
+  rotationStartSpinBox_->setValue(-15.0);
 
   rotationEndSpinBox_ = new QDoubleSpinBox{this};
-  rotationEndSpinBox_->setRange(0.0, 360.0);
-  rotationEndSpinBox_->setValue(5.0);
+  rotationEndSpinBox_->setRange(-360.0, 360.0);
+  rotationEndSpinBox_->setValue(15.0);
 
   inputLayout_->addWidget(rotationCheckBox_, 3, 0);
   inputLayout_->addWidget(new QLabel{"from", this}, 3, 1);

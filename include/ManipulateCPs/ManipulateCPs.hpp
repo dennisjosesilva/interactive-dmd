@@ -9,6 +9,8 @@
 #include <QGraphicsLineItem>
 #include <fstream>
 
+#include "ManipulateCPs/ControlPoint.hpp"
+
 //class Edge;
 
 class ManipulateCPs : public QGraphicsView
@@ -69,6 +71,8 @@ public:
   void scaleRadius(Node_ *cp, qreal scale);
   void rotateCP(Node_ *cp, qreal cx, qreal cy, qreal angle);
   void scaleCP(Node_ *cp, qreal cx, qreal cy, qreal scale);
+
+  void updateParams(const QVector<ControlPoint> &cps);
 
   void drawPoint(qreal px, qreal py);
 

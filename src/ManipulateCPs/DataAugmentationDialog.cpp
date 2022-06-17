@@ -17,6 +17,7 @@
 #include <QFileDialog>
 #include <QComboBox>
 #include <QDir>
+#include <QtMath>
 
 #include <QGraphicsScene>
 
@@ -235,38 +236,37 @@ void DataAugmentationDialog::generateBtn_onClicked()
   generateRandomChanges();
 }
 
-void DataAugmentationDialog::generateTranslation(const QList<Node_ *> cps)
+void DataAugmentationDialog::generateTranslation(QVector<ControlPoint> &cps)
 {
   float disRadius = static_cast<float>(displacementSpinBox_->value());
 
   MinMaxRandomNumGenerator dispRandGenDX{-disRadius, disRadius};
   MinMaxRandomNumGenerator dispRandGenDY{-disRadius, disRadius};
 
-  for (Node_ *cp : cps) {
+  for (ControlPoint &cp : cps) {
     qreal dx = 0.0f;
     qreal dy = 0.0f;
 
     dx = dispRandGenDX.gen();
     dy = dispRandGenDY.gen();
   
-    manipulateCPs_->translateCP(cp, dx, dy);
+    cp.pos.rx() += dx;
+    cp.pos.ry() += dy;
   }
 }
 
-void DataAugmentationDialog::generateRadius(const QList<Node_ *> &cps)
+void DataAugmentationDialog::generateRadius(QVector<ControlPoint> &cps)
 {
   MinMaxRandomNumGenerator randGen{ 
     static_cast<float>(radiusStartSpinBox_->value()),
     static_cast<float>(radiusEndSpinBox_->value())};
   
-  for (Node_ *cp : cps){
-    float r = randGen.gen();
-    qDebug()<<" randValue: " << r;
-    manipulateCPs_->scaleRadius(cp, randGen.gen());
+  for (ControlPoint &cp : cps){
+    cp.radius *= randGen.gen();
   }
 }
 
-void DataAugmentationDialog::generateRotation(const QList<Node_ *> &cps)
+void DataAugmentationDialog::generateRotation(QVector<ControlPoint> &cps)
 {
   MinMaxRandomNumGenerator randGen{ 
     static_cast<float>(rotationStartSpinBox_->value()), 
@@ -275,21 +275,28 @@ void DataAugmentationDialog::generateRotation(const QList<Node_ *> &cps)
   qreal cx = 0;
   qreal cy = 0;
 
-  for (Node_ *cp : cps) {
-    cx += cp->x();
-    cy += cp->y();
+  for (const ControlPoint &cp : cps) {
+    cx += cp.pos.x();
+    cy += cp.pos.y();
   }
 
   cx /= static_cast<qreal>(cps.size());
   cy /= static_cast<qreal>(cps.size());
 
-  qreal angle = randGen.gen();
-  for (Node_ *cp : cps) {
-    manipulateCPs_->rotateCP(cp, cx, cy, angle);
+  for (ControlPoint &cp : cps) {
+    qreal rangle = qDegreesToRadians(randGen.gen());
+    const QPointF &p = cp.pos;
+    QPointF rotatedPoint; 
+
+    rotatedPoint.rx() = (p.x() - cx)*qCos(rangle) - (p.y() - cy)*qSin(rangle) + cx;
+    rotatedPoint.ry() = (p.x() - cx)*qSin(rangle) + (p.y() - cy)*qCos(rangle) + cy;
+
+    cp.pos.setX(rotatedPoint.x());
+    cp.pos.setY(rotatedPoint.y());
   }
 }
 
-void DataAugmentationDialog::generateScale(const QList<Node_ *> &cps)
+void DataAugmentationDialog::generateScale(QVector<ControlPoint> &cps)
 {
   MinMaxRandomNumGenerator randGen{ 
     static_cast<float>(scaleStartSpinBox_->value()), 
@@ -298,17 +305,23 @@ void DataAugmentationDialog::generateScale(const QList<Node_ *> &cps)
   qreal cx = 0;
   qreal cy = 0;
 
-  for (Node_ *cp : cps) {
-    cx += cp->x();
-    cy += cp->y();
+  for (const ControlPoint &cp : cps) {
+    cx += cp.pos.x();
+    cy += cp.pos.y();
   }
 
   cx /= static_cast<qreal>(cps.size());
   cy /= static_cast<qreal>(cps.size());
 
-  qreal scale = randGen.gen();
-  for (Node_ *cp : cps) {
-    manipulateCPs_->scaleCP(cp, cx, cy, scale);
+  for (ControlPoint &cp : cps) {
+    qreal scale = randGen.gen();
+    const QPointF &p = cp.pos;
+    QPointF changedPos;
+    
+    changedPos.rx() = cx + (p.x() - cx) * scale;
+    changedPos.ry() = cy + (p.y() - cy) * scale;
+
+    cp.radius *= scale;
   }
 }
 
@@ -436,9 +449,21 @@ void DataAugmentationDialog::generateMultiBtn_onClick()
 
 void DataAugmentationDialog::generateRandomChanges()
 {
-  QList<Node_ *> cps = manipulateCPs_->selectedCPs();
-  if (cps.size() == 0)
-    cps = manipulateCPs_->allCPs();
+  QList<Node_ *> mcps = manipulateCPs_->selectedCPs();
+  if (mcps.size() == 0)
+    mcps = manipulateCPs_->allCPs();
+
+  QVector<ControlPoint> cps;
+  cps.reserve(mcps.size()); 
+  
+  for (Node_ *cp : mcps) {
+    cps.append(ControlPoint{
+      cp->getIndexM(),
+      cp->getIndexN(),
+      cp->getComponentId(),
+      cp->getPos(), 
+      cp->getRadius()});
+  }
 
   if (displacementCheckBox_->isChecked())
     generateTranslation(cps);
@@ -451,6 +476,8 @@ void DataAugmentationDialog::generateRandomChanges()
 
   if (scaleCheckBox_->isChecked())
     generateScale(cps);
+
+  manipulateCPs_->updateParams(cps);
 }
 
 QImage DataAugmentationDialog::reconImage()

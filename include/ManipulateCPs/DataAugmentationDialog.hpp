@@ -6,6 +6,8 @@
 #include <random>
 
 
+#include "ManipulateCPs/ControlPoint.hpp"
+
 class QDoubleSpinBox;
 class QSpinBox;
 class QLabel;
@@ -53,10 +55,10 @@ private:
   void createScaleInput();
 
   QLayout *createGenerateBtn();
-  void generateTranslation(const QList<Node_ *> cps);
-  void generateRadius(const QList<Node_ *> &cps);
-  void generateRotation(const QList<Node_ *> &cps);
-  void generateScale(const QList<Node_ *> &cps);
+  void generateTranslation(QVector<ControlPoint> &cps);
+  void generateRadius(QVector<ControlPoint> &cps);
+  void generateRotation(QVector<ControlPoint> &cps);
+  void generateScale(QVector<ControlPoint> &cps);
 
   QFrame *createHLineFrame();
   QLayout *createMultiSampleGeneratorPanel();

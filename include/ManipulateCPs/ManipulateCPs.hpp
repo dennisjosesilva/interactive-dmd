@@ -71,6 +71,7 @@ public:
   void scaleCP(Node_ *cp, qreal cx, qreal cy, qreal scale);
 
   void drawPoint(qreal px, qreal py);
+  inline void setInterpState(bool interp){Interp = interp;}
 
 public: 
 signals: 
@@ -130,4 +131,5 @@ private:
   QList<QGraphicsItem*> selectedList;
   QList<QGraphicsItem*> selectedCPsForCopy;
   bool HaveShownCP = false;
+  bool Interp = false;
 };

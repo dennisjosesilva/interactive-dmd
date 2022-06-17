@@ -372,7 +372,7 @@ bool ManipulateCPs::ReconImageFromMovedCPs(dmdReconstruct *recon, bool max_tree)
     OutLog.close(); 
     vector<int> reconAll;
     reconAll.push_back(10000);//Just make sure reconstruct all nodes.
-    recon->ReconstructMultiNode(false, reconAll, 0, max_tree);
+    recon->ReconstructMultiNode(Interp, reconAll, 0, max_tree);
 
     showBackgroundImg = recon->getOutQImage();
     drawQImage = true;

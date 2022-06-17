@@ -169,10 +169,11 @@ QLayout *CpViewer::createTextLayout()
   
   return TextLayout; 
 }
-void CpViewer::transData(dmdReconstruct* recon, bool MaxTree)
+void CpViewer::transData(dmdReconstruct* recon, bool MaxTree, bool interp)
 {
   recon_ = recon; 
   Max_Tree = MaxTree;
+  manipulate_CPs->setInterpState(interp);
   getCPsMap();
 }
 

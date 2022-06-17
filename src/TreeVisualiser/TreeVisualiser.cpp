@@ -740,7 +740,7 @@ void TreeVisualiser::SplineManipulateBtn_press()
      //cv->transData(mnode->level(), dmdrecon_);
 
     
-    cv->transData(dmdrecon_, max_tree);
+    cv->transData(dmdrecon_, max_tree, mainWidget_->GetInterpState());//add 'Interp' state.
    //}
     
   } 

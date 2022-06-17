@@ -75,6 +75,7 @@ public:
   void updateParams(const QVector<ControlPoint> &cps);
 
   void drawPoint(qreal px, qreal py);
+  inline void setInterpState(bool interp){Interp = interp;}
 
 public: 
 signals: 
@@ -134,4 +135,5 @@ private:
   QList<QGraphicsItem*> selectedList;
   QList<QGraphicsItem*> selectedCPsForCopy;
   bool HaveShownCP = false;
+  bool Interp = false;
 };

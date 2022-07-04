@@ -237,18 +237,25 @@ static void initialiseImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMo
   }
 
   QStringList mimeTypeFilters;
+  // const QByteArrayList supportedMimeTypes = acceptMode == QFileDialog::AcceptOpen
+  //   ? QImageReader::supportedMimeTypes() : QImageWriter::supportedMimeTypes();
   const QByteArrayList supportedMimeTypes = acceptMode == QFileDialog::AcceptOpen
-    ? QImageReader::supportedMimeTypes() : QImageWriter::supportedMimeTypes();
+    ? QByteArrayList{QByteArray{"x-portable-graymap"}} : QImageWriter::supportedMimeTypes();
   
-  for (const QByteArray &mimeTypeName : supportedMimeTypes)
-    mimeTypeFilters.append(mimeTypeName);
+  if (acceptMode == QFileDialog::AcceptOpen) 
+    mimeTypeFilters.append("image/x-portable-graymap");
+  else {
+    for (const QByteArray &mimeTypeName : QImageWriter::supportedMimeTypes()) {
+      mimeTypeFilters.append(mimeTypeName);
+    }
+  }
 
   mimeTypeFilters.sort();
   dialog.setMimeTypeFilters(mimeTypeFilters);
-  dialog.selectMimeTypeFilter("image/jpeg");
+  dialog.selectMimeTypeFilter("image/x-portable-graymap");
   dialog.setAcceptMode(acceptMode);
-  if (acceptMode == QFileDialog::AcceptSave)
-    dialog.setDefaultSuffix("jpg");
+  // if (acceptMode == QFileDialog::AcceptSave)
+  //   dialog.setDefaultSuffix("jpg");
 }
 
 void MainWindow::open()

@@ -89,7 +89,7 @@ void DataAugmentationDialog::createDisplacementInput()
 
   displacementSpinBox_ = new QDoubleSpinBox{this};
   displacementSpinBox_->setRange(0, 1000);
-  displacementSpinBox_->setValue(3);
+  displacementSpinBox_->setValue(15);
 
   inputLayout_->addWidget(displacementCheckBox_, 0, 0);
   inputLayout_->addWidget(new QLabel{"radius"}, 0, 1);
@@ -106,11 +106,11 @@ void DataAugmentationDialog::createRadiusInput()
 
   radiusStartSpinBox_ = new QDoubleSpinBox{this};
   radiusStartSpinBox_->setRange(0.0, 99.99);
-  radiusStartSpinBox_->setValue(0.95);
+  radiusStartSpinBox_->setValue(0.75);
   
   radiusEndSpinBox_ = new QDoubleSpinBox{this};
   radiusEndSpinBox_->setRange(0.0, 99.99);
-  radiusEndSpinBox_->setValue(1.05);
+  radiusEndSpinBox_->setValue(1.50);
 
   inputLayout_->addWidget(radiusCheckBox_, 2, 0);
   inputLayout_->addWidget(new QLabel{"from", this}, 2, 1);
@@ -129,11 +129,11 @@ void DataAugmentationDialog::createRotationInput()
 
   rotationStartSpinBox_ = new QDoubleSpinBox{this};
   rotationStartSpinBox_->setRange(-360.0, 360.0);
-  rotationStartSpinBox_->setValue(-3.0);
+  rotationStartSpinBox_->setValue(-15.0);
 
   rotationEndSpinBox_ = new QDoubleSpinBox{this};
   rotationEndSpinBox_->setRange(-360.0, 360.0);
-  rotationEndSpinBox_->setValue(3.0);
+  rotationEndSpinBox_->setValue(15.0);
 
   inputLayout_->addWidget(rotationCheckBox_, 3, 0);
   inputLayout_->addWidget(new QLabel{"from", this}, 3, 1);
@@ -152,11 +152,11 @@ void DataAugmentationDialog::createScaleInput()
 
   scaleStartSpinBox_ = new QDoubleSpinBox{this};
   scaleStartSpinBox_->setRange(0.0, 99.99);
-  scaleStartSpinBox_->setValue(0.95);
+  scaleStartSpinBox_->setValue(0.75);
 
   scaleEndSpinBox_ = new QDoubleSpinBox{this};
   scaleEndSpinBox_->setRange(0.0, 99.99);
-  scaleEndSpinBox_->setValue(1.05);
+  scaleEndSpinBox_->setValue(1.5);
 
   inputLayout_->addWidget(scaleCheckBox_, 4, 0);
   inputLayout_->addWidget(new QLabel{"from", this}, 4, 1);

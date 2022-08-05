@@ -31,7 +31,8 @@ MainWindow::MainWindow()
   setWindowTitle("Interactive DMD"); 
   //const QString filename = "../../images/Zuckerberg.pgm";
   // const QString filename = "../images/bird.pgm";
-  const QString filename = "../images/art1.pgm";
+  // const QString filename = "../images/art1.pgm";
+  const QString filename = "../images/art_deco.pgm";
   
   mainWidget_ = new MainWidget{this};
  

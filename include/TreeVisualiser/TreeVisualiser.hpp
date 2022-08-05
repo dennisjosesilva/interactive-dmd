@@ -106,6 +106,7 @@ public:
   GNode *curSelectedNode();
   GNode *curSelectedNode() const;
   inline bool hasNodeSelected() const { return curSelectedNodeIndex_ != InvalidNodeIndex; }
+  void goToParent();
   std::vector<bool> recSimpleNode() const;
   std::vector<bool> recFullNode() const;
   std::vector<bool> morphoRecSelectedNodes() const;
@@ -179,9 +180,9 @@ protected slots:
   void removeSkelBtn_press();
   void incNodeReconBtn_press();
   void remNodeReconBtn_press();
-  
-  
   void updateCustomTreeVisualisationWhenRedraw();
+
+  void treeWidget_keyPress(QKeyEvent *e);
 
 private:
   const uint32 InvalidNodeIndex = std::numeric_limits<uint32>::max();

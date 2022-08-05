@@ -85,6 +85,8 @@ TreeVisualiser::TreeVisualiser(MainWidget *mainWidget)
       std::make_shared<BezierFuncNodeFactory>(nullptr,
         0.9f, 0.9f, 0.45f, 0.9f, 0.9f, 0.45f), grayscaleProfile_)};
   treeWidget_->setColorMap(std::make_unique<CETColorMap>());
+  QObject::connect(treeWidget_, &IcicleMorphotreeWidget::keyPress, this, 
+    &TreeVisualiser::treeWidget_keyPress);
 
   treeWidget_->setNodeSelectionColor(Qt::red);
   controlsLayout->addWidget(treeWidget_);  
@@ -388,6 +390,28 @@ IcicleMorphotreeWidget::GNode *TreeVisualiser::curSelectedNode() const
   if (curSelectedNodeIndex_ == InvalidNodeIndex)
     return nullptr;
   return treeWidget_->gnodes()[curSelectedNodeIndex_];
+}
+
+void TreeVisualiser::goToParent() 
+{
+  if (selectedNodes_.count() == 1) {
+    GNode *gnode = treeWidget_->gnodes()[curSelectedNodeIndex_];
+    GNode::MTreeNodePtr mnode = gnode->mnode(); 
+
+    if (mnode->parent() != nullptr) {
+      // deselect current node.
+      clearNodeSelection();
+
+      // select its parent.
+      curSelectedNodeIndex_ = mnode->parent()->id();
+      GNode *curNode = treeWidget_->gnodes()[curSelectedNodeIndex_];
+      selectedNodes_.insert(curSelectedNodeIndex_, curNode);
+      curNode->setSelected(true);
+      curNode->update();
+
+      emit nodeSelectionChanged();
+    }
+  }
 }
 
 void TreeVisualiser::reconstructBinaryImage(SimpleImageViewer *iv, NodePtr node)
@@ -1039,5 +1063,15 @@ void TreeVisualiser::updateCustomTreeVisualisationWhenRedraw()
       gnodes[id]->setSelected(true);
       selectedNodes_.insert(id, gnodes[id]);
     }
+  }
+}
+
+void TreeVisualiser::treeWidget_keyPress(QKeyEvent *e)
+{
+  switch (e->key())
+  {
+  case Qt::Key_P:
+    goToParent();
+    break;
   }
 }

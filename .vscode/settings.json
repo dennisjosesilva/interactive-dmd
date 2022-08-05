@@ -62,5 +62,6 @@
     "future": "cpp",
     "qpushbutton": "cpp",
     "__node_handle": "cpp"
-  }
+  },
+  "C_Cpp.errorSquiggles": "Enabled"
 }

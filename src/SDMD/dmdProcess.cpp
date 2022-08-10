@@ -18,6 +18,7 @@ FIELD<float>* skelImp;//for importance map
 vector<vector<Vector3<float>>> BranchSet;
 vector<int *> connection;
 extern float diagonal;
+bool haveSkeletonPoints = false;
 
 
 dmdProcess::dmdProcess() {
@@ -194,7 +195,7 @@ void find_peaks(double* importance, double width) {
 void detect_layers(int clear_color, double* upper_level, double threshold, bool needAssign)
 {
 
-    int distinguishable_interval = 7; //distinguishable_interval is set to 7
+    int distinguishable_interval = 1; //distinguishable_interval is set to 7
     peaks = 0;
     int i = clear_color;
     int StartPoint = distinguishable_interval; //There is no need to check i and i+1; it is not distinguished by eyes, so check between i and i+StartPoint.
@@ -627,8 +628,13 @@ int dmdProcess:: CalculateCPnum(int i, FIELD<float> *imDupeCurr, int WriteToFile
         }
     }
       //cout<<"enterORnot: "<<enterORnot<<" "<<i<<endl;
-    if(WriteToFile>0 && SkelPoints == 0)  
+    if(WriteToFile>0 && SkelPoints == 0) 
+    {
+        haveSkeletonPoints = false;
         printf(" Attention: There are no skeletons produced for this layer. \n");
+    } 
+    else haveSkeletonPoints = true;
+        
    /*
     std::stringstream ske;
     ske<<"out/s"<<i<<".pgm";
@@ -692,7 +698,7 @@ int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, bool
                 firstTime = false; 
             else 
             { 
-                gray_levels.push_back(i);
+                //gray_levels.push_back(i);
                 // Threshold the image
                 imDupeBack = processedImage->dupe();
                 
@@ -711,6 +717,7 @@ int dmdProcess::computeSkeletons(float saliency_threshold, float hausdorff, bool
                 {
                     printf("Adaptive Layer Encoding method will be added later...\n");
                 }
+                if(haveSkeletonPoints) gray_levels.push_back(i);
                 TotalcpNum += cpNum;    
             }
         }
